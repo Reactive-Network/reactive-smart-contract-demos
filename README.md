@@ -1,66 +1,66 @@
-## Foundry
+# System Smart Contracts for Reactive Network
 
-**Foundry is a blazing fast, portable and modular toolkit for Ethereum application development written in Rust.**
+## Development & Deployment Instructions
 
-Foundry consists of:
+### Environment Setup
 
--   **Forge**: Ethereum testing framework (like Truffle, Hardhat and DappTools).
--   **Cast**: Swiss army knife for interacting with EVM smart contracts, sending transactions and getting chain data.
--   **Anvil**: Local Ethereum node, akin to Ganache, Hardhat Network.
--   **Chisel**: Fast, utilitarian, and verbose solidity REPL.
+To set up `foundry` environment, run:
 
-## Documentation
-
-https://book.getfoundry.sh/
-
-## Usage
-
-### Build
-
-```shell
-$ forge build
+```
+curl -L https://foundry.paradigm.xyz | bash
+source ~/.bashrc
+foundryup
 ```
 
-### Test
+Install dependencies:
 
-```shell
-$ forge test
+```
+forge install
 ```
 
-### Format
+### Development & Testing
 
-```shell
-$ forge fmt
+To compile artifacts:
+
+```
+forge compile
 ```
 
-### Gas Snapshots
+### Additional Documentation & Demos
 
-```shell
-$ forge snapshot
-```
+Refer to `TECH.md` for additional information on implementing reactive contracts and callbacks.
 
-### Anvil
+The `src/demos` directory contains several elaborate demos, accompanied by `README.md` files for each one.
 
-```shell
-$ anvil
-```
+### Environment variable configuration for running demos
 
-### Deploy
+The following environment variables are used in the instructions for running the demos, and should be configured ahead of time.
 
-```shell
-$ forge script script/Counter.s.sol:CounterScript --rpc-url <your_rpc_url> --private-key <your_private_key>
-```
+#### `SEPOLIA_RPC`
 
-### Cast
+RPC address for Sepolia testnet, `https://rpc2.sepolia.org` unless you want to use your own.
 
-```shell
-$ cast <subcommand>
-```
+#### `SEPOLIA_PRIVATE_KEY`
 
-### Help
+Private key to your Sepolia wallet.
 
-```shell
-$ forge --help
-$ anvil --help
-$ cast --help
-```
+#### `REACTIVE_RPC`
+
+RPC address for Reactive testnet, should be set to `https://kopli-rpc.reactive.network/`.
+
+#### `REACTIVE_PRIVATE_KEY`
+
+Private key to your Reactive wallet.
+
+#### `DEPLOYER_ADDR`
+
+The address of your Reactive wallet.
+
+#### `SYSTEM_CONTRACT_ADDR`
+
+System contract address for Reactive testnet, should be set to `0x0000000000000000000000000000000000FFFFFF`.
+
+#### `CALLBACK_SENDER_ADDR`
+
+Refer to the documentation for addresses used by Reactive testnet for callbacks on supported networks.
+
