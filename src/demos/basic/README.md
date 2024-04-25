@@ -72,7 +72,7 @@ The reactive contract in this demo does not employ the full range of cabalities 
 
 ## Deployment for testing
 
-You will need the following enviornment variables configured appropriately to follow this script:
+You will need the following environment variables configured appropriately to follow this script:
 
 * `SEPOLIA_RPC`
 * `SEPOLIA_PRIVATE_KEY`

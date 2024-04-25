@@ -4,7 +4,7 @@ This simple demo monitors token turnovers on all ERC20 contracts, and provides t
 
 ## Deployment for testing
 
-You will need the following enviornment variables configured appropriately to follow this script:
+You will need the following environment variables configured appropriately to follow this script:
 
 * `SEPOLIA_RPC`
 * `SEPOLIA_PRIVATE_KEY`
