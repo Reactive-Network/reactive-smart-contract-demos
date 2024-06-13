@@ -44,7 +44,7 @@ The subscription system allows the Reactive Network (the event provider) to asso
 
 `REACTIVE_IGNORE` is a random value (`0xa65f96fc951c35ead38878e0f0b7a3c744a6f5ccc1476b313353ce31712313ad`) set aside to indicate that you're not interested in the given topic. `0` is used for the same purpose where chain ID and contract address are concerned.
 
-To explain the capabilities by example, you can:
+To explain the capabilities by example, you **CAN**:
 
 * Subscribe to all log records emitted by a specific contract, e.g., to subscribe to all events from `0x7E0987E5b3a30e3f2828572Bb659A548460a3003`, call `subscribe(CHAIN_ID, 0x7E0987E5b3a30e3f2828572Bb659A548460a3003, REACTIVE_IGNORE, REACTIVE_IGNORE, REACTIVE_IGNORE, REACTIVE_IGNORE)` in the constructor.
 
@@ -54,7 +54,7 @@ To explain the capabilities by example, you can:
 
 * Specify multiple independent subscriptions -- just call `subscribe()` multiple times in constructor. Your reactive contract will receive events matching any of its subscriptions.
 
-On the other hand, you can't:
+On the other hand, you **CAN'T**:
 
 * Match the event parameters using less than, greater than, range, or bitwise operations. Only strict equality is supported.
 
