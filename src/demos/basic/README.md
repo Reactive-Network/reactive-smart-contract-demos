@@ -7,46 +7,6 @@ This demo simulates a basic use case of Reactive Network, employing two key capa
 * Low-latency monitoring of logs emitted by arbitrary contracts in L1 Network (Sepolia testnet in this case).
 * Calls from Reactive Network to arbitrary L1 contracts.
 
-[//]: # (```)
-
-[//]: # (+----------------------------------------------------------------+)
-
-[//]: # (| L1 network                                                     |)
-
-[//]: # (| +-------------------------+ +--------------------------------+ |)
-
-[//]: # (| | Origin chain contract   | | Destination chain contract     | |)
-
-[//]: # (| | &#40;BasicDemoL1Contract&#41;   | | &#40;BasicDemoL1Callback&#41;          | |)
-
-[//]: # (| +-------------------------+ +--------------------------------+ |)
-
-[//]: # (+------------------|------------------^--------------------------+)
-
-[//]: # (                   | &#40;emitted log&#41;    | &#40;callback&#41;)
-
-[//]: # (+------------------|------------------|--------------------------+)
-
-[//]: # (| Reactive Net     |                  |                          |)
-
-[//]: # (|        +---------|------------------|--------------+           |)
-
-[//]: # (|        | ReactVM v                  |              |           |)
-
-[//]: # (|        |         +-----------------------------+   |           |)
-
-[//]: # (|        |         | Rective contract            |   |           |)
-
-[//]: # (|        |         | &#40;BasicDemoReactiveContract&#41; |   |           |)
-
-[//]: # (|        |         +-----------------------------+   |           |)
-
-[//]: # (|        +-------------------------------------------+           |)
-
-[//]: # (+----------------------------------------------------------------+)
-
-[//]: # (```)
-
 ```mermaid
 %%{ init: { 'flowchart': { 'curve': 'basis' } } }%%
 flowchart TB
