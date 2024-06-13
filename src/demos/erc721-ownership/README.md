@@ -1,8 +1,8 @@
-# ERC721 Ownership Demo
+# ERC-721 Ownership Demo
 
-This simple demo monitors token ownership changes on all ERC721 contracts, and provides this information on request.
+This demo monitors token ownership changes on all ERC-721 contracts and provides this information upon request.
 
-## Deployment for testing
+## Deployment & Testing
 
 You will need the following environment variables configured appropriately to follow this script:
 
@@ -28,15 +28,16 @@ forge create --rpc-url $REACTIVE_RPC --private-key $REACTIVE_PRIVATE_KEY src/dem
 
 Assign the contract address to `OWNERSHIP_REACTIVE_ADDR`.
 
-Monitor the contract's activity, select an address of a token contract with some activity, and assign it to `ACTIVE_TOKEN_ADDR`. Assign a specific token ID to `ACTIVE_TOKEN_ID`.
+Monitor the contract's activity, select an address of a token contract with some activity, and assign it
+to `ACTIVE_TOKEN_ADDR`. Assign a specific token ID to `ACTIVE_TOKEN_ID`.
 
-Send a data request to Sepolia contract:
+Send a data request to the Sepolia contract:
 
 ```
 cast send $OWNERSHIP_L1_ADDR "request(address,uint256)" --rpc-url $SEPOLIA_RPC --private-key $SEPOLIA_PRIVATE_KEY $ACTIVE_TOKEN_ADDR $ACTIVE_TOKEN_ID
 ```
 
-The contract should emit a log record with collected turnover data on the token in question shortly thereafter.
+The contract should emit a log record with the collected turnover data of the specified token shortly thereafter.
 
 Stop the reactive contract:
 

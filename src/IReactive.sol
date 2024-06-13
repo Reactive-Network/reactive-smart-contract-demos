@@ -13,7 +13,7 @@ interface IReactive {
     );
 
     // @notice Entry point for handling new event notifications.
-    // @param chain_id EIP155 source chain ID for the event (as a `uint256`).
+    // @param chain_id EIP155 origin chain ID for the event (as a `uint256`).
     // @param _contract Address of the originating contract for the received event.
     // @param topic_0 Topic 0 of the event (or `0` for `LOG0`).
     // @param topic_1 Topic 1 of the event (or `0` for `LOG0` and `LOG1`).

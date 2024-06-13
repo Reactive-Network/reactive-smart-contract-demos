@@ -2,69 +2,125 @@
 
 ## Overview
 
+[//]: # (```)
+
+[//]: # (+----------------------------------------------------------+)
+
+[//]: # (| L1 network                                               |)
+
+[//]: # (| +-----------------------+ +----------------------------+ |)
+
+[//]: # (| | Origin chain contract | | Destination chain contract | |)
+
+[//]: # (| +-----------------------+ +----------------------------+ |)
+
+[//]: # (+------------------|------------------^--------------------+)
+
+[//]: # (                   | &#40;emitted log&#41;    | &#40;callback&#41;)
+
+[//]: # (+------------------|------------------|--------------------+)
+
+[//]: # (| Reactive Net     |                  |                    |)
+
+[//]: # (|        +---------|------------------|--------+           |)
+
+[//]: # (|        | ReactVM v                  |        |           |)
+
+[//]: # (|        |         +-----------------------+   |           |)
+
+[//]: # (|        |         | Rective contract      |   |           |)
+
+[//]: # (|        |         +-----------------------+   |           |)
+
+[//]: # (|        +-------------------------------------+           |)
+
+[//]: # (+----------------------------------------------------------+)
+
+[//]: # (```)
+
+```mermaid
+%%{ init: { 'flowchart': { 'curve': 'basis' } } }%%
+flowchart LR
+    subgraph Reactive Network
+        subgraph ReactVM
+            RC(Reactive Contract)
+        end
+    end
+    subgraph L1 Network
+        OCC(Origin Chain Contract)
+        DCC(Destination Chain Contract)
+    end
+OCC -.->|emitted log| RC
+RC -.->|callback| DCC
 ```
-+----------------------------------------------------------+
-| L1 network                                               |
-| +-----------------------+ +----------------------------+ |
-| | Source chain contract | | Destination chain contract | |
-| +-----------------------+ +----------------------------+ |
-+------------------|------------------^--------------------+
-                   | (emitted log)    | (callback)
-+------------------|------------------|--------------------+
-| Reactive Net     |                  |                    |
-|        +---------|------------------|--------+           |
-|        | ReactVM v                  |        |           |
-|        |         +-----------------------+   |           |
-|        |         | Rective contract      |   |           |
-|        |         +-----------------------+   |           |
-|        +-------------------------------------+           |
-+----------------------------------------------------------+
-```
 
-This demo builds on the basic reactive example outlined in `src/demos/basic/README.md`. Refer to that document for outline of fundamental concepts and architecture of reactive applications.
+This demo builds on the basic reactive example presented in `src/demos/basic/README.md`. Refer to that document for
+an outline of fundamental concepts and the architecture of reactive applications. The demo implements simple stop orders
+for Uniswap V2 liquidity pools. The application monitors a specified Uniswap V2 pair, and as soon as the exchange rate
+reaches a given threshold, it initiates a sale of assets through that same pair.
 
-The demo implements simple stop orders for Uniswap V2 liquidity pools. The application monitors the specified Uniswap V2 pair, and as soon as the exchange rate reaches a given threshold, initiates a sale of assets through that same pair.
+## Origin Chain Contract
 
-## Source chain contract(s)
+The stop order application subscribes to `Sync` log records produced by a given Uniswap V2 token pair contract, typically
+emitted on swaps, and deposition or withdrawal of liquidity from the pool. Additionally, the reactive contract subscribes
+to events from its own callback contract to deactivate the stop order on completion. We anticipate this loopback of events
+from the callback contract to be a crucial element in many reactive applications.
 
-The stop order application subscribes to `Sync` log records produced by a given Uniswap V2 token pair contract, normally emitted on swaps and deposition or withdrawal of liqudity from the pool. Additionally, the reactive contract subscribes to events from its own callback contract to deactivate the stop order on completion. We expect this loopback of events from callback contract to be an important part of many reactive applications.
+## Reactive Contract
 
-## Reactive contract
+The reactive contract for stop orders subscribes to the specified L1 pair contract. The received `Sync` events enable the
+reactive contract to compute the current exchange rate for the two tokens in the pool. Once the rate reaches the threshold
+given on the contract's deployment, it requests a callback to L1 to sell the assets.
 
-The reactive contract for stop orders subscribes to the specified L1 pair contract. `Sync` events received allow the reactive to compute the current exchange rate for the two tokens in the pool. As soon as the rate reaches the threshold given on the contract's deployment, it requests a callback to L1 to sell the assets.
+Upon initiating the order's execution, the reactive contract begins waiting for the `Stop` event from the L1 contract
+(which serves as both origin and destination in this case), indicating successful completion of the order. After receiving
+that, the reactive contract goes dormant, reverting all calls to it. Unlike the simple contract in the basic demo, this
+reactive contract is stateful.
 
-Upon initiating the order's execution, the reactive contract begins waiting for the `Stop` event from the L1 contract (which serves as both source and destination in this case), indicating successful completion of the order. Having received that, the reactive contract goes dormant, reverting all calls to it. Unlike the simple contract in the basic demo, this reactive contract is stateful.
+The reactive contract is fully configurable and can be used with any Uniswap V2-compatible pair contract. The reactive
+contract for this demo is implemented in `UniswapDemoStopOrderReactive.sol`.
 
-The reactive contract is fully configurable, and can be used with any Uniswap V2-compatible pair contract.
+## Destination Chain Contract
 
-The reactive contract for this demo is implemented in `UniswapDemoStopOrderReactive.sol`.
+This contract is responsible for the actual execution of the stop order. The client is required to allocate the token
+allowance for the callback contract and ensure they have sufficient tokens for executing the order. Upon the Reactive
+Network executing the callback transaction, this contract verifies the caller's address to prevent misuse or abuse, checks
+the current exchange rate against the given threshold, confirming the allowance, and validating the token balance. Then
+it initiates an exact token swap through the Uniswap V2 router contract, returning the earned tokens to the client. Following
+the successful execution of the order, the callback contract emits a `Stop` log record picked up by the reactive contract,
+as described in the section above.
 
-## Destination chain contract
+The callback contract is stateless and may be used by any number of reactive stop order contracts, as long as they use
+the same router contract. The callback contract is implemented in `UniswapDemoStopOrderCallback.sol`.
 
-This contract is responsible for the actual execution of the stop order. The client must allocate the token allowance for the callback contract, and ensure that they have sufficient tokens for the order's execution. Once the Reactive Network performs the callback transaction, this contract verifies the caller's address to prevent misuse or abuse, checks the current exchange rate against the given threshold, checks the allowance and token balance, then performs an exact token swap through the Uniswap V2 router contract, returning the earned tokens to the client. Once the order has been executed, the callback contract emits a `Stop` log record that is picked up by the reactive contract as described in the section above.
+## Further Considerations
 
-The callback contract is stateless and may be used by any number of reactive stop order contracts, as long as they use the same router contract.
-
-The callback contract is implemented in `UniswapDemoStopOrderCallback.sol`.
-
-## Further considerations
-
-While this demo covers a fairly realistic use case, it's not a production-grade implementation, which would require more safety and sanity checks, and would use a more complicated flow of state for its reactive contract. Instead, this demo is intended to demonstrate several more features of Reactive Network compared to the basic demo, namely:
+While this demo covers a realistic use case, it is not a production-grade implementation, which would require more safety
+and sanity checks as well as a more complicated flow of state for its reactive contract. This demo is intended to showcase
+additional features of the Reactive Network compared to the basic demo, namely:
 
 * Subscription to heterogeneous L1 events.
-* Stateful reactive contracts.
-* Loopback data flow between the reactive contract and the destination chain contract.
-* Basic sanity checks required in destination chain contracts, both for security reasons, and because callback execution is not synchronous with the execution of the reactive contract.
 
-Nonetheless, a few further improvements could be made to bring this implementation closer to a practical stop order implementation, in particular:
+* Stateful reactive contracts.
+
+* Loopback data flow between the reactive contract and the destination chain contract.
+
+* Basic sanity checks required in destination chain contracts, both for security reasons and because callback execution
+  is not synchronous with the execution of the reactive contract.
+
+Nonetheless, a few further improvements could be made to bring this implementation closer to a practical stop order one:
 
 * Leveraging dynamic event subscription to allow a single reactive contract to handle multiple arbitrary orders.
-* Additional sanity checks and retry policy in the reactive contract.
-* Support for arbitrary routers on the destination side.
-* More elaborate data flow between reactive contract and destination chain contract.
-* Support for alternate DEXes.
 
-## Running/Testing
+* Adding more sanity checks and a retry policy in the reactive contract.
+
+* Supporting arbitrary routers on the destination side.
+
+* Implementing a more elaborate data flow between the reactive contract and the destination chain contract.
+
+* Supporting alternate DEXes.
+
+## Deployment & Testing
 
 You will need the following environment variables configured appropriately to follow this script:
 
@@ -74,25 +130,33 @@ You will need the following environment variables configured appropriately to fo
 * `REACTIVE_PRIVATE_KEY`
 * `SYSTEM_CONTRACT_ADDR`
 
-If you want to test this live, you will need some tokens and a Uniswap V2 liquidity pool for them. You can use any pre-existing tokens and pair, or you can deploy your own, e.g. the barebones ERC20 token provided in `UniswapDemoToken.sol`.
+If you want to test this live, you will need some tokens and a Uniswap V2 liquidity pool for them. You can use any pre-existing
+tokens and pair, or you can deploy your own, e.g., the barebones ERC-20 token provided in `UniswapDemoToken.sol`.
 
-The destination chain contract is deployed to Sepolia at `0x7B7FDD139DaCF06d236C999E23cF2eac36C349C1`. It is configured to use the Uniswap V2 router at `0xC532a74256D3Db42D0Bf7a0400fEFDbad7694008`, which is associated with the factory contract at `0x7E0987E5b3a30e3f2828572Bb659A548460a3003`. It also doesn't validate the caller's address to simplify testing. If you can use the pairs deployed by this factory, you do not need to deploy your own instance of the contract. In case you do need your own destination chain contract, deploy as follows:
+The destination chain contract is deployed to Sepolia at `0x7B7FDD139DaCF06d236C999E23cF2eac36C349C1`. It is configured to use
+the Uniswap V2 router at `0xC532a74256D3Db42D0Bf7a0400fEFDbad7694008`, which is associated with the factory contract at
+`0x7E0987E5b3a30e3f2828572Bb659A548460a3003`. It doesn't validate the caller's address to simplify testing. If you can
+use the pairs deployed by this factory, there is no need to deploy your own instance of the contract. In case you do require
+your own destination chain contract, deploy as follows:
 
 ```
 forge create --rpc-url $SEPOLIA_RPC --private-key $SEPOLIA_PRIVATE_KEY src/demos/uniswap-v2-stop-order/UniswapDemoStopOrderCallback.sol:UniswapDemoStopOrderCallback --constructor-args $AUTHORIZED_CALLER_ADDRESS $UNISWAP_V2_ROUTER_ADDRESS
 ```
 
-Where the `AUTHORIZED_CALLER_ADDRESS` should contain the address you want to authorize to perform the callbacks, or `0x0000000000000000000000000000000000000000` to skip this check. `UNISWAP_V2_ROUTER_ADDRESS` should point to the V2-compatible router you want to use.
+Here, the `AUTHORIZED_CALLER_ADDRESS` should contain the address you intend to authorize for performing callbacks or use
+`0x0000000000000000000000000000000000000000` to skip this check. `UNISWAP_V2_ROUTER_ADDRESS` should point to the V2-compatible
+router you plan to work with.
 
-To initiate a new stop order, you should authorize your destination chain contract to spend your tokens, e.g.:
+To initiate a new stop order, you should authorize your destination chain contract to spend your tokens:
 
 ```
 cast send $TOKEN_ADDRESS 'approve(address,uint256)' --rpc-url $SEPOLIA_RPC --private-key $SEPOLIA_PRIVATE_EY $CALLBACK_CONTRACT_ADDR 1000000000000000000
 ```
 
-The last parameter is the raw amount you want to authorize. For tokens with 18 decimal places, the above is equivalent to allowing the callback to spend a single token.
+The last parameter is the raw amount you intend to authorize. For tokens with 18 decimal places, the above is equivalent to
+allowing the callback to spend a single token.
 
-Now you need to deploy the reactive stop order contract to the Reactive Network, e.g.:
+Now, deploy the reactive stop order contract to the Reactive Network:
 
 ```
 forge create --rpc-url $REACTIVE_RPC --private-key $REACTIVE_PRIVATE_KEY src/demos/uniswap-v2-stop-order/UniswapDemoStopOrderReactive.sol:UniswapDemoStopOrderReactive --constructor-args $SYSTEM_CONTRACT_ADDRESS $UNISWAP_V2_PAIR_ADDRESS $CALLBACK_CONTRACT_ADDRESS $CLIENT_WALLET $DIRECTION_BOOLEAN $EXCHANGE_RATE_DENOMINATOR $EXCHANGE_RATE_NUMERATOR
@@ -100,24 +164,32 @@ forge create --rpc-url $REACTIVE_RPC --private-key $REACTIVE_PRIVATE_KEY src/dem
 
 The `SYSTEM_CONTRACT_ADDR` should point to the system contract handling event subscriptions.
 
-The rest of the variables should be self-explanatory, except for `DIRECTION_BOOLEAN`, which specifies whether the order is for selling `token0` or `token1` of the pair in question.
+The `SYSTEM_CONTRACT_ADDR` should point to the system contract handling event subscriptions. The rest of the variables should
+be self-explanatory, except for `DIRECTION_BOOLEAN`, which specifies whether the order is for selling `token0` or `token1` of
+the pair in question.
 
 You're all set!
 
-Performing the swaps through the pair being monitored, you should be able to bring the exchange rate below the threshold, which should initiate the execution of your stop order.
+Performing the swaps through the pair being monitored, you should be able to bring the exchange rate below the threshold,
+initiating the execution of your stop order.
 
-You may want to test separate components manually, feeding events to the reactive contract, or activating the callback manually. E.g.:
+Users may want to test separate components manually, feeding events to the reactive contract, or activating the callback
+manually:
 
 ```
 cast call $REACTIVE_CONTRACT_ADDRESS 'react(uint256,address,uint256,uint256,uint256,uint256,bytes)' --trace --verbose --rpc-url $REACTIVE_RPC --private-key $REACTIVE_PRIVATE_KEY 0 0xED32ba8b09Ced902b1c49E2a1F384AfC98C1330C 0x1c411e9a96e071241c2f21f7726b17ae89e3cab4c78be50e062b03a9fffbbad1 0 0 0 0x00000000000000000000000000000000000000000000000098a7d9b8314c000000000000000000000000000000000000000000000000000083d6c7aab6360000
 ```
 
-The parameters being fed to the `react()` method here are as follows:
+The parameters being fed to the `react()` method include:
 
 * Chain ID, which can normally be ignored while testing.
-* Originating contract's address, set to the monitored pair's address in the example above.
+
+* Origin contract's address, set to the monitored pair's address in the example above.
+
 * The four topics of the log record, with the example above corresponding to the Uniswap V2's `Sync` event.
-* Payload, containing the pair's remaining reserves for the `Sync` event. These could be encoded by using any ABI lib, or pulled from an actual `Sync` event using any block exporer software.
+
+* Payload, containing the pair's remaining reserves for the `Sync` event. These could be encoded by using any ABI lib
+  or pulled from an actual `Sync` event using any block explorer software.
 
 Assuming the exchange rate is below the threshold, the `call` should produce a trace similar to the following:
 
@@ -132,12 +204,16 @@ Traces:
     └─ ← ()
 ```
 
-This log record indicates to the Reactive Network that the contract wants to perform a callback to L1. See the technical reference for more details.
+This log record indicates to the Reactive Network that the contract wants to perform a callback to L1. See the technical
+reference for more details.
 
-Calling the destination chain contract is also easy enough:
+Calling the destination chain contract is quite straightforward:
 
 ```
 cast send $CALLBACK_CONTRACT_ADDRESS 'stop(address,address,bool,uint256,uint256)' --rpc-url $SEPOLIA_RPC --private-key $SEPOLIA_PRIVATE_KEY $UNISWAP_V2_PAIR_ADDRESS $CLIENT_WALLET $DIRECTION_BOOLEAN $EXCHANGE_RATE_DENOMINATOR $EXCHANGE_RATE_NUMERATOR
 ```
 
-The environment variables here are the same is in the example above for deploying the reactive contract. Note that the destination chain contract is unaware of the contracts deployed to Reactive Network. As long as the call passes the caller address check, and there is both an allowance in specified tokens from the `$CLIENT_WALLET`, and sufficient tokens to their name, the callback contract will happily perform any sale below the specified rate.
+Here, the environment variables are the same as in the example above for deploying the reactive contract. Note that the
+destination chain contract is unaware of the contracts deployed to the Reactive Network. As long as the call passes the
+caller address check and there is both an allowance in specified tokens from the `$CLIENT_WALLET` and sufficient tokens
+to their name, the callback contract will happily perform any sale below the specified rate.

@@ -46,7 +46,7 @@ Private key to your Sepolia wallet.
 
 #### `REACTIVE_RPC`
 
-RPC address for Reactive testnet, should be set to `https://kopli-rpc.reactive.network/`.
+RPC address for Reactive testnet, refer to the [docs](https://dev.reactive.network/docs/kopli-testnet).
 
 #### `REACTIVE_PRIVATE_KEY`
 
@@ -58,9 +58,4 @@ The address of your Reactive wallet.
 
 #### `SYSTEM_CONTRACT_ADDR`
 
-System contract address for Reactive testnet, should be set to `0x0000000000000000000000000000000000FFFFFF`.
-
-#### `CALLBACK_SENDER_ADDR`
-
-Refer to the documentation for addresses used by Reactive testnet for callbacks on supported networks.
-
+System contract address for Reactive testnet, refer to the [docs](https://dev.reactive.network/docs/kopli-testnet).
