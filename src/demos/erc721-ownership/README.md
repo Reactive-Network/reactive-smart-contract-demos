@@ -28,8 +28,7 @@ forge create --rpc-url $REACTIVE_RPC --private-key $REACTIVE_PRIVATE_KEY src/dem
 
 Assign the contract address to `OWNERSHIP_REACTIVE_ADDR`.
 
-Monitor the contract's activity, select an address of a token contract with some activity, and assign it
-to `ACTIVE_TOKEN_ADDR`. Assign a specific token ID to `ACTIVE_TOKEN_ID`.
+Monitor the contract's activity, select an address of a token contract with some activity, and assign it to `ACTIVE_TOKEN_ADDR`. Assign a specific token ID to `ACTIVE_TOKEN_ID`.
 
 Send a data request to the Sepolia contract:
 

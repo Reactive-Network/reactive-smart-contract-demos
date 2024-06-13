@@ -29,8 +29,7 @@ forge create --rpc-url $REACTIVE_RPC --private-key $REACTIVE_PRIVATE_KEY src/dem
 
 Assign the contract address to `UNISWAP_REACTIVE_ADDR`.
 
-Monitor the contract's activity, select an address of a pair with some activity, and assign it to `ACTIVE_PAIR_ADDR`.
-Assign the block number to `BLOCK_NUMBER`.
+Monitor the contract's activity, select an address of a pair with some activity, and assign it to `ACTIVE_PAIR_ADDR`. Assign the block number to `BLOCK_NUMBER`.
 
 Send a data request to the Sepolia contract:
 
