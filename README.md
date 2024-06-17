@@ -38,19 +38,19 @@ The following environment variables are used in the instructions for running the
 
 #### `SEPOLIA_RPC`
 
-RPC address for Sepolia testnet, `https://rpc2.sepolia.org` unless you want to use your own.
+The Sepolia Testnet RPC address; `https://rpc2.sepolia.org` unless you want to use your own.
 
 #### `SEPOLIA_PRIVATE_KEY`
 
-Private key to your Sepolia wallet.
+The private key to your Sepolia wallet.
 
 #### `REACTIVE_RPC`
 
-RPC address for Reactive testnet, should be set to `https://kopli-rpc.reactive.network/`.
+For the Reactive Testnet RPC address, refer to the [docs](https://dev.reactive.network/docs/kopli-testnet).
 
 #### `REACTIVE_PRIVATE_KEY`
 
-Private key to your Reactive wallet.
+The private key to your Reactive wallet.
 
 #### `DEPLOYER_ADDR`
 
@@ -58,9 +58,8 @@ The address of your Reactive wallet.
 
 #### `SYSTEM_CONTRACT_ADDR`
 
-System contract address for Reactive testnet, should be set to `0x0000000000000000000000000000000000FFFFFF`.
+For the system contract address on the Reactive testnet, refer to the [docs](https://dev.reactive.network/docs/kopli-testnet).
 
 #### `CALLBACK_SENDER_ADDR`
 
-Refer to the documentation for addresses used by Reactive testnet for callbacks on supported networks.
-
+For the callback sender address, refer to the [docs](https://dev.reactive.network/docs/kopli-testnet).

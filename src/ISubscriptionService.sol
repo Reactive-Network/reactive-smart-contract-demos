@@ -6,7 +6,7 @@ pragma solidity >=0.8.0;
 // @notice Reactive contracts receive notifications about new events matching the criteria of their event subscriptions.
 interface ISubscriptionService {
     // @notice Subscribes the calling contract to receive events matching the criteria specified.
-    // @param chain_id EIP155 source chain ID for the event (as a `uint256`), or `0` for all chains.
+    // @param chain_id EIP155 origin chain ID for the event (as a `uint256`), or `0` for all chains.
     // @param _contract Contract address to monitor, or `0` for all contracts.
     // @param topic_0 Topic 0 to monitor, or `REACTIVE_IGNORE` for all topics.
     // @param topic_1 Topic 1 to monitor, or `REACTIVE_IGNORE` for all topics.

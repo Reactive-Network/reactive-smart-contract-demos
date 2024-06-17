@@ -1,8 +1,8 @@
-# ERC20 Turnovers Demo
+# ERC-20 Turnovers Demo
 
-This simple demo monitors token turnovers on all ERC20 contracts, and provides this information on request.
+This demo monitors token turnovers on all ERC-20 contracts and provides this information upon request.
 
-## Deployment for testing
+## Deployment & Testing
 
 You will need the following environment variables configured appropriately to follow this script:
 
@@ -30,13 +30,13 @@ Assign the contract address to `TURNOVER_REACTIVE_ADDR`.
 
 Monitor the contract's activity, select an address of a token contract with some activity, and assign it to `ACTIVE_TOKEN_ADDR`.
 
-Send a data request to Sepolia contract:
+Send a data request to the Sepolia contract:
 
 ```
 cast send $TURNOVER_L1_ADDR "request(address)" --rpc-url $SEPOLIA_RPC --private-key $SEPOLIA_PRIVATE_KEY $ACTIVE_TOKEN_ADDR
 ```
 
-The contract should emit a log record with collected turnover data on the token in question shortly thereafter.
+The contract should emit a log record with the collected turnover data of the specified token shortly thereafter.
 
 Stop the reactive contract:
 
