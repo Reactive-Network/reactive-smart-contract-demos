@@ -38,7 +38,7 @@ Reactive contract's static subscriptions are configured by calling the `subscrib
     }
 ```
 
-Reactive contracts can change their subscription dynamically by using callbacks to Reactive Network instances (as opposed to ReactVM) of themselves, which can, in turn, call the system contract to affect the appropriate changes to subscriptions.
+Reactive contracts can change their subscription dynamically by using callbacks to Reactive Network instances (as opposed to ReactVM) of themselves, which can, in turn, call the system contract to effect the appropriate changes to subscriptions.
 
 The subscription system allows the Reactive Network (the event provider) to associate any number of `uint256` fields with a given event. Subscribers can then request events that match any subset of these fields exactly. During the testnet stage, the Reactive Network provides the originating contract's chain ID, address, and all four topics as filtering criteria. These criteria may be expanded or changed in the future.
 
