@@ -28,7 +28,7 @@ The stop order application subscribes to `Sync` log records produced by a given 
 
 The reactive contract for stop orders subscribes to the specified L1 pair contract. The received `Sync` events enable the reactive contract to compute the current exchange rate for the two tokens in the pool. Once the rate reaches the threshold given on the contract's deployment, it requests a callback to L1 to sell the assets.
 
-Upon initiating the order's execution, the reactive contract begins waiting for the `Stop` event from the L1 contract(which serves as both origin and destination in this case), indicating successful completion of the order. After receiving that, the reactive contract goes dormant, reverting all calls to it. Unlike the simple contract in the basic demo, this reactive contract is stateful.
+Upon initiating the order's execution, the reactive contract begins waiting for the `Stop` event from the L1 contract (which serves as both origin and destination in this case), indicating successful completion of the order. After receiving that, the reactive contract goes dormant, reverting all calls to it. Unlike the simple contract in the basic demo, this reactive contract is stateful.
 
 The reactive contract is fully configurable and can be used with any Uniswap V2-compatible pair contract. The reactive contract for this demo is implemented in `UniswapDemoStopOrderReactive.sol`.
 
@@ -85,7 +85,7 @@ Here, the `AUTHORIZED_CALLER_ADDRESS` should contain the address you intend to a
 To initiate a new stop order, you should authorize your destination chain contract to spend your tokens:
 
 ```
-cast send $TOKEN_ADDRESS 'approve(address,uint256)' --rpc-url $SEPOLIA_RPC --private-key $SEPOLIA_PRIVATE_EY $CALLBACK_CONTRACT_ADDR 1000000000000000000
+cast send $TOKEN_ADDRESS 'approve(address,uint256)' --rpc-url $SEPOLIA_RPC --private-key $SEPOLIA_PRIVATE_KEY $CALLBACK_CONTRACT_ADDR 1000000000000000000
 ```
 
 The last parameter is the raw amount you intend to authorize. For tokens with 18 decimal places, the above is equivalent to allowing the callback to spend a single token.
