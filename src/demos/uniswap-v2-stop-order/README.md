@@ -82,7 +82,7 @@ Deploy two ERC-20 tokens. The constructor arguments are the token name and token
 forge create --rpc-url $SEPOLIA_RPC --private-key $SEPOLIA_PRIVATE_KEY src/demos/uniswap-v2-stop-order/UniswapDemoToken.sol:UniswapDemoToken --constructor-args $TOKEN_NAME $TOKEN_SYMBOL
 ```
 
-Repeat the above command for the second token with different name and symbol:
+Repeat the above command for the second token with a different name and symbol:
 
 ```
 forge create --rpc-url $SEPOLIA_RPC --private-key $SEPOLIA_PRIVATE_KEY src/demos/uniswap-v2-stop-order/UniswapDemoToken.sol:UniswapDemoToken --constructor-args $TOKEN_NAME $TOKEN_SYMBOL
@@ -139,7 +139,7 @@ forge create --rpc-url $REACTIVE_RPC --private-key $REACTIVE_PRIVATE_KEY src/dem
 
 `CALLBACK_CONTRACT_ADDRESS`: The contract address from Step 3.
 
-`SEPOLIA_ADDR`: The client address initiating the order.
+`SEPOLIA_ADDR`: The client's address initiating the order.
 
 `DIRECTION_BOOLEAN`: `true` to sell `token0` and buy `token1`; `false` for the opposite.
 
