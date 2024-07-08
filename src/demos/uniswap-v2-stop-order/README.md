@@ -64,7 +64,7 @@ Nonetheless, a few further improvements could be made to bring this implementati
 
 ## Deployment & Testing
 
-You will need the following environment variables configured appropriately to follow this script:
+This script guides you through deploying and testing a Uniswap V2 stop order demo on the Sepolia Testnet. Ensure the following environment variables are configured appropriately before proceeding with this script:
 
 * `SEPOLIA_RPC`
 * `SEPOLIA_PRIVATE_KEY`
@@ -72,73 +72,105 @@ You will need the following environment variables configured appropriately to fo
 * `REACTIVE_PRIVATE_KEY`
 * `SYSTEM_CONTRACT_ADDR`
 
-If you want to test this live, you will need some tokens and a Uniswap V2 liquidity pool for them. You can use any pre-existing tokens and pair, or you can deploy your own, e.g., the barebones ERC-20 token provided in `UniswapDemoToken.sol`.
+To test this live, you will need some testnet tokens and a Uniswap V2 liquidity pool for them. Use any pre-existing tokens and pair or deploy your own, e.g., the barebones ERC-20 token provided in `UniswapDemoToken.sol`.
 
-The destination chain contract is deployed to Sepolia at `0x7B7FDD139DaCF06d236C999E23cF2eac36C349C1`. It is configured to use the Uniswap V2 router at `0xC532a74256D3Db42D0Bf7a0400fEFDbad7694008`, which is associated with the factory contract at `0x7E0987E5b3a30e3f2828572Bb659A548460a3003`. It doesn't validate the caller's address to simplify testing. If you can use the pairs deployed by this factory, there is no need to deploy your own instance of the contract. In case you do require your own destination chain contract, deploy as follows:
+### Step 1
+
+Deploy two ERC-20 tokens. The constructor arguments are the token name and token symbol, which you can choose as you like. Upon creation, the token mints and transfers 100 units to the deployer.
+
+```
+forge create --rpc-url $SEPOLIA_RPC --private-key $SEPOLIA_PRIVATE_KEY src/demos/uniswap-v2-stop-order/UniswapDemoToken.sol:UniswapDemoToken --constructor-args $TOKEN_NAME $TOKEN_SYMBOL
+```
+
+Repeat the above command for the second token with different name and symbol:
+
+```
+forge create --rpc-url $SEPOLIA_RPC --private-key $SEPOLIA_PRIVATE_KEY src/demos/uniswap-v2-stop-order/UniswapDemoToken.sol:UniswapDemoToken --constructor-args $TOKEN_NAME $TOKEN_SYMBOL
+```
+
+### Step 2
+
+Create a Uniswap V2 pair (pool) using the token addresses created in Step 1. Note that the smaller address in hexadecimal is `token0` and the other is `token1`. Use the `PAIR_FACTORY_CONTRACT` address `0x7E0987E5b3a30e3f2828572Bb659A548460a3003`.
+
+```
+cast send $PAIR_FACTORY_CONTRACT 'createPair(address,address)' --rpc-url $SEPOLIA_RPC --private-key $SEPOLIA_PRIVATE_KEY $TOKEN0_ADDR $TOKEN1_ADDR
+```
+
+### Step 3
+
+Deploy the destination chain contract to Sepolia. It is configured to use the Uniswap V2 router at `0xC532a74256D3Db42D0Bf7a0400fEFDbad7694008` associated with the factory contract at `0x7E0987E5b3a30e3f2828572Bb659A548460a3003`.
+
+If you intend to use the pairs deployed by this factory, there is no need to deploy your own instance of the contract. In case you do require your own destination chain contract, deploy as follows:
 
 ```
 forge create --rpc-url $SEPOLIA_RPC --private-key $SEPOLIA_PRIVATE_KEY src/demos/uniswap-v2-stop-order/UniswapDemoStopOrderCallback.sol:UniswapDemoStopOrderCallback --constructor-args $AUTHORIZED_CALLER_ADDRESS $UNISWAP_V2_ROUTER_ADDRESS
 ```
 
-Here, the `AUTHORIZED_CALLER_ADDRESS` should contain the address you intend to authorize for performing callbacks or use`0x0000000000000000000000000000000000000000` to skip this check. `UNISWAP_V2_ROUTER_ADDRESS` should point to the V2-compatible router you plan to work with.
+`AUTHORIZED_CALLER_ADDRESS`: The address authorized for callbacks (use `0x0000000000000000000000000000000000000000` to skip check).
 
-To initiate a new stop order, you should authorize your destination chain contract to spend your tokens:
+`UNISWAP_V2_ROUTER_ADDRESS`: The Uniswap V2 router address.
+
+### Step 4
+
+Transfer some liquidity into the created pool. Note that you won't get its address immediately after `createPair()`. Get the newly created pair address from the transaction logs on [Sepolia scan](https://sepolia.etherscan.io/) where the `PairCreated` event is emitted.
+```
+cast send $TOKEN0_ADDR 'transfer(address,uint256)' --rpc-url $SEPOLIA_RPC --private-key $SEPOLIA_PRIVATE_KEY $CREATED_PAIR_ADDR 10000000000000000000
+```
+
+```
+cast send $TOKEN1_ADDR 'transfer(address,uint256)' --rpc-url $SEPOLIA_RPC --private-key $SEPOLIA_PRIVATE_KEY $CREATED_PAIR_ADDR 10000000000000000000
+```
+
+```
+cast send $CREATED_PAIR_ADDR 'mint(address)' --rpc-url $SEPOLIA_RPC --private-key $SEPOLIA_PRIVATE_KEY $SEPOLIA_ADDR
+```
+
+### Step 5
+
+Deploy the reactive stop order contract to the Reactive Network as follows:
+
+```
+forge create --rpc-url $REACTIVE_RPC --private-key $REACTIVE_PRIVATE_KEY src/demos/uniswap-v2-stop-order/UniswapDemoStopOrderReactive.sol:UniswapDemoStopOrderReactive --constructor-args $SYSTEM_CONTRACT_ADDRESS $CREATED_PAIR_ADDR $CALLBACK_CONTRACT_ADDRESS $SEPOLIA_ADDR $DIRECTION_BOOLEAN $EXCHANGE_RATE_DENOMINATOR $EXCHANGE_RATE_NUMERATOR
+```
+
+`SYSTEM_CONTRACT_ADDRESS`: The system contract that handles event subscriptions.
+
+`CREATED_PAIR_ADDR`: The Uniswap pair address from Step 2.
+
+`CALLBACK_CONTRACT_ADDRESS`: The contract address from Step 3.
+
+`SEPOLIA_ADDR`: The client address initiating the order.
+
+`DIRECTION_BOOLEAN`: `true` to sell `token0` and buy `token1`; `false` for the opposite.
+
+`EXCHANGE_RATE_DENOMINATOR` and `EXCHANGE_RATE_NUMERATOR`: Integer representation of the exchange rate threshold below which a stop order is executed. These variables are set this way because the EVM works only with integers. As an example, to set the threshold at 1.234, the numerator should be 1234 and the denominator should be 100.
+
+### Step 6
+
+To initiate a new stop order, authorize the destination chain contract to spend your tokens:
 
 ```
 cast send $TOKEN_ADDRESS 'approve(address,uint256)' --rpc-url $SEPOLIA_RPC --private-key $SEPOLIA_PRIVATE_KEY $CALLBACK_CONTRACT_ADDR 1000000000000000000
 ```
 
-The last parameter is the raw amount you intend to authorize. For tokens with 18 decimal places, the above is equivalent to allowing the callback to spend a single token.
+The last parameter is the raw amount you intend to authorize. For tokens with 18 decimal places, the above example allows the callback to spend one token.
 
-Now, deploy the reactive stop order contract to the Reactive Network:
+### Step 7
 
-```
-forge create --rpc-url $REACTIVE_RPC --private-key $REACTIVE_PRIVATE_KEY src/demos/uniswap-v2-stop-order/UniswapDemoStopOrderReactive.sol:UniswapDemoStopOrderReactive --constructor-args $SYSTEM_CONTRACT_ADDRESS $UNISWAP_V2_PAIR_ADDRESS $CALLBACK_CONTRACT_ADDRESS $CLIENT_WALLET $DIRECTION_BOOLEAN $EXCHANGE_RATE_DENOMINATOR $EXCHANGE_RATE_NUMERATOR
-```
+After creating the pair and adding liquidity, we have to make the reactive smart contract work by adjusting the exchange rate directly through the pair, not the periphery.
 
-The `SYSTEM_CONTRACT_ADDR` should point to the system contract handling event subscriptions.
+Liquidity pools are rather simple and primitive contracts. They do not offer much functionality or protect the user from mistakes, making their deployment cheaper. That's why most users perform swaps through so-called peripheral contracts. These contracts are deployed once and can interact with any pair created by a single contract. They offer features to limit slippage, maximize swap efficiency, and more.
 
-The `SYSTEM_CONTRACT_ADDR` should point to the system contract handling event subscriptions. The rest of the variables should be self-explanatory, except for `DIRECTION_BOOLEAN`, which specifies whether the order is for selling `token0` or `token1` of the pair in question.
-
-You're all set!
-
-Performing the swaps through the pair being monitored, you should be able to bring the exchange rate below the threshold, initiating the execution of your stop order.
-
-Users may want to test separate components manually, feeding events to the reactive contract, or activating the callback manually:
+However, since our goal is to change the exchange rate, these sophisticated features are a hindrance. Instead of swapping through the periphery, we perform an inefficient swap directly through the pair, achieving the desired rate shift.
 
 ```
-cast call $REACTIVE_CONTRACT_ADDRESS 'react(uint256,address,uint256,uint256,uint256,uint256,bytes)' --trace --verbose --rpc-url $REACTIVE_RPC --private-key $REACTIVE_PRIVATE_KEY 0 0xED32ba8b09Ced902b1c49E2a1F384AfC98C1330C 0x1c411e9a96e071241c2f21f7726b17ae89e3cab4c78be50e062b03a9fffbbad1 0 0 0 0x00000000000000000000000000000000000000000000000098a7d9b8314c000000000000000000000000000000000000000000000000000083d6c7aab6360000
+cast send $TOKEN0_ADDR 'transfer(address,uint256)' --rpc-url $SEPOLIA_RPC --private-key $SEPOLIA_PRIVATE_KEY $CREATED_PAIR_ADDR 20000000000000000
 ```
 
-The parameters being fed to the `react()` method include:
-
-* Chain ID, which can normally be ignored while testing.
-
-* Origin contract's address, set to the monitored pair's address in the example above.
-
-* The four topics of the log record, with the example above corresponding to the Uniswap V2's `Sync` event.
-
-* Payload, containing the pair's remaining reserves for the `Sync` event. These could be encoded by using any ABI lib or pulled from an actual `Sync` event using any block explorer software.
-
-Assuming the exchange rate is below the threshold, the `call` should produce a trace similar to the following:
+The following command executes a swap at a highly unfavorable rate, causing an immediate and significant shift in the exchange rate:
 
 ```
-Traces:
-  [20319] 0x0c189A26E0AD06f8E12179280d9e8fB0EE1648C2::90dfa8f4(0000000000000000000000000000000000000000000000000000000000000000000000000000000000000000ed32ba8b09ced902b1c49e2a1f384afc98c1330c1c411e9a96e071241c2f21f7726b17ae89e3cab4c78be50e062b03a9fffbbad100000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000e0000000000000000000000000000000000000000000000000000000000000004000000000000000000000000000000000000000000000000098a7d9b8314c000000000000000000000000000000000000000000000000000083d6c7aab6360000)
-    ├─  emit topic 0: 0x8dd725fa9d6cd150017ab9e60318d40616439424e2fade9c1c58854950917dfc
-    │       topic 1: 0x0000000000000000000000000000000000000000000000000000000000000000
-    │       topic 2: 0x0000000000000000000000007b7fdd139dacf06d236c999e23cf2eac36c349c1
-    │       topic 3: 0x00000000000000000000000000000000000000000000000000000000000f4240
-    │           data: 0x000000000000000000000000000000000000000000000000000000000000002000000000000000000000000000000000000000000000000000000000000000a40ac73c12000000000000000000000000ed32ba8b09ced902b1c49e2a1f384afc98c1330c000000000000000000000000afefa3fec75598e868b8527231db8c431e51c2ae00000000000000000000000000000000000000000000000000000000000000010000000000000000000000000000000000000000000000000000000000000064000000000000000000000000000000000000000000000000000000000000006400000000000000000000000000000000000000000000000000000000
-    └─ ← ()
+cast send $CREATED_PAIR_ADDR 'swap(uint,uint,address,bytes calldata)' --rpc-url $SEPOLIA_RPC --private-key $SEPOLIA_PRIVATE_KEY 0 5000000000000000 $SEPOLIA_ADDR "0x"
 ```
 
-This log record indicates to the Reactive Network that the contract wants to perform a callback to L1. See the technical reference for more details.
-
-Calling the destination chain contract is quite straightforward:
-
-```
-cast send $CALLBACK_CONTRACT_ADDRESS 'stop(address,address,bool,uint256,uint256)' --rpc-url $SEPOLIA_RPC --private-key $SEPOLIA_PRIVATE_KEY $UNISWAP_V2_PAIR_ADDRESS $CLIENT_WALLET $DIRECTION_BOOLEAN $EXCHANGE_RATE_DENOMINATOR $EXCHANGE_RATE_NUMERATOR
-```
-
-Here, the environment variables are the same as in the example above for deploying the reactive contract. Note that the destination chain contract is unaware of the contracts deployed to the Reactive Network. As long as the call passes the caller address check and there is both an allowance in specified tokens from the `$CLIENT_WALLET` and sufficient tokens to their name, the callback contract will happily perform any sale below the specified rate.
+After that, the stop order will be executed and visible on [Sepolia scan](https://sepolia.etherscan.io/).
