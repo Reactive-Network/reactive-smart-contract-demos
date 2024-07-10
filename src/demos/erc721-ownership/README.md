@@ -1,6 +1,8 @@
 # ERC-721 Ownership Demo
 
-This demo monitors token ownership changes on all ERC-721 contracts and provides this information upon request.
+## Overview
+
+The demo implements an ownership tracking system for ERC-721 tokens. The application monitors specified ERC-721 contracts and, upon detecting an ownership change or request, updates and synchronizes the ownership data across the involved chains. The demo builds on the basic reactive example outlined in `src/demos/basic/README.md`. Refer to that document for understanding the fundamental concepts and architecture of reactive applications.
 
 ## Origin Chain Contract
 
