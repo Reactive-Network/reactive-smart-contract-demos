@@ -76,7 +76,7 @@ The reactive contract in this demo does not use the complete spectrum of capabil
 
 ## Deployment & Testing
 
-You will need the following environment variables configured appropriately to follow this script:
+To deploy testnet contracts to Sepolia, follow these steps, making sure you substitute the appropriate keys, addresses, and endpoints where necessary. You will need the following environment variables configured appropriately to follow this script:
 
 * `SEPOLIA_RPC`
 * `SEPOLIA_PRIVATE_KEY`
@@ -84,7 +84,9 @@ You will need the following environment variables configured appropriately to fo
 * `REACTIVE_PRIVATE_KEY`
 * `SYSTEM_CONTRACT_ADDR`
 
-First of all, deploy the origin chain contract to Sepolia:
+### Step 1
+
+Deploy the `BasicDemoL1Contract` (origin chain contract), which emits events for the Reactive Network, using the recommended Sepolia RPC URL: `https://rpc2.sepolia.org`.
 
 ```
 forge create --rpc-url $SEPOLIA_RPC --private-key $SEPOLIA_PRIVATE_KEY src/demos/basic/BasicDemoL1Contract.sol:BasicDemoL1Contract
@@ -92,7 +94,9 @@ forge create --rpc-url $SEPOLIA_RPC --private-key $SEPOLIA_PRIVATE_KEY src/demos
 
 Assign the deployment address to the environment variable `ORIGIN_ADDR`.
 
-Now deploy the callback contract to Sepolia:
+### Step 2
+
+Deploy the `BasicDemoL1Callback` (destination chain contract), which handles callbacks by emitting the `CallbackReceived` event and logs the transaction origin, the caller, and a specified sender address whenever the callback function is called.
 
 ```
 forge create --rpc-url $SEPOLIA_RPC --private-key $SEPOLIA_PRIVATE_KEY src/demos/basic/BasicDemoL1Callback.sol:BasicDemoL1Callback
@@ -100,12 +104,15 @@ forge create --rpc-url $SEPOLIA_RPC --private-key $SEPOLIA_PRIVATE_KEY src/demos
 
 Assign the deployment address to the environment variable `CALLBACK_ADDR`.
 
-Finally, deploy the reactive contract, configuring it to listen to `ORIGIN_ADDR`, and to send callbacks
-to `CALLBACK_ADDR`.
+### Step 3
+
+Deploy the `BasicDemoReactiveContract` (reactive contract), configuring it to listen to `ORIGIN_ADDR` and to send callbacks to `CALLBACK_ADDR`. The `Received` event on the origin chain contract has a topic 0 value of `0x8cabf31d2b1b11ba52dbb302817a3c9c83e4b2a5194d35121ab1354d69f6a4cb`, which we are monitoring.
 
 ```
 forge create --rpc-url $REACTIVE_RPC --private-key $REACTIVE_PRIVATE_KEY src/demos/basic/BasicDemoReactiveContract.sol:BasicDemoReactiveContract --constructor-args $SYSTEM_CONTRACT_ADDR $ORIGIN_ADDR 0x8cabf31d2b1b11ba52dbb302817a3c9c83e4b2a5194d35121ab1354d69f6a4cb $CALLBACK_ADDR
 ```
+
+### Step 4
 
 Test the whole setup by sending some SepETH to `ORIGIN_ADDR`:
 
