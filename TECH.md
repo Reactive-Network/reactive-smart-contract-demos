@@ -17,7 +17,7 @@ Reactive contracts running in the ReactVM subnet have limited capabilities for i
 
 Reactive contract's static subscriptions are configured by calling the `subscribe()` method of the Reactive Network's system contract upon deployment. This must happen in the `constructor()`, and the reactive contract must adeptly handle reverts. The latter requirement arises because reactive contracts are deployed both to the Reactive Network and to their deployer's private ReactVM, where the system contract is not present. The following code will accomplish this:
 
-```
+```solidity
 bool private vm;
 
 constructor() {
@@ -64,7 +64,7 @@ On the other hand, **YOU CAN'T**:
 
 To process incoming events, a reactive smart contract must implement the `IReactive` interface. This involves implementing a single method with the following signature:
 
-```
+```solidity
 function react(
     uint256 chain_id,
     address _contract,
@@ -86,7 +86,7 @@ Reactive smart contracts can use all the EVM capabilities normally. The only lim
 
 The key capability of reactive smart contracts is the ability to create new transactions in L1 networks. This is achieved by emitting log records of a predetermined format:
 
-```
+```solidity
 event Callback(
     uint256 indexed chain_id,
     address indexed _contract,
@@ -99,7 +99,7 @@ Upon observing such a record in the traces, the Reactive Network will submit a n
 
 For example, the Uniswap Stop Order Demo uses this capability to initiate token sales through its destination chain contract:
 
-```
+```solidity
 bytes memory payload = abi.encodeWithSignature(
     "stop(address,address,address,bool,uint256,uint256)",
     0,
