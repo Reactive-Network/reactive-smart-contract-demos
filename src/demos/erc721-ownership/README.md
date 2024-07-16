@@ -48,7 +48,7 @@ To deploy and test the contracts, follow these steps. Ensure the following envir
 
 ### Step 1
 
-Deploy the Origin Chain Contract and assign the contract address from the response to `OWNERSHIP_L1_ADDR`.
+Deploy the origin chain contract and assign the contract address from the response to `OWNERSHIP_L1_ADDR`. You can use the recommended Sepolia RPC URL: `https://rpc2.sepolia.org`.
 
 ```bash
 forge create --rpc-url $SEPOLIA_RPC --private-key $SEPOLIA_PRIVATE_KEY src/demos/erc721-ownership/NftOwnershipL1.sol:NftOwnershipL1 --constructor-args 0x0000000000000000000000000000000000000000
@@ -56,7 +56,7 @@ forge create --rpc-url $SEPOLIA_RPC --private-key $SEPOLIA_PRIVATE_KEY src/demos
 
 ### Step 2
 
-Deploy the Reactive Contract and assign the contract address from the response to `OWNERSHIP_REACTIVE_ADDR`.
+Deploy the reactive contract and assign the contract address from the response to `OWNERSHIP_REACTIVE_ADDR`.
 
 ```bash
 forge create --rpc-url $REACTIVE_RPC --private-key $REACTIVE_PRIVATE_KEY src/demos/erc721-ownership/NftOwnershipReactive.sol:NftOwnershipReactive --constructor-args $SYSTEM_CONTRACT_ADDR $OWNERSHIP_L1_ADDR

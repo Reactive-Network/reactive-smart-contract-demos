@@ -76,7 +76,7 @@ To test this live, you will need some testnet tokens and a Uniswap V2 liquidity 
 
 ### Step 1
 
-Deploy two ERC-20 tokens. The constructor arguments are the token name and token symbol, which you can choose as you like. Upon creation, the token mints and transfers 100 units to the deployer.
+Deploy two ERC-20 tokens. The constructor arguments are the token name and token symbol, which you can choose as you like. Upon creation, the token mints and transfers 100 units to the deployer. You can use the recommended Sepolia RPC URL: `https://rpc2.sepolia.org`.
 
 ```bash
 forge create --rpc-url $SEPOLIA_RPC --private-key $SEPOLIA_PRIVATE_KEY src/demos/uniswap-v2-stop-order/UniswapDemoToken.sol:UniswapDemoToken --constructor-args $TOKEN_NAME $TOKEN_SYMBOL
