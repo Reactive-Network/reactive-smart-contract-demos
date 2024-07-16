@@ -88,7 +88,7 @@ To deploy testnet contracts to Sepolia, follow these steps, making sure you subs
 
 Deploy the `BasicDemoL1Contract` (origin chain contract), which emits events for the Reactive Network, using the recommended Sepolia RPC URL: `https://rpc2.sepolia.org`.
 
-```
+```bash
 forge create --rpc-url $SEPOLIA_RPC --private-key $SEPOLIA_PRIVATE_KEY src/demos/basic/BasicDemoL1Contract.sol:BasicDemoL1Contract
 ```
 
@@ -98,7 +98,7 @@ Assign the deployment address to the environment variable `ORIGIN_ADDR`.
 
 Deploy the `BasicDemoL1Callback` (destination chain contract), which handles callbacks by emitting the `CallbackReceived` event and logs the transaction origin, the caller, and a specified sender address whenever the callback function is called.
 
-```
+```bash
 forge create --rpc-url $SEPOLIA_RPC --private-key $SEPOLIA_PRIVATE_KEY src/demos/basic/BasicDemoL1Callback.sol:BasicDemoL1Callback
 ```
 
@@ -108,7 +108,7 @@ Assign the deployment address to the environment variable `CALLBACK_ADDR`.
 
 Deploy the `BasicDemoReactiveContract` (reactive contract), configuring it to listen to `ORIGIN_ADDR` and to send callbacks to `CALLBACK_ADDR`. The `Received` event on the origin chain contract has a topic 0 value of `0x8cabf31d2b1b11ba52dbb302817a3c9c83e4b2a5194d35121ab1354d69f6a4cb`, which we are monitoring.
 
-```
+```bash
 forge create --rpc-url $REACTIVE_RPC --private-key $REACTIVE_PRIVATE_KEY src/demos/basic/BasicDemoReactiveContract.sol:BasicDemoReactiveContract --constructor-args $SYSTEM_CONTRACT_ADDR $ORIGIN_ADDR 0x8cabf31d2b1b11ba52dbb302817a3c9c83e4b2a5194d35121ab1354d69f6a4cb $CALLBACK_ADDR
 ```
 
@@ -116,7 +116,7 @@ forge create --rpc-url $REACTIVE_RPC --private-key $REACTIVE_PRIVATE_KEY src/dem
 
 Test the whole setup by sending some SepETH to `ORIGIN_ADDR`:
 
-```
+```bash
 cast send $ORIGIN_ADDR --rpc-url $SEPOLIA_RPC --private-key $SEPOLIA_PRIVATE_KEY --value 0.11ether
 ```
 

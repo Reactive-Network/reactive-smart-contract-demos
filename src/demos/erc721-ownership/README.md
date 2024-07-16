@@ -10,7 +10,9 @@ The `NftOwnershipL1` contract is designed to manage and track ownership requests
 
 The `Request` event is triggered when the owner requests ownership information for a specific token by calling the `request` function, which is restricted to the owner through the `onlyOwner` modifier.
 
-The `Ownership` event is triggered by the callback function, which receives ownership data from a reactive contract. This function is restricted to the predefined callback sender via the `onlyReactive` modifier. The `callback` function processes the ownership data and emits the `Ownership` event, providing the collected ownership information for the specified token. The contract ensures that only authorized entities can make requests and callbacks, maintaining the integrity and security of the ownership tracking process.
+The `Ownership` event is triggered by the `callback` function, which receives ownership data from a reactive contract. This function is restricted to the predefined callback sender via the `onlyReactive` modifier. The `callback` function processes the ownership data and emits the `Ownership` event, providing the collected ownership information for the specified token. 
+
+The contract ensures that only authorized entities can make requests and callbacks, maintaining the integrity and security of the ownership tracking process.
 
 ## Reactive Contract
 
@@ -48,7 +50,7 @@ To deploy and test the contracts, follow these steps. Ensure the following envir
 
 Deploy the Origin Chain Contract and assign the contract address from the response to `OWNERSHIP_L1_ADDR`.
 
-```
+```bash
 forge create --rpc-url $SEPOLIA_RPC --private-key $SEPOLIA_PRIVATE_KEY src/demos/erc721-ownership/NftOwnershipL1.sol:NftOwnershipL1 --constructor-args 0x0000000000000000000000000000000000000000
 ```
 
@@ -56,7 +58,7 @@ forge create --rpc-url $SEPOLIA_RPC --private-key $SEPOLIA_PRIVATE_KEY src/demos
 
 Deploy the Reactive Contract and assign the contract address from the response to `OWNERSHIP_REACTIVE_ADDR`.
 
-```
+```bash
 forge create --rpc-url $REACTIVE_RPC --private-key $REACTIVE_PRIVATE_KEY src/demos/erc721-ownership/NftOwnershipReactive.sol:NftOwnershipReactive --constructor-args $SYSTEM_CONTRACT_ADDR $OWNERSHIP_L1_ADDR
 ```
 
@@ -64,22 +66,22 @@ forge create --rpc-url $REACTIVE_RPC --private-key $REACTIVE_PRIVATE_KEY src/dem
 
 Select a token contract address with some activity to monitor and assign it to `ACTIVE_TOKEN_ADDR`. Also, assign a specific token ID to `ACTIVE_TOKEN_ID`. Then, send a data request to the Sepolia contract.
 
-```
+```bash
 cast send $OWNERSHIP_L1_ADDR "request(address,uint256)" --rpc-url $SEPOLIA_RPC --private-key $SEPOLIA_PRIVATE_KEY $ACTIVE_TOKEN_ADDR $ACTIVE_TOKEN_ID
 ```
 
-Shortly thereafter, the contract should emit a log record with the collected turnover data of the specified token.
+The contract should emit a log record with the collected turnover data of the specified token shortly thereafter.
 
 ### Step 4
 
 To stop the reactive contract:
 
-```
+```bash
 cast send $OWNERSHIP_REACTIVE_ADDR "pause()" --rpc-url $REACTIVE_RPC --private-key $REACTIVE_PRIVATE_KEY
 ```
 
 To resume the reactive contract:
 
-```
+```bash
 cast send $OWNERSHIP_REACTIVE_ADDR "resume()" --rpc-url $REACTIVE_RPC --private-key $REACTIVE_PRIVATE_KEY
 ```
