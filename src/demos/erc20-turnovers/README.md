@@ -50,9 +50,11 @@ To deploy and test the contracts, follow these steps. Ensure the following envir
 * `REACTIVE_PRIVATE_KEY`
 * `SYSTEM_CONTRACT_ADDR`
 
+You can use the recommended Sepolia RPC URL: `https://rpc2.sepolia.org`.
+
 ### Step 1
 
-Deploy the origin chain contract and assign the contract address from the response to `TURNOVER_L1_ADDR`. You can use the recommended Sepolia RPC URL: `https://rpc2.sepolia.org`.
+Deploy the origin chain contract and assign the contract address from the response to `TURNOVER_L1_ADDR`.
 
 ```bash
 forge create --rpc-url $SEPOLIA_RPC --private-key $SEPOLIA_PRIVATE_KEY src/demos/erc20-turnovers/TokenTurnoverL1.sol:TokenTurnoverL1 --constructor-args 0x0000000000000000000000000000000000000000
