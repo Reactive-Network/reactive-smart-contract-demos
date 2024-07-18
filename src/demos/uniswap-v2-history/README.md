@@ -32,8 +32,6 @@ By acting as both the origin for resynchronization requests and the destination 
 
 ## Further Considerations
 
-### Further Considerations
-
 While the Uniswap V2 Exchange Rate History Demo effectively monitors historical exchange rates across chains, there are several improvements that can optimize the capabilities of the Reactive Network.
 
 - Enhanced Subscription Management: Introducing support for subscriptions to multiple origin contracts, enabling monitoring of various liquidity pairs simultaneously.
@@ -52,9 +50,11 @@ To deploy and test the contracts, follow these steps. Ensure the following envir
 * `REACTIVE_PRIVATE_KEY`
 * `SYSTEM_CONTRACT_ADDR`
 
+You can use the recommended Sepolia RPC URL: `https://rpc2.sepolia.org`.
+
 ### Step 1
 
-Deploy the origin chain contract and assign the contract address from the response to `UNISWAP_L1_ADDR`. You can use the recommended Sepolia RPC URL: `https://rpc2.sepolia.org`.
+Deploy the origin chain contract and assign the contract address from the response to `UNISWAP_L1_ADDR`.
 
 ```bash
 forge create --rpc-url $SEPOLIA_RPC --private-key $SEPOLIA_PRIVATE_KEY src/demos/uniswap-v2-history/UniswapHistoryDemoL1.sol:UniswapHistoryDemoL1 --constructor-args 0x0000000000000000000000000000000000000000
