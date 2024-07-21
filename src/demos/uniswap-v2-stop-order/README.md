@@ -50,12 +50,6 @@ Throughout, constants like `DEADLINE` set a timestamp for transaction validity, 
 
 ## Further Considerations
 
-Certainly! Here's a more concise version of the Further Considerations section:
-
----
-
-## Further Considerations
-
 While this demo covers a realistic use case, it is not a production-grade implementation, which would require more safety and sanity checks as well as a more complicated flow of state for its reactive contract. This demo is intended to show additional features of the Reactive Network compared to the basic demo, namely:
 
 * Subscription to heterogeneous events.
