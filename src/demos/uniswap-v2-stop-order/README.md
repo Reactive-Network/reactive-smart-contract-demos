@@ -80,8 +80,8 @@ This script guides you through deploying and testing the Uniswap V2 stop order d
 * `SEPOLIA_PRIVATE_KEY`
 * `REACTIVE_RPC`
 * `REACTIVE_PRIVATE_KEY`
-* `SYSTEM_CONTRACT_ADDRESS`
-* `CALLBACK_SENDER_ADDRESS` on Sepolia
+* `SYSTEM_CONTRACT_ADDR`
+* `CALLBACK_SENDER_ADDR` on Sepolia
 
 To test this live, you will need some testnet tokens and a Uniswap V2 liquidity pool for them. Use any pre-existing tokens and pair or deploy your own, e.g., the barebones ERC-20 token provided in `UniswapDemoToken.sol`. You can use the recommended Sepolia RPC URL: `https://rpc2.sepolia.org`.
 
@@ -106,19 +106,19 @@ Create a Uniswap V2 pair (pool) using the token addresses created in Step 1. Use
 **Note:** When determining which token is `token0` and which is `token1` in a Uniswap pair, the token with the smaller hexadecimal address value is designated as `token0`, and the other token is `token1`. This means you compare the two token contract addresses in their hexadecimal form, and the one that comes first alphabetically (or numerically since hexadecimal includes both numbers and letters) is `token0`.
 
 ```bash
-cast send $PAIR_FACTORY_CONTRACT 'createPair(address,address)' --rpc-url $SEPOLIA_RPC --private-key $SEPOLIA_PRIVATE_KEY $TOKEN0_ADDRESS $TOKEN1_ADDRESS
+cast send $PAIR_FACTORY_CONTRACT 'createPair(address,address)' --rpc-url $SEPOLIA_RPC --private-key $SEPOLIA_PRIVATE_KEY $TOKEN0_ADDR $TOKEN1_ADDR
 ```
 
 ### Step 3
 
 Deploy the destination chain contract to Sepolia. Use the Uniswap V2 router at `0xC532a74256D3Db42D0Bf7a0400fEFDbad7694008`, which is associated with the factory contract at `0x7E0987E5b3a30e3f2828572Bb659A548460a3003`.
 
-The `CALLBACK_SENDER_ADDRESS` parameter can be omitted for the Uniswap stop order demo, as the contract executing the stop order already verifies its correctness. To skip this check, use the address `0x0000000000000000000000000000000000000000`.
+The `CALLBACK_SENDER_ADDR` parameter can be omitted for the Uniswap stop order demo, as the contract executing the stop order already verifies its correctness. To skip this check, use the address `0x0000000000000000000000000000000000000000`.
 
-Assign the `Deployed to` address from the response to `CALLBACK_CONTRACT_ADDRESS`.
+Assign the `Deployed to` address from the response to `CALLBACK_CONTRACT_ADDR`.
 
 ```bash
-forge create --rpc-url $SEPOLIA_RPC --private-key $SEPOLIA_PRIVATE_KEY src/demos/uniswap-v2-stop-order/UniswapDemoStopOrderCallback.sol:UniswapDemoStopOrderCallback --constructor-args $CALLBACK_SENDER_ADDRESS $UNISWAP_V2_ROUTER_ADDRESS
+forge create --rpc-url $SEPOLIA_RPC --private-key $SEPOLIA_PRIVATE_KEY src/demos/uniswap-v2-stop-order/UniswapDemoStopOrderCallback.sol:UniswapDemoStopOrderCallback --constructor-args $CALLBACK_SENDER_ADDR $UNISWAP_V2_ROUTER_ADDR
 ```
 
 ### Step 4
@@ -126,35 +126,35 @@ forge create --rpc-url $SEPOLIA_RPC --private-key $SEPOLIA_PRIVATE_KEY src/demos
 Transfer some liquidity into the created pool:
 
 ```bash
-cast send $TOKEN0_ADDRESS 'transfer(address,uint256)' --rpc-url $SEPOLIA_RPC --private-key $SEPOLIA_PRIVATE_KEY $CREATED_PAIR_ADDRESS 10000000000000000000
+cast send $TOKEN0_ADDR 'transfer(address,uint256)' --rpc-url $SEPOLIA_RPC --private-key $SEPOLIA_PRIVATE_KEY $CREATED_PAIR_ADDR 10000000000000000000
 ```
 
 ```bash
-cast send $TOKEN1_ADDRESS 'transfer(address,uint256)' --rpc-url $SEPOLIA_RPC --private-key $SEPOLIA_PRIVATE_KEY $CREATED_PAIR_ADDRESS 10000000000000000000
+cast send $TOKEN1_ADDR 'transfer(address,uint256)' --rpc-url $SEPOLIA_RPC --private-key $SEPOLIA_PRIVATE_KEY $CREATED_PAIR_ADDR 10000000000000000000
 ```
 
 ```bash
-cast send $CREATED_PAIR_ADDRESS 'mint(address)' --rpc-url $SEPOLIA_RPC --private-key $SEPOLIA_PRIVATE_KEY $SEPOLIA_ADDRESS
+cast send $CREATED_PAIR_ADDR 'mint(address)' --rpc-url $SEPOLIA_RPC --private-key $SEPOLIA_PRIVATE_KEY $CLIENT_WALLET
 ```
 
 ### Step 5
 
 Deploy the reactive stop order contract to the Reactive Network, specifying the following:
 
-`SYSTEM_CONTRACT_ADDRESS`: The system contract that handles event subscriptions.
+`SYSTEM_CONTRACT_ADDR`: The system contract that handles event subscriptions.
 
-`CREATED_PAIR_ADDRESS`: The Uniswap pair address from Step 2.
+`CREATED_PAIR_ADDR`: The Uniswap pair address from Step 2.
 
-`CALLBACK_CONTRACT_ADDRESS`: The contract address from Step 3.
+`CALLBACK_CONTRACT_ADDR`: The contract address from Step 3.
 
-`SEPOLIA_ADDRESS`: The client's address initiating the order.
+`CLIENT_WALLET`: The client's address initiating the order.
 
 `DIRECTION_BOOLEAN`: `true` to sell `token0` and buy `token1`; `false` for the opposite.
 
 `EXCHANGE_RATE_DENOMINATOR` and `EXCHANGE_RATE_NUMERATOR`: Integer representation of the exchange rate threshold below which a stop order is executed. These variables are set this way because the EVM works only with integers. As an example, to set the threshold at 1.234, the numerator should be 1234 and the denominator should be 1000.
 
 ```bash
-forge create --rpc-url $REACTIVE_RPC --private-key $REACTIVE_PRIVATE_KEY src/demos/uniswap-v2-stop-order/UniswapDemoStopOrderReactive.sol:UniswapDemoStopOrderReactive --constructor-args $SYSTEM_CONTRACT_ADDRESS $CREATED_PAIR_ADDRESS $CALLBACK_CONTRACT_ADDRESS $SEPOLIA_ADDRESS $DIRECTION_BOOLEAN $EXCHANGE_RATE_DENOMINATOR $EXCHANGE_RATE_NUMERATOR
+forge create --rpc-url $REACTIVE_RPC --private-key $REACTIVE_PRIVATE_KEY src/demos/uniswap-v2-stop-order/UniswapDemoStopOrderReactive.sol:UniswapDemoStopOrderReactive --constructor-args $SYSTEM_CONTRACT_ADDR $CREATED_PAIR_ADDR $CALLBACK_CONTRACT_ADDR $CLIENT_WALLET $DIRECTION_BOOLEAN $EXCHANGE_RATE_DENOMINATOR $EXCHANGE_RATE_NUMERATOR
 ```
 
 ### Step 6
@@ -162,7 +162,7 @@ forge create --rpc-url $REACTIVE_RPC --private-key $REACTIVE_PRIVATE_KEY src/dem
 To initiate a stop order, authorize the destination chain contract to spend your tokens. The last parameter is the raw amount you intend to authorize. For tokens with 18 decimal places, the above example allows the callback to spend one token.
 
 ```bash
-cast send $TOKEN_ADDRESS 'approve(address,uint256)' --rpc-url $SEPOLIA_RPC --private-key $SEPOLIA_PRIVATE_KEY $CALLBACK_CONTRACT_ADDRESS 1000000000000000000
+cast send $TOKEN_ADDR 'approve(address,uint256)' --rpc-url $SEPOLIA_RPC --private-key $SEPOLIA_PRIVATE_KEY $CALLBACK_CONTRACT_ADDR 1000000000000000000
 ```
 
 ### Step 7
@@ -174,13 +174,13 @@ Liquidity pools are rather simple and primitive contracts. They do not offer muc
 However, since our goal is to change the exchange rate, these sophisticated features are a hindrance. Instead of swapping through the periphery, we perform an inefficient swap directly through the pair, achieving the desired rate shift.
 
 ```bash
-cast send $TOKEN0_ADDRESS 'transfer(address,uint256)' --rpc-url $SEPOLIA_RPC --private-key $SEPOLIA_PRIVATE_KEY $CREATED_PAIR_ADDRESS 20000000000000000
+cast send $TOKEN0_ADDR 'transfer(address,uint256)' --rpc-url $SEPOLIA_RPC --private-key $SEPOLIA_PRIVATE_KEY $CREATED_PAIR_ADDR 20000000000000000
 ```
 
 The following command executes a swap at a highly unfavorable rate, causing an immediate and significant shift in the exchange rate:
 
 ```bash
-cast send $CREATED_PAIR_ADDRESS 'swap(uint,uint,address,bytes calldata)' --rpc-url $SEPOLIA_RPC --private-key $SEPOLIA_PRIVATE_KEY 0 5000000000000000 $SEPOLIA_ADDRESS "0x"
+cast send $CREATED_PAIR_ADDR 'swap(uint,uint,address,bytes calldata)' --rpc-url $SEPOLIA_RPC --private-key $SEPOLIA_PRIVATE_KEY 0 5000000000000000 $CLIENT_WALLET "0x"
 ```
 
 After that, the stop order will be executed and visible on [Sepolia scan](https://sepolia.etherscan.io/).
