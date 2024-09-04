@@ -2,7 +2,9 @@
 
 pragma solidity >=0.8.0;
 
-contract NftOwnershipL1 {
+import '../../AbstractCallback.sol';
+
+contract NftOwnershipL1 is AbstractCallback {
     event Request(
         address indexed token,
         uint256 indexed token_id
@@ -15,11 +17,9 @@ contract NftOwnershipL1 {
     );
 
     address private owner;
-    address private callback_sender;
 
-    constructor(address _callback_sender) {
+    constructor(address _callback_sender) AbstractCallback(_callback_sender) payable {
         owner = msg.sender;
-        callback_sender = _callback_sender;
     }
 
     modifier onlyOwner() {
@@ -27,12 +27,7 @@ contract NftOwnershipL1 {
         _;
     }
 
-    modifier onlyReactive() {
-        if (callback_sender != address(0)) {
-            require(msg.sender == callback_sender, 'Unauthorized');
-        }
-        _;
-    }
+    receive() external payable {}
 
     function request(
         address token,
@@ -46,7 +41,7 @@ contract NftOwnershipL1 {
         address token,
         uint256 token_id,
         address[] calldata owners
-    ) external onlyReactive {
+    ) external authorizedSenderOnly {
         emit Ownership(token, token_id, owners);
     }
 }
