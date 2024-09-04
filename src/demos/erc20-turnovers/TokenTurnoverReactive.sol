@@ -3,19 +3,18 @@
 pragma solidity >=0.8.0;
 
 import '../../IReactive.sol';
+import '../../AbstractPausableReactive.sol';
 import '../../ISubscriptionService.sol';
 
-struct Transfer {
-    uint256 tokens;
-}
+    struct Transfer {
+        uint256 tokens;
+    }
 
-contract TokenTurnoverReactive is IReactive {
+contract TokenTurnoverReactive is IReactive, AbstractPausableReactive {
     event Turnover(
         address indexed token,
         uint256 indexed volume
     );
-
-    uint256 private constant REACTIVE_IGNORE = 0xa65f96fc951c35ead38878e0f0b7a3c744a6f5ccc1476b313353ce31712313ad;
 
     uint256 private constant SEPOLIA_CHAIN_ID = 11155111;
 
@@ -24,33 +23,20 @@ contract TokenTurnoverReactive is IReactive {
 
     uint64 private constant CALLBACK_GAS_LIMIT = 1000000;
 
-    /**
-     * Indicates whether this is the instance of the contract deployed to ReactVM.
-     */
-    bool private vm;
-
-    // State specific to reactive network instance of the contract.
-
-    bool private paused;
-    address private owner;
-    ISubscriptionService private service;
-
     // State specific to ReactVM instance of the contract.
 
     mapping(address => uint256) private turnovers;
     address private l1;
 
     constructor(
-        address service_address,
         address _l1
     ) {
         paused = false;
         owner = msg.sender;
         l1 = _l1;
-        service = ISubscriptionService(service_address);
         bytes memory payload = abi.encodeWithSignature(
             "subscribe(uint256,address,uint256,uint256,uint256,uint256)",
-            SEPOLIA_CHAIN_ID,
+            0,
             0,
             ERC20_TRANSFER_TOPIC_0,
             REACTIVE_IGNORE,
@@ -58,9 +44,7 @@ contract TokenTurnoverReactive is IReactive {
             REACTIVE_IGNORE
         );
         (bool subscription_result,) = address(service).call(payload);
-        if (!subscription_result) {
-            vm = true;
-        }
+        vm = !subscription_result;
         bytes memory payload_2 = abi.encodeWithSignature(
             "subscribe(uint256,address,uint256,uint256,uint256,uint256)",
             SEPOLIA_CHAIN_ID,
@@ -71,32 +55,14 @@ contract TokenTurnoverReactive is IReactive {
             REACTIVE_IGNORE
         );
         (bool subscription_result_2,) = address(service).call(payload_2);
-        if (!subscription_result_2) {
-            vm = true;
-        }
+        vm = !subscription_result_2;
     }
 
-    modifier onlyOwner() {
-        require(msg.sender == owner, 'Unauthorized');
-        _;
-    }
+    receive() external payable {}
 
-    modifier rnOnly() {
-        require(!vm, 'Reactive Network only');
-        _;
-    }
-
-    modifier vmOnly() {
-        // TODO: fix the assertion after testing.
-        //require(vm, 'VM only');
-        _;
-    }
-
-    // Methods specific to reactive network instance of the contract
-
-    function pause() external rnOnly onlyOwner {
-        require(!paused, 'Paused');
-        service.unsubscribe(
+    function getPausableSubscriptions() override internal pure returns (Subscription[] memory) {
+        Subscription[] memory result = new Subscription[](1);
+        result[0] = Subscription(
             SEPOLIA_CHAIN_ID,
             address(0),
             ERC20_TRANSFER_TOPIC_0,
@@ -104,20 +70,7 @@ contract TokenTurnoverReactive is IReactive {
             REACTIVE_IGNORE,
             REACTIVE_IGNORE
         );
-        paused = true;
-    }
-
-    function resume() external rnOnly onlyOwner {
-        require(paused, 'Not paused');
-        service.subscribe(
-            SEPOLIA_CHAIN_ID,
-            address(0),
-            ERC20_TRANSFER_TOPIC_0,
-            REACTIVE_IGNORE,
-            REACTIVE_IGNORE,
-            REACTIVE_IGNORE
-        );
-        paused = false;
+        return result;
     }
 
     // Methods specific to ReactVM instance of the contract

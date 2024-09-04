@@ -2,7 +2,9 @@
 
 pragma solidity >=0.8.0;
 
-contract TokenTurnoverL1 {
+import '../../AbstractCallback.sol';
+
+contract TokenTurnoverL1 is AbstractCallback {
     event Request(
         address indexed token
     );
@@ -13,11 +15,9 @@ contract TokenTurnoverL1 {
     );
 
     address private owner;
-    address private callback_sender;
 
-    constructor(address _callback_sender) {
+    constructor(address _callback_sender) AbstractCallback(_callback_sender) payable {
         owner = msg.sender;
-        callback_sender = _callback_sender;
     }
 
     modifier onlyOwner() {
@@ -25,12 +25,7 @@ contract TokenTurnoverL1 {
         _;
     }
 
-    modifier onlyReactive() {
-        if (callback_sender != address(0)) {
-            require(msg.sender == callback_sender, 'Unauthorized');
-        }
-        _;
-    }
+    receive() external payable {}
 
     function request(
         address token
@@ -42,7 +37,7 @@ contract TokenTurnoverL1 {
         address /* sender */,
         address token,
         uint256 turnover
-    ) external onlyReactive {
+    ) external authorizedSenderOnly {
         emit Turnover(token, turnover);
     }
 }
