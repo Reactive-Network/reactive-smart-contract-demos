@@ -2,9 +2,12 @@
 
 pragma solidity >=0.8.0;
 
+import './ISubscriptionService.sol';
+import './IPayer.sol';
+
 // @title Interface for reactive contracts.
 // @notice Reactive contracts receive notifications about new events matching the criteria of their event subscriptions.
-interface IReactive {
+interface IReactive is IPayer {
     event Callback(
         uint256 indexed chain_id,
         address indexed _contract,
@@ -12,8 +15,10 @@ interface IReactive {
         bytes payload
     );
 
+    receive() external payable;
+
     // @notice Entry point for handling new event notifications.
-    // @param chain_id EIP155 origin chain ID for the event (as a `uint256`).
+    // @param chain_id EIP155 source chain ID for the event (as a `uint256`).
     // @param _contract Address of the originating contract for the received event.
     // @param topic_0 Topic 0 of the event (or `0` for `LOG0`).
     // @param topic_1 Topic 1 of the event (or `0` for `LOG0` and `LOG1`).
