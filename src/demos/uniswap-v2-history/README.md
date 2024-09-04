@@ -15,7 +15,7 @@ The demo features two key contracts:
 
 2. **Reactive Contract:** `UniswapHistoryDemoReactive` subscribes to Uniswap V2 sync events and processes resynchronization requests. It updates historical reserve data and emits `Sync` events for new data.
 
-### Further Considerations
+## Further Considerations
 
 The demo shows basic historical rate tracking but can be improved with:
 

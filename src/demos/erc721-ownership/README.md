@@ -15,7 +15,7 @@ The demo involves two key contracts:
 
 2. **Reactive Contract:** `NftOwnershipReactive` listens for ERC-721 transfer events and requests from `NftOwnershipL1`. It updates ownership records and responds with callbacks containing current ownership data.
 
-### Further Considerations
+## Further Considerations
 
 The demo covers essential ownership tracking but can be improved with:
 
