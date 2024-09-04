@@ -34,7 +34,7 @@ style RV stroke:transparent
 
 This setup can be adapted for various scenarios, from simple stop orders to fully decentralized algorithmic trading.
 
-### Contracts
+## Contracts
 
 The demo involves three contracts:
 
@@ -44,7 +44,7 @@ The demo involves three contracts:
 
 3. **Destination Chain Contract:** `BasicDemoL1Callback` logs callback details upon receiving a call, capturing the origin, sender, and reactive sender addresses.
 
-### Further Considerations
+## Further Considerations
 
 The demo highlights just a subset of Reactive Network's features. Potential improvements include:
 
