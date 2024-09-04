@@ -3,27 +3,26 @@
 pragma solidity >=0.8.0;
 
 import '../../IReactive.sol';
+import '../../AbstractPausableReactive.sol';
 import '../../ISubscriptionService.sol';
 
-struct Reserves {
-    uint112 reserve0;
-    uint112 reserve1;
-}
+    struct Reserves {
+        uint112 reserve0;
+        uint112 reserve1;
+    }
 
-struct Tick {
-    uint256 block_number;
-    Reserves reserves;
-}
+    struct Tick {
+        uint256 block_number;
+        Reserves reserves;
+    }
 
-contract UniswapHistoryDemoReactive is IReactive {
+contract UniswapHistoryDemoReactive is IReactive, AbstractPausableReactive {
     event Sync(
         address indexed pair,
         uint256 indexed block_number,
         uint112 reserve0,
         uint112 reserve1
     );
-
-    uint256 private constant REACTIVE_IGNORE = 0xa65f96fc951c35ead38878e0f0b7a3c744a6f5ccc1476b313353ce31712313ad;
 
     uint256 private constant SEPOLIA_CHAIN_ID = 11155111;
 
@@ -32,30 +31,17 @@ contract UniswapHistoryDemoReactive is IReactive {
 
     uint64 private constant CALLBACK_GAS_LIMIT = 1000000;
 
-    /**
-     * Indicates whether this is the contract instance deployed to ReactVM.
-     */
-    bool private vm;
-
-    // State specific to reactive network contract instance
-
-    address private owner;
-    bool private paused;
-    ISubscriptionService private service;
-
     // State specific to ReactVM contract instance
 
     address private l1;
     mapping(address => Tick[]) private reserves;
 
     constructor(
-        address service_address,
         address _l1
     ) {
         owner = msg.sender;
         paused = false;
         l1 = _l1;
-        service = ISubscriptionService(service_address);
         bytes memory payload = abi.encodeWithSignature(
             "subscribe(uint256,address,uint256,uint256,uint256,uint256)",
             SEPOLIA_CHAIN_ID,
@@ -66,9 +52,7 @@ contract UniswapHistoryDemoReactive is IReactive {
             REACTIVE_IGNORE
         );
         (bool subscription_result,) = address(service).call(payload);
-        if (!subscription_result) {
-            vm = true;
-        }
+        vm = !subscription_result;
         bytes memory payload_2 = abi.encodeWithSignature(
             "subscribe(uint256,address,uint256,uint256,uint256,uint256)",
             SEPOLIA_CHAIN_ID,
@@ -79,32 +63,14 @@ contract UniswapHistoryDemoReactive is IReactive {
             REACTIVE_IGNORE
         );
         (bool subscription_result_2,) = address(service).call(payload_2);
-        if (!subscription_result_2) {
-            vm = true;
-        }
+        vm = !subscription_result_2;
     }
 
-    modifier onlyOwner() {
-        require(msg.sender == owner, 'Unauthorized');
-        _;
-    }
+    receive() external payable {}
 
-    modifier rnOnly() {
-        require(!vm, 'Reactive Network only');
-        _;
-    }
-
-    modifier vmOnly() {
-        // TODO: fix the assertion after testing.
-        //require(vm, 'VM only');
-        _;
-    }
-
-    // Methods specific to reactive network contract instance
-
-    function pause() external rnOnly onlyOwner {
-        require(!paused, 'Already paused');
-        service.unsubscribe(
+    function getPausableSubscriptions() override internal pure returns (Subscription[] memory) {
+        Subscription[] memory result = new Subscription[](1);
+        result[0] = Subscription(
             SEPOLIA_CHAIN_ID,
             address(0),
             UNISWAP_V2_SYNC_TOPIC_0,
@@ -112,20 +78,7 @@ contract UniswapHistoryDemoReactive is IReactive {
             REACTIVE_IGNORE,
             REACTIVE_IGNORE
         );
-        paused = true;
-    }
-
-    function resume() external rnOnly onlyOwner {
-        require(paused, 'Not paused');
-        service.subscribe(
-            SEPOLIA_CHAIN_ID,
-            address(0),
-            UNISWAP_V2_SYNC_TOPIC_0,
-            REACTIVE_IGNORE,
-            REACTIVE_IGNORE,
-            REACTIVE_IGNORE
-        );
-        paused = false;
+        return result;
     }
 
     // Methods specific to ReactVM contract instance

@@ -2,7 +2,9 @@
 
 pragma solidity >=0.8.0;
 
-contract UniswapHistoryDemoL1 {
+import '../../AbstractCallback.sol';
+
+contract UniswapHistoryDemoL1 is AbstractCallback {
     event RequestReSync(
         address indexed pair,
         uint256 indexed block_number
@@ -16,11 +18,9 @@ contract UniswapHistoryDemoL1 {
     );
 
     address private owner;
-    address private callback_sender;
 
-    constructor(address _callback_sender) {
+    constructor(address _callback_sender) AbstractCallback(_callback_sender) payable {
         owner = msg.sender;
-        callback_sender = _callback_sender;
     }
 
     modifier onlyOwner() {
@@ -28,12 +28,7 @@ contract UniswapHistoryDemoL1 {
         _;
     }
 
-    modifier onlyReactive() {
-        if (callback_sender != address(0)) {
-            require(msg.sender == callback_sender, 'Unauthorized');
-        }
-        _;
-    }
+    receive() external payable {}
 
     function request(
         address pair,
@@ -48,7 +43,7 @@ contract UniswapHistoryDemoL1 {
         uint256 block_number,
         uint112 reserve0,
         uint112 reserve1
-    ) external onlyReactive {
+    ) external authorizedSenderOnly {
         emit ReSync(pair, block_number, reserve0, reserve1);
     }
 }
