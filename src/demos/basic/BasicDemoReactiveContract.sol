@@ -3,9 +3,10 @@
 pragma solidity >=0.8.0;
 
 import '../../IReactive.sol';
-import '../../ISubscriptionService.sol';
+import '../../AbstractReactive.sol';
+import '../../ISystemContract.sol';
 
-contract BasicDemoReactiveContract is IReactive {
+contract BasicDemoReactiveContract is IReactive, AbstractReactive {
     event Event(
         uint256 indexed chain_id,
         address indexed _contract,
@@ -17,28 +18,20 @@ contract BasicDemoReactiveContract is IReactive {
         uint256 counter
     );
 
-    uint256 private constant REACTIVE_IGNORE = 0xa65f96fc951c35ead38878e0f0b7a3c744a6f5ccc1476b313353ce31712313ad;
-
     uint256 private constant SEPOLIA_CHAIN_ID = 11155111;
 
     uint64 private constant GAS_LIMIT = 1000000;
 
-    /**
-     * Indicates whether this is a ReactVM instance of the contract.
-     */
-    bool private vm;
-
     // State specific to reactive network instance of the contract
 
-    ISubscriptionService private service;
     address private _callback;
 
     // State specific to ReactVM instance of the contract
 
     uint256 public counter;
 
-    constructor(address service_address, address _contract, uint256 topic_0, address callback) {
-        service = ISubscriptionService(service_address);
+    constructor(address _service, address _contract, uint256 topic_0, address callback) {
+        service = ISystemContract(payable(_service));
         bytes memory payload = abi.encodeWithSignature(
             "subscribe(uint256,address,uint256,uint256,uint256,uint256)",
             SEPOLIA_CHAIN_ID,
@@ -49,17 +42,11 @@ contract BasicDemoReactiveContract is IReactive {
             REACTIVE_IGNORE
         );
         (bool subscription_result,) = address(service).call(payload);
-        if (!subscription_result) {
-            vm = true;
-        }
+        vm = !subscription_result;
         _callback = callback;
     }
 
-    modifier vmOnly() {
-        // TODO: fix the assertion after testing.
-        //require(vm, 'VM only');
-        _;
-    }
+    receive() external payable {}
 
     // Methods specific to ReactVM instance of the contract
 
@@ -82,6 +69,10 @@ contract BasicDemoReactiveContract is IReactive {
     }
 
     // Methods for testing environment only
+
+    function pretendVm() external {
+        vm = true;
+    }
 
     function subscribe(address _contract, uint256 topic_0) external {
         service.subscribe(

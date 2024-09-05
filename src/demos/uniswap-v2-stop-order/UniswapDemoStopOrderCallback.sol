@@ -5,13 +5,14 @@ pragma solidity >=0.8.0;
 import '../../../lib/v2-periphery/contracts/interfaces/IUniswapV2Router02.sol';
 import '../../../lib/v2-core/contracts/interfaces/IUniswapV2Pair.sol';
 import '../../../lib/openzeppelin-contracts/contracts/token/ERC20/IERC20.sol';
+import '../../AbstractCallback.sol';
 
-struct Reserves {
-    uint112 reserve0;
-    uint112 reserve1;
-}
+    struct Reserves {
+        uint112 reserve0;
+        uint112 reserve1;
+    }
 
-contract UniswapDemoStopOrderCallback {
+contract UniswapDemoStopOrderCallback is AbstractCallback {
     event Stop(
         address indexed pair,
         address indexed client,
@@ -19,23 +20,15 @@ contract UniswapDemoStopOrderCallback {
         uint256[] tokens
     );
 
-    address private callback_sender;
-
     IUniswapV2Router02 private router;
 
     uint private constant DEADLINE = 2707391655;
 
-    constructor(address _callback_sender, address _router) {
-        callback_sender = _callback_sender;
+    constructor(address _callback_sender, address _router) AbstractCallback(_callback_sender) payable {
         router = IUniswapV2Router02(_router);
     }
 
-    modifier onlyReactive() {
-        if (callback_sender != address(0)) {
-            require(msg.sender == callback_sender, 'Unauthorized');
-        }
-        _;
-    }
+    receive() external payable {}
 
     function stop(
         address /* sender */,
@@ -44,7 +37,7 @@ contract UniswapDemoStopOrderCallback {
         bool is_token0,
         uint256 coefficient,
         uint256 threshold
-    ) external onlyReactive {
+    ) external authorizedSenderOnly {
         address token0 = IUniswapV2Pair(pair).token0();
         address token1 = IUniswapV2Pair(pair).token1();
         (uint112 reserve0, uint112 reserve1, ) = IUniswapV2Pair(pair).getReserves();

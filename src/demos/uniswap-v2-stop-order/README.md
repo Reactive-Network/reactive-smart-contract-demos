@@ -2,6 +2,8 @@
 
 ## Overview
 
+This demo implements stop orders for Uniswap V2 liquidity pools using reactive contracts. It monitors a specified Uniswap V2 pair and triggers asset sales when the exchange rate reaches a defined threshold.
+
 ```mermaid
 %%{ init: { 'flowchart': { 'curve': 'basis' } } }%%
 flowchart LR
@@ -18,59 +20,24 @@ OCC -.->|emitted log| RC
 RC -.->|callback| DCC
 ```
 
-This demo builds on the basic reactive example presented in `src/demos/basic/README.md`. Refer to that document for an outline of fundamental concepts and the architecture of reactive applications. The demo implements simple stop orders for Uniswap V2 liquidity pools. The application monitors a specified Uniswap V2 pair, and as soon as the exchange rate reaches a given threshold, it initiates a sale of assets through that same pair.
+## Contracts
 
-## Origin Chain Contract
+The demo involves three contracts:
 
-The `UniswapDemoToken` contract is a basic implementation of an ERC-20 token using OpenZeppelin's standard library. It initializes the token with a name and symbol provided during deployment. Upon deployment, 100 tokens (with 18 decimals) are minted and assigned to the contract deployer's address. The contract includes comments with addresses for the Uniswap router and factory for reference, indicating potential integration points for token swaps and liquidity provision.
+1. **Origin Chain Contract:** `UniswapDemoToken` is a basic ERC-20 token with 100 tokens minted to the deployer's address. It provides integration points for Uniswap swaps.
 
-## Reactive Contract
+2. **Reactive Contract:** `UniswapDemoStopOrderReactive` subscribes to a Uniswap V2 pair and stop order events. It checks if reserves fall below a threshold and triggers a stop order via callback.
 
-The `UniswapDemoStopOrderReactive` contract is an advanced example of a reactive contract designed for use with the Uniswap V2 protocol and the Reactive Network. This contract subscribes to events from both a Uniswap V2 pair contract and a stop order contract on Sepolia. When an event matching specific conditions occurs, it triggers a callback to execute a stop order.
-
-The contract defines a structure `Reserves` to hold the reserve amounts of the Uniswap V2 pair. It has multiple events to signal various states and actions, such as `Subscribed`, `VM`, `AboveThreshold`, `CallbackSent`, and `Done`. The contract uses `REACTIVE_IGNORE` (`0xa65f96fc951c35ead38878e0f0b7a3c744a6f5ccc1476b313353ce31712313ad`) to ignore specific topics. It employs `0` for chain ID and contract address parameters to achieve the same purpose, ensuring clarity in its event subscriptions.
-
-The constructor sets up the initial state, including the reactive network subscription to the Uniswap V2 pair and stop order contracts. It stores addresses and parameters such as the token pair, stop order, client, token order type, coefficient, and threshold for the stop order.
-
-The `react` function is the core of the contract, which processes events from the reactive network. It asserts the contract is not in the done state and processes events either from the stop order contract or the Uniswap V2 pair contract. When a sync event is received from the Uniswap V2 pair, it checks if the reserves are below the specified threshold. If so, it triggers a stop order. The function `below_threshold` determines if the reserves meet the conditions for triggering the stop order based on the predefined coefficient and threshold.
-
-## Destination Chain Contract
-
-The `UniswapDemoStopOrderCallback` contract is designed to facilitate stop order functionality on Uniswap V2 pairs through reactive callbacks. It includes a constructor to initialize the callback sender and the Uniswap V2 Router address. The contract uses the `onlyReactive` modifier to restrict function access to authorized callers, ensuring security.
-
-The `UniswapDemoStopOrderCallback` contract is designed to enable the execution of stop orders on the Uniswap V2 pairs through Reactive callbacks. It initializes with parameters `_callback_sender` and `_router`, ensuring secure access and enabling token swaps through the Uniswap V2 Router contract. Access control is enforced through the `onlyReactive` modifier, restricting critical functions to authorized addresses defined during deployment.
-
-The `stop` function is invoked upon receiving a trigger from the Reactive Network. It processes parameters including the Uniswap V2 pair address (`pair`), client address (`client`), a boolean (`is_token0`) indicating the token type being sold, and specific thresholds (`coefficient` and `threshold`) defining stop order conditions.
-
-Internally, the `below_threshold` function evaluates whether current Uniswap V2 pair reserves meet predefined criteria for executing stop orders. Depending on the boolean `token0`, it calculates the rate based on reserves and checks if it falls below the defined threshold, ensuring accurate decision-making for order execution.
-
-Transaction execution involves verifying the client's token allowance and balance for the sell token, followed by executing a precise token swap using the Uniswap V2 Router (`router`). Upon successful completion, resulting tokens are transferred back to the client's address, signaling completion through the `Stop` event, which includes details of the pair, client, token, and transaction outcomes.
-
-Throughout, constants like `DEADLINE` set a timestamp for transaction validity, ensuring timely execution and reliability in processing token swaps. The callback contract is stateless and may be used by any number of reactive stop order contracts as long as they use the same router contract.
+3. **Destination Chain Contract:** `UniswapDemoStopOrderCallback` processes stop orders. It executes token swaps using the Uniswap V2 Router when triggered by the reactive contract.
 
 ## Further Considerations
 
-While this demo covers a realistic use case, it is not a production-grade implementation, which would require more safety and sanity checks as well as a more complicated flow of state for its reactive contract. This demo is intended to show additional features of the Reactive Network compared to the basic demo, namely:
+The demo showcases essential stop order functionality but can be improved with:
 
-* Subscription to heterogeneous events.
-
-* Stateful reactive contracts.
-
-* Loopback data flow between the reactive contract and the destination chain contract.
-
-* Basic sanity checks required in destination chain contracts, both for security reasons and because callback execution is not synchronous with the execution of the reactive contract.
-
-Nonetheless, a few further improvements could be made to bring this implementation closer to a practical stop order one:
-
-* Leveraging dynamic event subscription to allow a single reactive contract to handle multiple arbitrary orders.
-
-* Adding more sanity checks and a retry policy in the reactive contract.
-
-* Supporting arbitrary routers on the destination side.
-
-* Implementing a more elaborate data flow between the reactive contract and the destination chain contract.
-
-* Supporting alternate DEXes.
+- **Dynamic Event Subscriptions:** Supporting multiple orders and flexible event handling.
+- **Sanity Checks and Retry Policies:** Adding error handling and retry mechanisms.
+- **Support for Arbitrary Routers and DEXes:** Extending functionality to work with various routers and decentralized exchanges.
+- **Improved Data Flow:** Refining interactions between reactive and destination chain contracts for better reliability.
 
 ## Deployment & Testing
 
@@ -80,8 +47,6 @@ This script guides you through deploying and testing the Uniswap V2 stop order d
 * `SEPOLIA_PRIVATE_KEY`
 * `REACTIVE_RPC`
 * `REACTIVE_PRIVATE_KEY`
-* `SYSTEM_CONTRACT_ADDR`
-* `CALLBACK_SENDER_ADDR` on Sepolia
 
 To test this live, you will need some testnet tokens and a Uniswap V2 liquidity pool for them. Use any pre-existing tokens and pair or deploy your own, e.g., the barebones ERC-20 token provided in `UniswapDemoToken.sol`. You can use the recommended Sepolia RPC URL: `https://rpc2.sepolia.org`.
 
@@ -113,12 +78,12 @@ cast send $PAIR_FACTORY_CONTRACT 'createPair(address,address)' --rpc-url $SEPOLI
 
 Deploy the destination chain contract to Sepolia. Use the Uniswap V2 router at `0xC532a74256D3Db42D0Bf7a0400fEFDbad7694008`, which is associated with the factory contract at `0x7E0987E5b3a30e3f2828572Bb659A548460a3003`.
 
-The `CALLBACK_SENDER_ADDR` parameter can be omitted for the Uniswap stop order demo, as the contract executing the stop order already verifies its correctness. To skip this check, use the address `0x0000000000000000000000000000000000000000`.
+The `$AUTHORIZED_CALLER_ADDRESS` parameter can be omitted for the Uniswap stop order demo, as the contract executing the stop order already verifies its correctness. To skip this check, use the address `0x0000000000000000000000000000000000000000`.
 
 Assign the `Deployed to` address from the response to `CALLBACK_CONTRACT_ADDR`.
 
 ```bash
-forge create --rpc-url $SEPOLIA_RPC --private-key $SEPOLIA_PRIVATE_KEY src/demos/uniswap-v2-stop-order/UniswapDemoStopOrderCallback.sol:UniswapDemoStopOrderCallback --constructor-args $CALLBACK_SENDER_ADDR $UNISWAP_V2_ROUTER_ADDR
+forge create --rpc-url $SEPOLIA_RPC --private-key $SEPOLIA_PRIVATE_KEY src/demos/uniswap-v2-stop-order/UniswapDemoStopOrderCallback.sol:UniswapDemoStopOrderCallback --constructor-args $AUTHORIZED_CALLER_ADDR $UNISWAP_V2_ROUTER_ADDR
 ```
 
 ### Step 4
@@ -141,9 +106,7 @@ cast send $CREATED_PAIR_ADDR 'mint(address)' --rpc-url $SEPOLIA_RPC --private-ke
 
 Deploy the reactive stop order contract to the Reactive Network, specifying the following:
 
-`SYSTEM_CONTRACT_ADDR`: The system contract that handles event subscriptions.
-
-`CREATED_PAIR_ADDR`: The Uniswap pair address from Step 2.
+`UNISWAP_V2_PAIR_ADDR`: The Uniswap pair address from Step 2.
 
 `CALLBACK_CONTRACT_ADDR`: The contract address from Step 3.
 
@@ -154,7 +117,7 @@ Deploy the reactive stop order contract to the Reactive Network, specifying the 
 `EXCHANGE_RATE_DENOMINATOR` and `EXCHANGE_RATE_NUMERATOR`: Integer representation of the exchange rate threshold below which a stop order is executed. These variables are set this way because the EVM works only with integers. As an example, to set the threshold at 1.234, the numerator should be 1234 and the denominator should be 1000.
 
 ```bash
-forge create --rpc-url $REACTIVE_RPC --private-key $REACTIVE_PRIVATE_KEY src/demos/uniswap-v2-stop-order/UniswapDemoStopOrderReactive.sol:UniswapDemoStopOrderReactive --constructor-args $SYSTEM_CONTRACT_ADDR $CREATED_PAIR_ADDR $CALLBACK_CONTRACT_ADDR $CLIENT_WALLET $DIRECTION_BOOLEAN $EXCHANGE_RATE_DENOMINATOR $EXCHANGE_RATE_NUMERATOR
+forge create --rpc-url $REACTIVE_RPC --private-key $REACTIVE_PRIVATE_KEY src/demos/uniswap-v2-stop-order/UniswapDemoStopOrderReactive.sol:UniswapDemoStopOrderReactive --constructor-args $UNISWAP_V2_PAIR_ADDR $CALLBACK_CONTRACT_ADDR $CLIENT_WALLET $DIRECTION_BOOLEAN $EXCHANGE_RATE_DENOMINATOR $EXCHANGE_RATE_NUMERATOR
 ```
 
 ### Step 6
@@ -169,18 +132,18 @@ cast send $TOKEN_ADDR 'approve(address,uint256)' --rpc-url $SEPOLIA_RPC --privat
 
 After creating the pair and adding liquidity, we have to make the reactive smart contract work by adjusting the exchange rate directly through the pair, not the periphery.
 
-Liquidity pools are rather simple and primitive contracts. They do not offer much functionality or protect the user from mistakes, making their deployment cheaper. That's why most users perform swaps through so-called peripheral contracts. These contracts are deployed once and can interact with any pair created by a single contract. They offer features to limit slippage, maximize swap efficiency, and more.
+Liquidity pools are rather simple and primitive contracts. They offer little functionality and don't protect the user from mistakes, making their deployment cheaper. That's why most users perform swaps through so-called peripheral contracts. These contracts are deployed once and can interact with any pair created by a single contract. They offer features to limit slippage, maximize swap efficiency, and more.
 
 However, since our goal is to change the exchange rate, these sophisticated features are a hindrance. Instead of swapping through the periphery, we perform an inefficient swap directly through the pair, achieving the desired rate shift.
 
 ```bash
-cast send $TOKEN0_ADDR 'transfer(address,uint256)' --rpc-url $SEPOLIA_RPC --private-key $SEPOLIA_PRIVATE_KEY $CREATED_PAIR_ADDR 20000000000000000
+cast send $TOKEN0_ADDR 'transfer(address,uint256)' --rpc-url $SEPOLIA_RPC --private-key $SEPOLIA_PRIVATE_KEY $UNISWAP_V2_PAIR_ADDR 20000000000000000
 ```
 
 The following command executes a swap at a highly unfavorable rate, causing an immediate and significant shift in the exchange rate:
 
 ```bash
-cast send $CREATED_PAIR_ADDR 'swap(uint,uint,address,bytes calldata)' --rpc-url $SEPOLIA_RPC --private-key $SEPOLIA_PRIVATE_KEY 0 5000000000000000 $CLIENT_WALLET "0x"
+cast send $UNISWAP_V2_PAIR_ADDR 'swap(uint,uint,address,bytes calldata)' --rpc-url $SEPOLIA_RPC --private-key $SEPOLIA_PRIVATE_KEY 0 5000000000000000 $CLIENT_WALLET "0x"
 ```
 
 After that, the stop order will be executed and visible on [Sepolia scan](https://sepolia.etherscan.io/).

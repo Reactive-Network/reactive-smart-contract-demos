@@ -2,10 +2,10 @@
 
 ## Overview
 
-This demo simulates a basic use case of Reactive Network, employing two key capabilities:
+This demo illustrates a basic use case of the Reactive Network with two key functionalities:
 
-* Low-latency monitoring of logs emitted by arbitrary contracts in L1 Network (Sepolia testnet in this case).
-* Calls from Reactive Network to arbitrary L1 contracts.
+* Low-latency monitoring of logs emitted by contracts on the origin chain (Sepolia testnet).
+* Executing calls from the Reactive Network to contracts on the destination chain, also on Sepolia.
 
 ```mermaid
 %%{ init: { 'flowchart': { 'curve': 'basis' } } }%%
@@ -32,39 +32,26 @@ BDRC -. callback .-> DCC
 style RV stroke:transparent
 ```
 
-In practical terms, this general use case can be applicable in any number of scenarios, from simple stop orders to fully decentralized algorithmic trading.
+This setup can be adapted for various scenarios, from simple stop orders to fully decentralized algorithmic trading.
 
-There are three main contracts involved in this scenario:
+## Contracts
 
-* Origin chain contract.
-* Reactive contract.
-* Destination chain contract.
+The demo involves three contracts:
 
-### Origin Chain Contract
+1. **Origin Chain Contract:** `BasicDemoL1Contract` receives Ether and returns it to the sender, emitting a `Received` event with transaction details.
 
-The `BasicDemoL1Contract` is a smart contract designed to receive and immediately return Ether to the transaction origin. It emits a `Received` event containing the origin address, sender address, and value of the Ether received. The `receive` function, a special fallback function, triggers this event and then transfers the received Ether back to the transaction origin.
+2. **Reactive Contract:** `BasicDemoReactiveContract` subscribes to events on Sepolia, emits logs, and triggers callbacks when conditions are met, such as `topic_3` being at least 0.1 Ether. It manages event subscriptions and tracks processed events.
 
-### Reactive Contract
+3. **Destination Chain Contract:** `BasicDemoL1Callback` logs callback details upon receiving a call, capturing the origin, sender, and reactive sender addresses.
 
-The `BasicDemoReactiveContract` is a smart contract designed for the Reactive Network, implementing the `IReactive` interface. It subscribes to events on the Sepolia chain and processes them through the `react` function. When an event is received, it emits a detailed `Event` log and, if certain conditions are met (e.g., `topic_3` is at least 0.1 ether), it triggers a callback to a predefined address. The contract includes a counter to track the number of processed events and provides methods for subscribing, unsubscribing, and resetting the counter. The constructor initializes the subscription service and sets up the initial event subscription.
+## Further Considerations
 
-### Destination Chain Contract
+The demo highlights just a subset of Reactive Network's features. Potential improvements include:
 
-The `BasicDemoL1Callback` is a simple callback contract that logs the details of received callbacks. It includes a single function, `callback`, which emits a `CallbackReceived` event. This event captures the address of the transaction origin (`tx.origin`), the address that invoked the callback (`msg.sender`), and the sender address passed as an argument to the function.
-
-Note that in real-world applications, the callback contract must verify the validity of the call by checking the message sender and/or verifying the current rate when executing a stop order.
-
-### Further Considerations
-
-The reactive contract in this demo leverages only a fraction of the capabilities available within the Reactive Network. Key areas for enhancement include:
-
-* Subscription to Multiple Event Origins: Beyond the apparent utility, reactive contracts should subscribe to logs from their own callback contracts to maintain state consistency across networks.
-
-* Dynamic Subscriptions and Unsubscriptions: Implementing the ability to dynamically subscribe and unsubscribe to events based on real-time conditions can improve flexibility and responsiveness.
-
-* Persistent State Management: The demo contract currently reacts to events in isolation, without maintaining any meaningful state. Introducing persistent state can enable more complex and context-aware interactions.
-
-* Arbitrary Callbacks: While the demo contracts call a predetermined method on a fixed contract, the ability to generate arbitrary transaction payloads would provide greater versatility and adaptability in various scenarios.
+- **Enhanced Event Subscriptions:** Subscribing to multiple event origins, including callback logs, to maintain consistency.
+- **Dynamic Subscriptions:** Allowing real-time adjustments to subscriptions based on conditions.
+- **State Management:** Introducing persistent state handling for more complex, context-aware reactions.
+- **Flexible Callbacks:** Supporting arbitrary transaction payloads to increase adaptability.
 
 ## Deployment & Testing
 

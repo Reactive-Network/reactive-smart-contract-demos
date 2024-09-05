@@ -3,14 +3,15 @@
 pragma solidity >=0.8.0;
 
 import '../../IReactive.sol';
+import '../../AbstractReactive.sol';
 import '../../ISubscriptionService.sol';
 
-struct Reserves {
-    uint112 reserve0;
-    uint112 reserve1;
-}
+    struct Reserves {
+        uint112 reserve0;
+        uint112 reserve1;
+    }
 
-contract UniswapDemoStopOrderReactive is IReactive {
+contract UniswapDemoStopOrderReactive is IReactive, AbstractReactive {
     event Subscribed(
         address indexed service_address,
         address indexed _contract,
@@ -30,19 +31,12 @@ contract UniswapDemoStopOrderReactive is IReactive {
 
     event Done();
 
-    uint256 private constant REACTIVE_IGNORE = 0xa65f96fc951c35ead38878e0f0b7a3c744a6f5ccc1476b313353ce31712313ad;
-
     uint256 private constant SEPOLIA_CHAIN_ID = 11155111;
 
     uint256 private constant UNISWAP_V2_SYNC_TOPIC_0 = 0x1c411e9a96e071241c2f21f7726b17ae89e3cab4c78be50e062b03a9fffbbad1;
     uint256 private constant STOP_ORDER_STOP_TOPIC_0 = 0x9996f0dd09556ca972123b22cf9f75c3765bc699a1336a85286c7cb8b9889c6b;
 
     uint64 private constant CALLBACK_GAS_LIMIT = 1000000;
-
-    /**
-     * Indicates whether this is the instance of the contract deployed to ReactVM.
-     */
-    bool private vm;
 
     // State specific to ReactVM instance of the contract.
 
@@ -56,7 +50,6 @@ contract UniswapDemoStopOrderReactive is IReactive {
     uint256 private threshold;
 
     constructor(
-        address service_address,
         address _pair,
         address _stop_order,
         address _client,
@@ -66,7 +59,6 @@ contract UniswapDemoStopOrderReactive is IReactive {
     ) {
         triggered = false;
         done = false;
-        ISubscriptionService service = ISubscriptionService(service_address);
         pair = _pair;
         bytes memory payload = abi.encodeWithSignature(
             "subscribe(uint256,address,uint256,uint256,uint256,uint256)",
@@ -82,7 +74,7 @@ contract UniswapDemoStopOrderReactive is IReactive {
             vm = true;
             emit VM();
         } else {
-            emit Subscribed(service_address, pair, UNISWAP_V2_SYNC_TOPIC_0);
+            emit Subscribed(address(service), pair, UNISWAP_V2_SYNC_TOPIC_0);
         }
         stop_order = _stop_order;
         bytes memory payload_2 = abi.encodeWithSignature(
@@ -99,7 +91,7 @@ contract UniswapDemoStopOrderReactive is IReactive {
             vm = true;
             emit VM();
         } else {
-            emit Subscribed(service_address, stop_order, STOP_ORDER_STOP_TOPIC_0);
+            emit Subscribed(address(service), stop_order, STOP_ORDER_STOP_TOPIC_0);
         }
         client = _client;
         token0 = _token0;
@@ -107,11 +99,7 @@ contract UniswapDemoStopOrderReactive is IReactive {
         threshold = _threshold;
     }
 
-    modifier vmOnly() {
-        // TODO: fix the assertion after testing.
-        //require(vm, 'VM only');
-        _;
-    }
+    receive() external payable {}
 
     // Methods specific to ReactVM instance of the contract.
 
