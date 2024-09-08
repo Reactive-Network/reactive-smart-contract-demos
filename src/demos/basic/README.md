@@ -62,6 +62,8 @@ To deploy testnet contracts to Sepolia, follow these steps, making sure you subs
 * `REACTIVE_RPC`
 * `REACTIVE_PRIVATE_KEY`
 * `SYSTEM_CONTRACT_ADDR`
+* `CALLBACK_ADDR`
+* `CALLBACK_PROXY_ADDR`
 
 You can use the recommended Sepolia RPC URL: `https://rpc2.sepolia.org`.
 
@@ -79,6 +81,20 @@ Deploy the `BasicDemoL1Callback` (destination chain contract) and assign the `De
 
 ```bash
 forge create --rpc-url $SEPOLIA_RPC --private-key $SEPOLIA_PRIVATE_KEY src/demos/basic/BasicDemoL1Callback.sol:BasicDemoL1Callback
+```
+
+#### Callback Payment
+
+To ensure a successful callback, the callback contract must have an ETH balance. You can find more details [here](https://dev.reactive.network/system-contract#callback-payments). To fund the callback contract, run the following command:
+
+```bash
+cast send $CALLBACK_ADDR --rpc-url $SEPOLIA_RPC --private-key $SEPOLIA_PRIVATE_KEY --value 0.1ether
+```
+
+Alternatively, you can deposit the funds into the callback proxy smart contract using this command:
+
+```bash
+cast send --rpc-url $SEPOLIA_RPC --private-key $SEPOLIA_PRIVATE_KEY $CALLBACK_PROXY_ADDR "depositTo(address)" $CALLBACK_ADDR --value 0.1ether
 ```
 
 ### Step 3
