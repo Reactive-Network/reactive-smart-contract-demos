@@ -34,7 +34,7 @@ The `src/demos` directory contains several elaborate demos, accompanied by `READ
 
 ### Environment variable configuration for running demos
 
-The following environment variables are used in the instructions for running the demos, and should be configured ahead of time.
+The following environment variables are used in the instructions for running the demos, and should be configured beforehand.
 
 #### `SEPOLIA_RPC`
 
@@ -46,7 +46,7 @@ The private key to your Sepolia wallet.
 
 #### `REACTIVE_RPC`
 
-For the Reactive Testnet RPC address, refer to the [docs](https://dev.reactive.network/docs/kopli-testnet).
+For the Reactive Testnet RPC address, refer to the [docs](https://dev.reactive.network/kopli-testnet#kopli-testnet-information).
 
 #### `REACTIVE_PRIVATE_KEY`
 
@@ -58,8 +58,8 @@ The address of your Reactive wallet.
 
 #### `SYSTEM_CONTRACT_ADDR`
 
-For the system contract address on the Reactive testnet, refer to the [docs](https://dev.reactive.network/docs/kopli-testnet).
+For the system contract address on the Reactive testnet, refer to the [docs](https://dev.reactive.network/kopli-testnet#kopli-testnet-information).
 
-#### `CALLBACK_SENDER_ADDR`
+#### `CALLBACK_PROXY_ADDR`
 
-For the callback sender address, refer to the [docs](https://dev.reactive.network/docs/kopli-testnet).
+For the callback sender address, refer to the [docs](https://dev.reactive.network/kopli-testnet#kopli-testnet-information).

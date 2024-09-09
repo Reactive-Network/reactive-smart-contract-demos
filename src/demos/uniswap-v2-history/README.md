@@ -32,6 +32,8 @@ To deploy and test the contracts, follow these steps. Ensure the following envir
 * `SEPOLIA_PRIVATE_KEY`
 * `REACTIVE_RPC`
 * `REACTIVE_PRIVATE_KEY`
+* `CALLBACK_ADDR`
+* `CALLBACK_PROXY_ADDR`
 
 You can use the recommended Sepolia RPC URL: `https://rpc2.sepolia.org`.
 
@@ -41,6 +43,20 @@ Deploy the origin chain contract and assign the contract address from the respon
 
 ```bash
 forge create --rpc-url $SEPOLIA_RPC --private-key $SEPOLIA_PRIVATE_KEY src/demos/uniswap-v2-history/UniswapHistoryDemoL1.sol:UniswapHistoryDemoL1 --constructor-args 0x0000000000000000000000000000000000000000
+```
+
+#### Callback Payment
+
+To ensure a successful callback, the callback contract must have an ETH balance. You can find more details [here](https://dev.reactive.network/system-contract#callback-payments). To fund the callback contract, run the following command:
+
+```bash
+cast send $CALLBACK_ADDR --rpc-url $SEPOLIA_RPC --private-key $SEPOLIA_PRIVATE_KEY --value 0.1ether
+```
+
+Alternatively, you can deposit the funds into the callback proxy smart contract using this command:
+
+```bash
+cast send --rpc-url $SEPOLIA_RPC --private-key $SEPOLIA_PRIVATE_KEY $CALLBACK_PROXY_ADDR "depositTo(address)" $CALLBACK_ADDR --value 0.1ether
 ```
 
 ### Step 2
