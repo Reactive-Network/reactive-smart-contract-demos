@@ -33,7 +33,7 @@ contract NftOwnershipReactive is IReactive, AbstractPausableReactive {
         l1 = _l1;
         bytes memory payload = abi.encodeWithSignature(
             "subscribe(uint256,address,uint256,uint256,uint256,uint256)",
-            0,
+            SEPOLIA_CHAIN_ID,
             0,
             ERC721_TRANSFER_TOPIC_0,
             REACTIVE_IGNORE,
