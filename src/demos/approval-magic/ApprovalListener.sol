@@ -25,7 +25,7 @@ contract ApprovalListener is AbstractReactive {
         bytes memory payload = abi.encodeWithSignature(
             "subscribe(uint256,address,uint256,uint256,uint256,uint256)",
             SEPOLIA_CHAIN_ID,
-            service,
+            approval_service,
             SUBSCRIBE_TOPIC_0,
             REACTIVE_IGNORE,
             REACTIVE_IGNORE,
@@ -38,7 +38,7 @@ contract ApprovalListener is AbstractReactive {
         payload = abi.encodeWithSignature(
             "subscribe(uint256,address,uint256,uint256,uint256,uint256)",
             SEPOLIA_CHAIN_ID,
-            service,
+            approval_service,
             UNSUBSCRIBE_TOPIC_0,
             REACTIVE_IGNORE,
             REACTIVE_IGNORE,
@@ -127,7 +127,7 @@ contract ApprovalListener is AbstractReactive {
                 _contract,
                 amount
             );
-            emit Callback(SEPOLIA_CHAIN_ID, address(service), CALLBACK_GAS_LIMIT, payload);
+            emit Callback(SEPOLIA_CHAIN_ID, address(approval_service), CALLBACK_GAS_LIMIT, payload);
         }
     }
 }
