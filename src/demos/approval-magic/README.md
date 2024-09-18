@@ -47,30 +47,22 @@ This script guides you through deploying and testing the `ApprovalMagicSwap` dem
 Current deployment addresses that can be reused:
 
 ```bash
-export APPROVAL_SRV_ADDR=0x7e4cF81dBFd543646E5b397583B7F5ab85B3B654
-export APPROVAL_RCT_ADDR=0xF37652D7aF808287DEB26dDcb400352d8BA012Ef
+export APPROVAL_SRV_ADDR=0x3379d20f9A4dE5eFA41FDE8904533e4d15ED3e67
+export APPROVAL_RCT_ADDR=0xBDbB883540Bc07d1B2d2f897E3c2a35fc9eD5e06
 ```
 
 The service contracts, `ApprovalService` and `ApprovalListener`, can be deployed once, and can be used by any number of clients.
 
 #### ApprovalService Deployment
 
-Deploy the `ApprovalService` contract with the command below. Adjust the constructor arguments based on your requirements.
+To deploy the `ApprovalService` contract, the command given below. The constructor requires these arguments:
 
-Constructor Arguments:
-
-- Subscription Fee in Wei: Fee clients pay to subscribe.
-- Gas Price Coefficient: Multiplier affecting transaction cost.
-- Extra Gas for Reactive Service: Additional gas for reactive operations.
-
-Example Values:
-
-- Subscription Fee: 100 Wei
-- Gas Price Coefficient: 1
-- Extra Gas: 10
+- Subscription Fee (in Wei): `100`
+- Gas Price Coefficient: `1`
+- Extra Gas for Reactive Service: `10`
 
 ```bash
-forge create src/demos/approval-magic/ApprovalService.sol:ApprovalService --rpc-url $SEPOLIA_RPC --private-key $SEPOLIA_PRIVATE_KEY --constructor-args $SUBSCRIPTION_FEE_WEI $GAS_PRICE_COEFFICIENT $REACTIVE_SERVICE_GAS
+forge create src/demos/approval-magic/ApprovalService.sol:ApprovalService --rpc-url $SEPOLIA_RPC --private-key $SEPOLIA_PRIVATE_KEY --constructor-args 100 1 10
 ```
 
 The `Deployed to` address from the response should be assigned to `APPROVAL_SRV_ADDR`.
@@ -91,7 +83,7 @@ cast send --rpc-url $SEPOLIA_RPC --private-key $SEPOLIA_PRIVATE_KEY $CALLBACK_PR
 
 #### Reactive Deployment
 
-Deploy the `ApprovalListener` contract with the command below. Ensure to use the same private key (`SEPOLIA_PRIVATE_KEY`). Both contracts must be deployed from the same address. This ensures that the Sepolia contract can authenticate the RVM ID for callbacks.
+Deploy the `ApprovalListener` contract with the command shown below. Make sure to use the same private key (`SEPOLIA_PRIVATE_KEY`). Both contracts must be deployed from the same address as this ensures that the Sepolia contract can authenticate the RVM ID for callbacks.
 
 ```bash
 forge create src/demos/approval-magic/ApprovalListener.sol:ApprovalListener --rpc-url $REACTIVE_RPC --private-key $SEPOLIA_PRIVATE_KEY --constructor-args $APPROVAL_SRV_ADDR
@@ -103,10 +95,10 @@ The `Deployed to` address should be assigned to `APPROVAL_RCT_ADDR`.
 
 #### Token Deployment
 
-Deploy the `ApprovalDemoToken` contract with the command given below. The constructor arguments are the name and symbol of the token you intend to deploy. As an example, use the default value "FTW" for both arguments.
+Deploy the `ApprovalDemoToken` contract with the command given below. The constructor arguments are the name and symbol of the token you deploy. As an example, use the `"FTW"` value for both arguments.
 
 ```bash
-forge create src/demos/approval-magic/ApprovalDemoToken.sol:ApprovalDemoToken --rpc-url $SEPOLIA_RPC --private-key $SEPOLIA_PRIVATE_KEY --constructor-args "$TOKEN_NAME" "$TOKEN_SYMBOL"
+forge create src/demos/approval-magic/ApprovalDemoToken.sol:ApprovalDemoToken --rpc-url $SEPOLIA_RPC --private-key $SEPOLIA_PRIVATE_KEY --constructor-args "FTW" "FTW"
 ```
 
 The `Deployed to` address should be assigned to `TOKEN_ADDR`.
@@ -125,10 +117,10 @@ The `Deployed to` address should be assigned to `EXCH_ADDR`.
 
 #### Fund the Exchanged Contract
 
-Transfer `1000` tokens (`SERVICE_FEE_WEI`) to the exchange contract as an example:
+Transfer `1000` tokens (Service Fee in Wei) to the exchange contract:
 
 ```bash
-cast send $EXCH_ADDR --value $SERVICE_FEE_WEI --rpc-url $SEPOLIA_RPC --private-key $SEPOLIA_PRIVATE_KEY
+cast send $EXCH_ADDR --value 1000 --rpc-url $SEPOLIA_RPC --private-key $SEPOLIA_PRIVATE_KEY
 ```
 
 #### Subscribe to Approval Service
@@ -139,43 +131,47 @@ Subscribe the exchange contract to the approval service:
 cast send $EXCH_ADDR "subscribe()" --rpc-url $SEPOLIA_RPC --private-key $SEPOLIA_PRIVATE_KEY
 ```
 
-**NOTE**: Dynamic subscription to approval events is not instantaneous. Typically, it takes about half a minute, which accounts for approximately twice the Sepolia's block interval plus Reactive's block interval, before the service begins processing approvals for the new subscriber.
+**NOTE**: Dynamic subscription to approval events takes about 30 seconds, roughly twice Sepolia's block interval plus Reactive's block interval, before the service starts processing approvals for the new subscriber.
 
 ### Step 4 — Test Approvals
 
-Approve the token transfer for `100` tokens (`TOKENS_TO_EXCHANGE_WEI`) as an example and watch the magic happen:
+Approve the transfer for `100` tokens (Tokens to exchange in Wei) and watch the magic happen:
 
 ```bash
-cast send $TOKEN_ADDR "approve(address,uint256)" $EXCH_ADDR $TOKENS_TO_EXCHANGE_WEI --rpc-url $SEPOLIA_RPC --private-key $SEPOLIA_PRIVATE_KEY
+cast send $TOKEN_ADDR "approve(address,uint256)" $EXCH_ADDR 100 --rpc-url $SEPOLIA_RPC --private-key $SEPOLIA_PRIVATE_KEY
 ```
 
 ### Step 5 — Magic Swap Deployment
 
-Two pre-deployed tokens:
+You can use two pre-deployed tokens or deploy your own (see the Token Deployment section).
 
 ```bash
-export TOKEN1_ADDR=0x237990dfDd336f69498430e33C0e359C6590ca09
-export TOKEN2_ADDR=0x623fc0b9507127a771f2DB93fBd113505304210f
+export TOKEN1_ADDR=0xeFB9DFe87c63C6d9B51365b9B760b65569648BE1
+export TOKEN2_ADDR=0x4D588F66cAbec6790bb2Fe5848Fbe4eEED897114
 ```
 
-You can request tokens (once only per token) as follows:
+You can request each token once as follows:
 
 ```bash
 cast send $TOKEN1_ADDR "request()" --rpc-url $SEPOLIA_RPC --private-key $SEPOLIA_PRIVATE_KEY
 ```
 
+```bash
+cast send $TOKEN2_ADDR "request()" --rpc-url $SEPOLIA_RPC --private-key $SEPOLIA_PRIVATE_KEY
+```
+
 #### Token Deployment
 
-Deploy two tokens and assign their addresses. As an example, use `TK1` instead of `TOKEN1_NAME` and `TOKEN1_SYMBOL`, and `TK2` instead of `TOKEN2_NAME` and `TOKEN2_SYMBOL`.
+Deploy two tokens with constructor arguments: `"TOKEN_NAME"` and `"TOKEN_SYMBOL"`. As an example, use `"TK1"` for both arguments of the first token and `"TK2"` for the second.
 
 ```bash
-forge create src/demos/approval-magic/ApprovalDemoToken.sol:ApprovalDemoToken --rpc-url $SEPOLIA_RPC --private-key $SEPOLIA_PRIVATE_KEY --constructor-args "TOKEN1_NAME" "TOKEN1_SYMBOL"
+forge create src/demos/approval-magic/ApprovalDemoToken.sol:ApprovalDemoToken --rpc-url $SEPOLIA_RPC --private-key $SEPOLIA_PRIVATE_KEY --constructor-args "TK1" "TK1"
 ```
 
 The `Deployed to` address should be assigned to `TOKEN1_ADDR`.
 
 ```bash
-forge create src/demos/approval-magic/ApprovalDemoToken.sol:ApprovalDemoToken --rpc-url $SEPOLIA_RPC --private-key $SEPOLIA_PRIVATE_KEY --constructor-args "TOKEN2_NAME" "TOKEN2_SYMBOL"
+forge create src/demos/approval-magic/ApprovalDemoToken.sol:ApprovalDemoToken --rpc-url $SEPOLIA_RPC --private-key $SEPOLIA_PRIVATE_KEY --constructor-args "TK2" "TK2"
 ```
 
 The `Deployed to` address should be assigned to `TOKEN2_ADDR`.
@@ -188,10 +184,10 @@ Create a liquidity pool for the two tokens using the pair factory contract addre
 cast send 0x7E0987E5b3a30e3f2828572Bb659A548460a3003 'createPair(address,address)' --rpc-url $SEPOLIA_RPC --private-key $SEPOLIA_PRIVATE_KEY $TOKEN1_ADDR $TOKEN2_ADDR
 ```
 
-Assign the pair address from transaction logs on [Sepolia scan](https://sepolia.etherscan.io/) to `PAIR_ADDR` or export the pre-made pair for the tokens above:
+**NOTE**: Assign the pair address from transaction logs on [Sepolia scan](https://sepolia.etherscan.io/) to `PAIR_ADDR` or export the pre-made pair for the tokens above:
 
 ```bash
-export PAIR_ADDR=0xe7268aA213Ab426fAd9ca84d7fA8a380ee5B968c
+export PAIR_ADDR=0xe30e7EF7c94229966901BE007253Bb511E4eE191
 ```
 
 #### Add liquidity
@@ -205,7 +201,7 @@ cast send $TOKEN1_ADDR 'transfer(address,uint256)' --rpc-url $SEPOLIA_RPC --priv
 cast send $TOKEN2_ADDR 'transfer(address,uint256)' --rpc-url $SEPOLIA_RPC --private-key $SEPOLIA_PRIVATE_KEY $PAIR_ADDR 0.5ether
 ```
 
-Mint liquidity, using your EOA address:
+Mint liquidity, using your EOA address (Client Wallet):
 
 ```bash
 cast send $PAIR_ADDR 'mint(address)' --rpc-url $SEPOLIA_RPC --private-key $SEPOLIA_PRIVATE_KEY $CLIENT_WALLET
@@ -226,7 +222,7 @@ The `Deployed to` address should be assigned to `SWAP_ADDR`.
 If needed, export the pre-deployed magic swap contract:
 
 ```bash
-export SWAP_ADDR=0xaDC0233EbA6df74EA8F6c972535775F11c5a75de
+export SWAP_ADDR=0xb6A4be1C17BAFf13545B9960f9c77e16Ba896710
 ```
 
 Transfer some funds to the swap contract and subscribe to the service:
@@ -242,7 +238,7 @@ cast send $SWAP_ADDR "subscribe()" --rpc-url $SEPOLIA_RPC --private-key $SEPOLIA
 
 ### Step 6 — Test Swap
 
-See the magic in action by approving one of the tokens to the swap contract:
+See the magic in action by approving one of the tokens (e.g., `TOKEN1_ADDR`) for the swap contract:
 
 ```bash
 cast send $TOKEN1_ADDR "approve(address,uint256)" $SWAP_ADDR 0.1ether --rpc-url $SEPOLIA_RPC --private-key $SEPOLIA_PRIVATE_KEY
