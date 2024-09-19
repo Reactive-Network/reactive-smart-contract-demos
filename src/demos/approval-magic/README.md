@@ -37,25 +37,23 @@ This script guides you through deploying and testing the `ApprovalMagicSwap` dem
 * `SEPOLIA_PRIVATE_KEY`
 * `REACTIVE_RPC`
 * `CLIENT_WALLET`
-* `CALLBACK_ADDR`
-* `CALLBACK_PROXY_ADDR`
 
-**IMPORTANT**: The following assumes that `ApprovalService` and `ApprovalListener` are deployed using the same key. Demo token and "exchange" contract, however, can use other keys safely. You can use the recommended Sepolia RPC URL: `https://rpc2.sepolia.org`.
+**IMPORTANT**: The following assumes that `ApprovalService` and `ApprovalListener` are deployed using the same private key. Demo token and "exchange" contract, however, can use other keys safely. The recommended Sepolia RPC URL is `https://rpc2.sepolia.org`.
 
 ### Step 1 — Service Deployment
 
 Current deployment addresses that can be reused:
 
 ```bash
-export APPROVAL_SRV_ADDR=0x3379d20f9A4dE5eFA41FDE8904533e4d15ED3e67
-export APPROVAL_RCT_ADDR=0xBDbB883540Bc07d1B2d2f897E3c2a35fc9eD5e06
+export APPROVAL_SRV_ADDR=0x6B40d71F3888D70fEBca5da8bFe453527dD3A94b
+export APPROVAL_RCT_ADDR=0xB64c6fFAf5B605Fc48b868c514C9dac421245f6d
 ```
 
-The service contracts, `ApprovalService` and `ApprovalListener`, can be deployed once, and can be used by any number of clients.
+The `ApprovalService` and `ApprovalListener` contracts can be deployed once and used by any number of clients.
 
 #### ApprovalService Deployment
 
-To deploy the `ApprovalService` contract, the command given below. The constructor requires these arguments:
+To deploy the `ApprovalService` contract, run the command given below. The constructor requires these arguments:
 
 - Subscription Fee (in Wei): `100`
 - Gas Price Coefficient: `1`
@@ -67,18 +65,16 @@ forge create src/demos/approval-magic/ApprovalService.sol:ApprovalService --rpc-
 
 The `Deployed to` address from the response should be assigned to `APPROVAL_SRV_ADDR`.
 
-#### Callback Payment
-
-To ensure a successful callback, the callback contract must have an ETH balance. You can find more details [here](https://dev.reactive.network/system-contract#callback-payments). To fund the callback contract, run the following command:
+**NOTE**: To ensure a successful callback, the callback contract (`APPROVAL_SRV_ADDR` in our case) must have an ETH balance. You can find more details [here](https://dev.reactive.network/system-contract#callback-payments). To fund the contract, run the following command:
 
 ```bash
-cast send $CALLBACK_ADDR --rpc-url $SEPOLIA_RPC --private-key $SEPOLIA_PRIVATE_KEY --value 0.1ether
+cast send $APPROVAL_SRV_ADDR --rpc-url $SEPOLIA_RPC --private-key $SEPOLIA_PRIVATE_KEY --value 0.1ether
 ```
 
-Alternatively, you can deposit the funds into the callback proxy smart contract using this command:
+Alternatively, you can deposit funds into the [Sepolia callback proxy contract](https://dev.reactive.network/origins-and-destinations) using this command:
 
 ```bash
-cast send --rpc-url $SEPOLIA_RPC --private-key $SEPOLIA_PRIVATE_KEY $CALLBACK_PROXY_ADDR "depositTo(address)" $CALLBACK_ADDR --value 0.1ether
+cast send --rpc-url $SEPOLIA_RPC --private-key $SEPOLIA_PRIVATE_KEY $CALLBACK_PROXY_ADDR "depositTo(address)" $APPROVAL_SRV_ADDR --value 0.1ether
 ```
 
 #### Reactive Deployment
@@ -86,10 +82,22 @@ cast send --rpc-url $SEPOLIA_RPC --private-key $SEPOLIA_PRIVATE_KEY $CALLBACK_PR
 Deploy the `ApprovalListener` contract with the command shown below. Make sure to use the same private key (`SEPOLIA_PRIVATE_KEY`). Both contracts must be deployed from the same address as this ensures that the Sepolia contract can authenticate the RVM ID for callbacks.
 
 ```bash
-forge create src/demos/approval-magic/ApprovalListener.sol:ApprovalListener --rpc-url $REACTIVE_RPC --private-key $SEPOLIA_PRIVATE_KEY --constructor-args $APPROVAL_SRV_ADDR
+forge create src/demos/approval-magic/ApprovalListener.sol:ApprovalListener --rpc-url $REACTIVE_RPC --private-key $SEPOLIA_PRIVATE_KEY --value 0.1ether --constructor-args $APPROVAL_SRV_ADDR
 ```
 
 The `Deployed to` address should be assigned to `APPROVAL_RCT_ADDR`.
+
+**NOTE**: We added `--value 0.1ether` to the deployment command above to fund the contract as the callback function requires the contract to hold an ETH balance. If the contract balance is insufficient, fund it by running the following command:
+
+```bash
+cast send $APPROVAL_RCT_ADDR --rpc-url $REACTIVE_RPC --private-key $SEPOLIA_PRIVATE_KEY --value 0.1ether
+```
+
+Alternatively, you can deposit funds into the [Reactive callback proxy contract](https://dev.reactive.network/origins-and-destinations) using this command:
+
+```bash
+cast send --rpc-url $REACTIVE_RPC --private-key $SEPOLIA_PRIVATE_KEY $CALLBACK_PROXY_ADDR "depositTo(address)" $APPROVAL_RCT_ADDR --value 0.1ether
+```
 
 ### Step 2 — Demo Client Deployment
 
@@ -146,8 +154,8 @@ cast send $TOKEN_ADDR "approve(address,uint256)" $EXCH_ADDR 100 --rpc-url $SEPOL
 You can use two pre-deployed tokens or deploy your own (see the Token Deployment section).
 
 ```bash
-export TOKEN1_ADDR=0xeFB9DFe87c63C6d9B51365b9B760b65569648BE1
-export TOKEN2_ADDR=0x4D588F66cAbec6790bb2Fe5848Fbe4eEED897114
+export TOKEN1_ADDR=0x8Ef05EE16364310F17bE28c0AB571c1359d256A7
+export TOKEN2_ADDR=0x1eDCd4d53A6d396cf91f17294AA39123DB6f12B4
 ```
 
 You can request each token once as follows:
@@ -187,7 +195,7 @@ cast send 0x7E0987E5b3a30e3f2828572Bb659A548460a3003 'createPair(address,address
 **NOTE**: Assign the pair address from transaction logs on [Sepolia scan](https://sepolia.etherscan.io/) to `PAIR_ADDR` or export the pre-made pair for the tokens above:
 
 ```bash
-export PAIR_ADDR=0xe30e7EF7c94229966901BE007253Bb511E4eE191
+export PAIR_ADDR=0x18f95653b8593C5a1aB5D6f1EEd53A6e23e4AA68
 ```
 
 #### Add liquidity
@@ -222,7 +230,7 @@ The `Deployed to` address should be assigned to `SWAP_ADDR`.
 If needed, export the pre-deployed magic swap contract:
 
 ```bash
-export SWAP_ADDR=0xb6A4be1C17BAFf13545B9960f9c77e16Ba896710
+export SWAP_ADDR=0xD982d553725FCc5863D7E39E62F78fbB4d044b1C
 ```
 
 Transfer some funds to the swap contract and subscribe to the service:
