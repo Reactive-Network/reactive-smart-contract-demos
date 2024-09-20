@@ -19,7 +19,7 @@ contract ApprovalListener is AbstractReactive {
 
     constructor(
         ApprovalService service_
-    ) {
+    ) payable {
         owner = msg.sender;
         approval_service = service_;
         bytes memory payload = abi.encodeWithSignature(
