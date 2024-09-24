@@ -2,7 +2,7 @@
 
 pragma solidity >=0.8.0;
 
-import '../../AbstractCallback.sol';
+import "../../AbstractCallback.sol";
 
 contract TokenTurnoverL1 is AbstractCallback {
     event Request(
@@ -21,7 +21,7 @@ contract TokenTurnoverL1 is AbstractCallback {
     }
 
     modifier onlyOwner() {
-        require(msg.sender == owner, 'Unauthorized');
+        require(msg.sender == owner, "Unauthorized");
         _;
     }
 

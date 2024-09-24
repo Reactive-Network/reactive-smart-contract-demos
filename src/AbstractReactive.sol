@@ -2,10 +2,10 @@
 
 pragma solidity >=0.8.0;
 
-import './IReactive.sol';
-import './IPayable.sol';
-import './AbstractPayer.sol';
-import './ISystemContract.sol';
+import "./IReactive.sol";
+import "./IPayable.sol";
+import "./AbstractPayer.sol";
+import "./ISystemContract.sol";
 
 abstract contract AbstractReactive is IReactive, AbstractPayer {
     uint256 internal constant REACTIVE_IGNORE = 0xa65f96fc951c35ead38878e0f0b7a3c744a6f5ccc1476b313353ce31712313ad;
@@ -33,7 +33,7 @@ abstract contract AbstractReactive is IReactive, AbstractPayer {
     }
 
     modifier sysConOnly() {
-        require(msg.sender == address(service), 'System contract only');
+        require(msg.sender == address(service), "System contract only");
         _;
     }
 

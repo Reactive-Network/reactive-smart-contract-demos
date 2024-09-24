@@ -18,13 +18,34 @@ Install dependencies:
 forge install
 ```
 
+Install Solhint Linter
+
+```
+npm i
+```
+
 ### Development & Testing
 
 To compile artifacts:
 
 ```
 forge compile
+
 ```
+
+
+To run test:
+```
+npx solhint "src/**/*.sol"
+
+```
+
+To fix errors :
+```
+npx solhint "src/**/*.sol" --fix
+
+```
+
 
 ### Additional Documentation & Demos
 

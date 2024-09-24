@@ -2,9 +2,9 @@
 
 pragma solidity >=0.8.0;
 
-import '../../IReactive.sol';
-import '../../AbstractPausableReactive.sol';
-import '../../ISubscriptionService.sol';
+import "../../IReactive.sol";
+import "../../AbstractPausableReactive.sol";
+import "../../ISubscriptionService.sol";
 
     struct Reserves {
         uint112 reserve0;
@@ -103,7 +103,7 @@ contract UniswapHistoryDemoReactive is IReactive, AbstractPausableReactive {
             Tick[] storage ticks = reserves[address(uint160(topic_1))];
             uint112 reserve0 = 0;
             uint112 reserve1 = 0;
-            for (uint ix = 0; ix != ticks.length; ++ix) {
+            for (uint256 ix = 0; ix != ticks.length; ++ix) {
                 if (ticks[ix].block_number > topic_2) {
                     break;
                 }
