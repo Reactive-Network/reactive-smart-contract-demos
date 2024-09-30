@@ -65,14 +65,14 @@ To deploy and test the contracts, follow these steps. Ensure the following envir
 ### Step 1: Set up environment
 
 ```bash
-cd src/automated-one-step-swap/SwapWithPermit/
+cd src/demos/automated-one-step-swap/SwapWithPermit/
 npm install dotenv ethers
 ```
 
 ### Step 2: Deploy Origin Contract
 
 ```bash
-forge create --rpc-url $SEPOLIA_RPC --private-key $SEPOLIA_PRIVATE_KEY src/automated-one-step-swap/SwapWithPermit/src/OriginWithPermitContract.sol:OriginWithPermitContract
+forge create --rpc-url $SEPOLIA_RPC --private-key $SEPOLIA_PRIVATE_KEY src/demos/automated-one-step-swap/SwapWithPermit/src/OriginWithPermitContract.sol:OriginWithPermitContract
 ```
 
 Assign the deployment address to `ORIGIN_WITH_PERMIT_CONTRACT_ADDRESS` in your `.env` file.
@@ -86,7 +86,7 @@ forge create --rpc-url $REACTIVE_RPC --private-key $REACTIVE_PRIVATE_KEY src/aut
 ### Step 4: Test the Setup
 
 ```bash
-cd src/automated-one-step-swap/SwapWithPermit/script
+cd src/demos/automated-one-step-swap/SwapWithPermit/script
 node SwapWithPermit.js
 ```
 

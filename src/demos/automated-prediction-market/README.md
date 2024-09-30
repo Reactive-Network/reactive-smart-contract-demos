@@ -37,7 +37,7 @@ This guide walks you through deploying and testing the `AutomatedPredictionMarke
 1. Deploy the `AutomatedPredictionMarket` contract:
 
 ```bash
-forge create --rpc-url $SEPOLIA_RPC --private-key $SEPOLIA_PRIVATE_KEY src/Automated_Prediction_Market/AutomatedPredictionMarket.sol:AutomatedPredictionMarket
+forge create --rpc-url $SEPOLIA_RPC --private-key $SEPOLIA_PRIVATE_KEY src/demos/automated-prediction-market/AutomatedPredictionMarket.sol:AutomatedPredictionMarket
 ```
 
 2. Initialize the contract with required parameters:
@@ -70,12 +70,12 @@ cast send $PREDICTION_MARKET_ADDR "proposeResolution(uint256,bool)" --rpc-url $S
 cast send $PREDICTION_MARKET_ADDR "voteOnResolution(uint256,uint256,bool)" --rpc-url $SEPOLIA_RPC --private-key $SEPOLIA_PRIVATE_KEY
 ```
 
-### Reactive Testnet Steps
+### Reactive Deployment
 
 1. Deploy the `AutomatedPredictionReactive` contract:
 
 ```bash
-forge create --rpc-url $REACTIVE_RPC --private-key $REACTIVE_PRIVATE_KEY src/Automated_Prediction_Market/AutomatedPredictionReactive.sol:AutomatedPredictionReactive --constructor-args $SYSTEM_CONTRACT_ADDR $O_ORIGIN_ADDR
+forge create --rpc-url $REACTIVE_RPC --private-key $REACTIVE_PRIVATE_KEY src/demos/automated-prediction-market/AutomatedPredictionReactive.sol:AutomatedPredictionReactive --constructor-args $SYSTEM_CONTRACT_ADDR $O_ORIGIN_ADDR
 ```
 
 2. The contract automatically subscribes to the `PredictionResolved` event on deployment.

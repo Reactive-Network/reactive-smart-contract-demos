@@ -77,7 +77,7 @@ Configure the `.env` file with appropriate keys, addresses, and endpoints.
 Deploy the `DestinationContract.sol` on Sepolia:
 
 ```sh
-forge create --rpc-url $SEPOLIA_RPC --private-key $SEPOLIA_PRIVATE_KEY src/automated-one-step-swap/DestinationContract.sol:DestinationContract
+forge create --rpc-url $SEPOLIA_RPC --private-key $SEPOLIA_PRIVATE_KEY src/demos/automated-one-step-swap/DestinationContract.sol:DestinationContract
 ```
 
 Save the deployed address in `DESTINATION_CONTRACT_ADDRESS` in the `.env` file.
@@ -87,7 +87,7 @@ Save the deployed address in `DESTINATION_CONTRACT_ADDRESS` in the `.env` file.
 Deploy the `ReactiveContract.sol` on the Reactive Network:
 
 ```sh
-forge create --rpc-url $REACTIVE_RPC --private-key $REACTIVE_PRIVATE_KEY src/automated-one-step-swap/ReactiveContract.sol:ReactiveContract --constructor-args $SYSTEM_CONTRACT_ADDR $DESTINATION_CONTRACT_ADDRESS
+forge create --rpc-url $REACTIVE_RPC --private-key $REACTIVE_PRIVATE_KEY src/demos/automated-one-step-swap/ReactiveContract.sol:ReactiveContract --constructor-args $SYSTEM_CONTRACT_ADDR $DESTINATION_CONTRACT_ADDRESS
 ```
 
 ### Step 4: (Optional) Set Input Parameters

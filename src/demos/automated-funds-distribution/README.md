@@ -44,7 +44,7 @@ You can use the recommended Sepolia RPC URL: `https://rpc2.sepolia.org`.
 Deploy the MemeCoin contract with an initial supply of 1,000,000 BananaCoin (BobBanana):
 
 ```bash
-forge create --rpc-url $SEPOLIA_RPC --private-key $SEPOLIA_PRIVATE_KEY src/Automated_Funds_Distribution/MemeCoin.sol:MemeCoin --constructor-args 1000000000000000000000000
+forge create --rpc-url $SEPOLIA_RPC --private-key $SEPOLIA_PRIVATE_KEY src/demos/automated-funds-distribution/MemeCoin.sol:MemeCoin --constructor-args 1000000000000000000000000
 ```
 
 ### Step 2: Deploy MultiPartyWallet contract on Sepolia
@@ -52,7 +52,7 @@ forge create --rpc-url $SEPOLIA_RPC --private-key $SEPOLIA_PRIVATE_KEY src/Autom
 Deploy the MultiPartyWallet contract:
 
 ```bash
-forge create --rpc-url $SEPOLIA_RPC --private-key $SEPOLIA_PRIVATE_KEY src/Automated_Funds_Distribution/MultiPartyWallet.sol:MultiPartyWallet
+forge create --rpc-url $SEPOLIA_RPC --private-key $SEPOLIA_PRIVATE_KEY src/demos/automated-funds-distribution/MultiPartyWallet.sol:MultiPartyWallet
 ```
 
 ### Step 3: Deploy MultiPartyWalletReactive contract on Reactive Network
@@ -60,7 +60,7 @@ forge create --rpc-url $SEPOLIA_RPC --private-key $SEPOLIA_PRIVATE_KEY src/Autom
 Deploy the MultiPartyWalletReactive contract, passing in the MultiPartyWallet address:
 
 ```bash
-forge create --rpc-url $SEPOLIA_RPC --private-key $SEPOLIA_PRIVATE_KEY src/Automated_Funds_Distribution/MultiPratyWalletReactive.sol:MultiPratyWalletReactive --constructor-args $MULTIPARTYWALLET_ADDRESS
+forge create --rpc-url $SEPOLIA_RPC --private-key $SEPOLIA_PRIVATE_KEY src/demos/automated-funds-distribution/MultiPratyWalletReactive.sol:MultiPratyWalletReactive --constructor-args $MULTIPARTYWALLET_ADDRESS
 ```
 
 ### Step 4: Initialize the wallet
