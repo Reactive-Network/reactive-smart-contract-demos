@@ -36,6 +36,8 @@ This script guides you through deploying and testing the `ApprovalMagicSwap` dem
 * `SEPOLIA_RPC`
 * `SEPOLIA_PRIVATE_KEY`
 * `REACTIVE_RPC`
+* `SEPOLIA_CALLBACK_PROXY_ADDR`
+* `KOPLI_CALLBACK_PROXY_ADDR`
 * `CLIENT_WALLET`
 
 **IMPORTANT**: The following assumes that `ApprovalService` and `ApprovalListener` are deployed using the same private key. `ApprovalDemoToken` and `ApprovalEthExch`, however, can use other keys safely. The recommended Sepolia RPC URL: `https://rpc2.sepolia.org`.
@@ -80,7 +82,7 @@ cast send --rpc-url $SEPOLIA_RPC --private-key $SEPOLIA_PRIVATE_KEY $APPROVAL_SR
 Alternatively, you can deposit funds into the [Callback Proxy](https://dev.reactive.network/origins-and-destinations) contract on Sepolia, using the command below. The EOA address whose private key signs the transaction pays the fee.
 
 ```bash
-cast send --rpc-url $SEPOLIA_RPC --private-key $SEPOLIA_PRIVATE_KEY $CALLBACK_PROXY_ADDR "depositTo(address)" $APPROVAL_SRV_ADDR --value 0.1ether
+cast send --rpc-url $SEPOLIA_RPC --private-key $SEPOLIA_PRIVATE_KEY $SEPOLIA_CALLBACK_PROXY_ADDR "depositTo(address)" $APPROVAL_SRV_ADDR --value 0.1ether
 ```
 
 #### Reactive Deployment
@@ -108,7 +110,7 @@ cast send --rpc-url $REACTIVE_RPC --private-key $REACTIVE_PRIVATE_KEY $APPROVAL_
 Alternatively, you can deposit funds into the [Callback Proxy](https://dev.reactive.network/origins-and-destinations) contract on Kopli Testnet, using the command below. The EOA address whose private key signs the transaction pays the fee.
 
 ```bash
-cast send --rpc-url $REACTIVE_RPC --private-key $REACTIVE_PRIVATE_KEY $CALLBACK_PROXY_ADDR "depositTo(address)" $APPROVAL_RCT_ADDR --value 0.1ether
+cast send --rpc-url $REACTIVE_RPC --private-key $REACTIVE_PRIVATE_KEY $KOPLI_CALLBACK_PROXY_ADDR "depositTo(address)" $APPROVAL_RCT_ADDR --value 0.1ether
 ```
 
 ### Step 2 — Demo Client Deployment
