@@ -113,10 +113,10 @@ forge create --rpc-url $REACTIVE_RPC --private-key $REACTIVE_PRIVATE_KEY src/dem
 
 ### Step 4
 
-Test the whole setup by sending some SepETH to `ORIGIN_ADDR`:
+Test the whole setup by sending some ether to `ORIGIN_ADDR`:
 
 ```bash
 cast send $ORIGIN_ADDR --rpc-url $SEPOLIA_RPC --private-key $SEPOLIA_PRIVATE_KEY --value 0.11ether
 ```
 
-This should eventually result in a callback transaction to `CALLBACK_ADDR` being initiated by the Reactive Network.
+Ensure that the value sent is greater than or equal to 0.1 ether, as this is the minimum required value to trigger the process, which should eventually result in a callback transaction to `CALLBACK_ADDR` being initiated by the Reactive Network.
