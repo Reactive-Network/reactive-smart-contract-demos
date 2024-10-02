@@ -45,8 +45,8 @@ This script guides you through deploying and testing the `ApprovalMagicSwap` dem
 Current deployment addresses that can be reused:
 
 ```bash
-export APPROVAL_SRV_ADDR=0xEDb3ab6Dd9D5A8818C175324C8196804085bDEc3
-export APPROVAL_RCT_ADDR=0xc3e185561D2a8b04F0Fcd104A562f460D6cC503c
+export APPROVAL_SRV_ADDR=0x75eF46a6C6C6f59d282ffBA47F1066c43A9e9D55
+export APPROVAL_RCT_ADDR=0x6f1b2380946E6F54a08A38d2475a05090CaE0c36
 ```
 
 The `ApprovalService` and `ApprovalListener` contracts can be deployed once and used by any number of clients.
@@ -166,8 +166,8 @@ cast send $TOKEN_ADDR "approve(address,uint256)" $EXCH_ADDR 100 --rpc-url $SEPOL
 You can use two pre-deployed tokens or deploy your own (see the Token Deployment section).
 
 ```bash
-export TOKEN1_ADDR=0x896D3720f6E7936Cc5aeD3a165cAc27e79543906
-export TOKEN2_ADDR=0x49CAb255DBB9e7484c9A976420e67B215956406a
+export TOKEN1_ADDR=0xC1FC32C2Ba7dbB4BFFE2FDcdcc2090fF01662b70
+export TOKEN2_ADDR=0xC6f44cda01b64bB05993Fe2b443Da91B206403de
 ```
 
 You can request each token once as follows:
@@ -207,7 +207,7 @@ cast send 0x7E0987E5b3a30e3f2828572Bb659A548460a3003 'createPair(address,address
 **NOTE**: Assign the pair address from transaction logs on [Sepolia scan](https://sepolia.etherscan.io/) to `PAIR_ADDR` or export the pre-made pair for the tokens above:
 
 ```bash
-export PAIR_ADDR=0x4B0c1B3b87089B5677b3a63Fc6ac8611bCCe8751
+export PAIR_ADDR=0x2EC44D4cD9afFdB64509Dc3C8c7b8Db62a1FDB27
 ```
 
 #### Add liquidity
@@ -242,7 +242,7 @@ The `Deployed to` address should be assigned to `SWAP_ADDR`.
 If needed, export the pre-deployed magic swap contract:
 
 ```bash
-export SWAP_ADDR=0x3089BBc4da0695f37680f9D6Ccd67B984899B6Bd
+export SWAP_ADDR=0xfC32e1a0a1ce26f354A8C7B6dA4Bf963304FA5a0
 ```
 
 Transfer some funds to the swap contract and subscribe to the service:
