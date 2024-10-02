@@ -32,8 +32,7 @@ To deploy and test the contracts, follow these steps. Ensure the following envir
 * `SEPOLIA_PRIVATE_KEY`
 * `REACTIVE_RPC`
 * `REACTIVE_PRIVATE_KEY`
-* `CALLBACK_ADDR`
-* `CALLBACK_PROXY_ADDR`
+* `SEPOLIA_CALLBACK_PROXY_ADDR`
 
 You can use the recommended Sepolia RPC URL: `https://rpc2.sepolia.org`.
 
@@ -62,7 +61,7 @@ cast send --rpc-url $SEPOLIA_RPC --private-key $SEPOLIA_PRIVATE_KEY $CALLBACK_AD
 Alternatively, you can deposit funds into the [Callback Proxy](https://dev.reactive.network/origins-and-destinations) contract on Sepolia, using the command below. The EOA address whose private key signs the transaction pays the fee.
 
 ```bash
-cast send --rpc-url $SEPOLIA_RPC --private-key $SEPOLIA_PRIVATE_KEY $CALLBACK_PROXY_ADDR "depositTo(address)" $CALLBACK_ADDR --value 0.1ether
+cast send --rpc-url $SEPOLIA_RPC --private-key $SEPOLIA_PRIVATE_KEY $SEPOLIA_CALLBACK_PROXY_ADDR "depositTo(address)" $CALLBACK_ADDR --value 0.1ether
 ```
 
 ### Step 2
