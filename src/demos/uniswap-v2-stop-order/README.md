@@ -82,7 +82,7 @@ Deploy the destination chain contract to Sepolia. Use the Uniswap V2 router at `
 
 The `$AUTHORIZED_CALLER_ADDRESS` parameter can be omitted for the Uniswap stop order demo, as the contract executing the stop order already verifies its correctness. To skip this check, use the address `0x0000000000000000000000000000000000000000`.
 
-Assign the `Deployed to` address from the response to `CALLBACK_CONTRACT_ADDR`.
+Assign the `Deployed to` address from the response to `CALLBACK_ADDR`.
 
 ```bash
 forge create --rpc-url $SEPOLIA_RPC --private-key $SEPOLIA_PRIVATE_KEY src/demos/uniswap-v2-stop-order/UniswapDemoStopOrderCallback.sol:UniswapDemoStopOrderCallback --constructor-args $AUTHORIZED_CALLER_ADDR $UNISWAP_V2_ROUTER_ADDR
@@ -90,13 +90,19 @@ forge create --rpc-url $SEPOLIA_RPC --private-key $SEPOLIA_PRIVATE_KEY src/demos
 
 #### Callback Payment
 
-To ensure a successful callback, the callback contract must have an ETH balance. You can find more details [here](https://dev.reactive.network/system-contract#callback-payments). To fund the callback contract, run the following command:
+To ensure a successful callback, the callback contract must have an ETH balance. Find more details [here](https://dev.reactive.network/system-contract#callback-payments). To fund the contract, run the following command:
 
 ```bash
 cast send $CALLBACK_ADDR --rpc-url $SEPOLIA_RPC --private-key $SEPOLIA_PRIVATE_KEY --value 0.1ether
 ```
 
-Alternatively, you can deposit the funds into the callback proxy smart contract using this command:
+To cover the debt of the callback contact, run this command:
+
+```bash
+cast send --rpc-url $SEPOLIA_RPC --private-key $SEPOLIA_PRIVATE_KEY $CALLBACK_ADDR "coverDebt()"
+```
+
+Alternatively, you can deposit funds into the [Callback Proxy](https://dev.reactive.network/origins-and-destinations) contract on Sepolia, using the command below. The EOA address whose private key signs the transaction pays the fee.
 
 ```bash
 cast send --rpc-url $SEPOLIA_RPC --private-key $SEPOLIA_PRIVATE_KEY $CALLBACK_PROXY_ADDR "depositTo(address)" $CALLBACK_ADDR --value 0.1ether
@@ -124,7 +130,7 @@ Deploy the reactive stop order contract to the Reactive Network, specifying the 
 
 `UNISWAP_V2_PAIR_ADDR`: The Uniswap pair address from Step 2.
 
-`CALLBACK_CONTRACT_ADDR`: The contract address from Step 3.
+`CALLBACK_ADDR`: The contract address from Step 3.
 
 `CLIENT_WALLET`: The client's address initiating the order.
 
@@ -133,7 +139,7 @@ Deploy the reactive stop order contract to the Reactive Network, specifying the 
 `EXCHANGE_RATE_DENOMINATOR` and `EXCHANGE_RATE_NUMERATOR`: Integer representation of the exchange rate threshold below which a stop order is executed. These variables are set this way because the EVM works only with integers. As an example, to set the threshold at 1.234, the numerator should be 1234 and the denominator should be 1000.
 
 ```bash
-forge create --rpc-url $REACTIVE_RPC --private-key $REACTIVE_PRIVATE_KEY src/demos/uniswap-v2-stop-order/UniswapDemoStopOrderReactive.sol:UniswapDemoStopOrderReactive --constructor-args $UNISWAP_V2_PAIR_ADDR $CALLBACK_CONTRACT_ADDR $CLIENT_WALLET $DIRECTION_BOOLEAN $EXCHANGE_RATE_DENOMINATOR $EXCHANGE_RATE_NUMERATOR
+forge create --rpc-url $REACTIVE_RPC --private-key $REACTIVE_PRIVATE_KEY src/demos/uniswap-v2-stop-order/UniswapDemoStopOrderReactive.sol:UniswapDemoStopOrderReactive --constructor-args $UNISWAP_V2_PAIR_ADDR $CALLBACK_ADDR $CLIENT_WALLET $DIRECTION_BOOLEAN $EXCHANGE_RATE_DENOMINATOR $EXCHANGE_RATE_NUMERATOR
 ```
 
 ### Step 6
@@ -141,7 +147,7 @@ forge create --rpc-url $REACTIVE_RPC --private-key $REACTIVE_PRIVATE_KEY src/dem
 To initiate a stop order, authorize the destination chain contract to spend your tokens. The last parameter is the raw amount you intend to authorize. For tokens with 18 decimal places, the above example allows the callback to spend one token.
 
 ```bash
-cast send $TOKEN_ADDR 'approve(address,uint256)' --rpc-url $SEPOLIA_RPC --private-key $SEPOLIA_PRIVATE_KEY $CALLBACK_CONTRACT_ADDR 1000000000000000000
+cast send $TOKEN_ADDR 'approve(address,uint256)' --rpc-url $SEPOLIA_RPC --private-key $SEPOLIA_PRIVATE_KEY $CALLBACK_ADDR 1000000000000000000
 ```
 
 ### Step 7
