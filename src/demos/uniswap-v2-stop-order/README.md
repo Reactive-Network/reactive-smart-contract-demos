@@ -43,15 +43,20 @@ The demo showcases essential stop order functionality but can be improved with:
 
 This script guides you through deploying and testing the Uniswap V2 stop order demo on the Sepolia Testnet. Ensure the following environment variables are configured appropriately before proceeding with this script:
 
-* `SEPOLIA_RPC`
-* `SEPOLIA_PRIVATE_KEY`
-* `REACTIVE_RPC`
-* `REACTIVE_PRIVATE_KEY`
-* `SEPOLIA_CALLBACK_PROXY_ADDR`
+* `SEPOLIA_RPC` — https://rpc2.sepolia.org
+* `SEPOLIA_PRIVATE_KEY` — Ethereum Sepolia private key
+* `REACTIVE_RPC` — https://kopli-rpc.rkt.ink
+* `REACTIVE_PRIVATE_KEY` — Kopli Testnet private key
+* `SEPOLIA_CALLBACK_PROXY_ADDR` — 0x33Bbb7D0a2F1029550B0e91f653c4055DC9F4Dd8
 
 To test this live, you will need some testnet tokens and a Uniswap V2 liquidity pool for them. Use any pre-existing tokens and pair or deploy your own, e.g., the barebones ERC-20 token provided in `UniswapDemoToken.sol`. You can use the recommended Sepolia RPC URL: `https://rpc2.sepolia.org`.
 
 ### Step 1
+
+```bash
+export TK1=0x6436F8EAeC14d458163D9D166755c633625214d5
+export TK2=0x0c179306f12679f9d8f9829abb99d1a7c9b5e6ce
+```
 
 Deploy two ERC-20 tokens. The constructor arguments are the token name and token symbol, which you can choose as you like. Upon creation, the token mints and transfers 100 units to the deployer.
 
@@ -66,6 +71,10 @@ forge create --rpc-url $SEPOLIA_RPC --private-key $SEPOLIA_PRIVATE_KEY src/demos
 ```
 
 ### Step 2
+
+```bash
+export UNISWAP_V2_PAIR_ADDR=0xdaF8A2B4f96dd8E2A1Fd9B09d42d6C569e7382b7
+```
 
 Create a Uniswap V2 pair (pool) using the token addresses created in Step 1. Use the `PAIR_FACTORY_CONTRACT` address `0x7E0987E5b3a30e3f2828572Bb659A548460a3003`. You should get the newly created pair address from the transaction logs on [Sepolia scan](https://sepolia.etherscan.io/) where the `PairCreated` event is emitted.
 
@@ -112,15 +121,15 @@ cast send --rpc-url $SEPOLIA_RPC --private-key $SEPOLIA_PRIVATE_KEY $SEPOLIA_CAL
 Transfer some liquidity into the created pool:
 
 ```bash
-cast send $TOKEN0_ADDR 'transfer(address,uint256)' --rpc-url $SEPOLIA_RPC --private-key $SEPOLIA_PRIVATE_KEY $CREATED_PAIR_ADDR 10000000000000000000
+cast send $TOKEN0_ADDR 'transfer(address,uint256)' --rpc-url $SEPOLIA_RPC --private-key $SEPOLIA_PRIVATE_KEY $UNISWAP_V2_PAIR_ADDR 10000000000000000000
 ```
 
 ```bash
-cast send $TOKEN1_ADDR 'transfer(address,uint256)' --rpc-url $SEPOLIA_RPC --private-key $SEPOLIA_PRIVATE_KEY $CREATED_PAIR_ADDR 10000000000000000000
+cast send $TOKEN1_ADDR 'transfer(address,uint256)' --rpc-url $SEPOLIA_RPC --private-key $SEPOLIA_PRIVATE_KEY $$UNISWAP_V2_PAIR_ADDR 10000000000000000000
 ```
 
 ```bash
-cast send $CREATED_PAIR_ADDR 'mint(address)' --rpc-url $SEPOLIA_RPC --private-key $SEPOLIA_PRIVATE_KEY $CLIENT_WALLET
+cast send $UNISWAP_V2_PAIR_ADDR 'mint(address)' --rpc-url $SEPOLIA_RPC --private-key $SEPOLIA_PRIVATE_KEY $CLIENT_WALLET
 ```
 
 ### Step 5

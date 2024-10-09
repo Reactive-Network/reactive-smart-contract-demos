@@ -33,12 +33,12 @@ Deploying these smart contracts in a live environment involves addressing key co
 
 This script guides you through deploying and testing the `ApprovalMagicSwap` demo on the Sepolia Testnet. Ensure the following environment variables are configured appropriately before proceeding:
 
-* `SEPOLIA_RPC`
-* `SEPOLIA_PRIVATE_KEY`
-* `REACTIVE_RPC`
-* `SEPOLIA_CALLBACK_PROXY_ADDR`
-* `KOPLI_CALLBACK_PROXY_ADDR`
-* `CLIENT_WALLET`
+* `SEPOLIA_RPC` — https://rpc2.sepolia.org
+* `SEPOLIA_PRIVATE_KEY` — Ethereum Sepolia private key
+* `REACTIVE_RPC` — https://kopli-rpc.rkt.ink
+* `SEPOLIA_CALLBACK_PROXY_ADDR` — 0x33Bbb7D0a2F1029550B0e91f653c4055DC9F4Dd8
+* `KOPLI_CALLBACK_PROXY_ADDR` — 0x0000000000000000000000000000000000FFFFFF
+* `CLIENT_WALLET` — Deployer's EOA wallet address 
 
 **IMPORTANT**: The following assumes that `ApprovalService` and `ApprovalListener` are deployed using the same private key. `ApprovalDemoToken` and `ApprovalEthExch`, however, can use other keys safely. The recommended Sepolia RPC URL: `https://rpc2.sepolia.org`.
 
