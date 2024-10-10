@@ -28,7 +28,7 @@ The demo highlights just a subset of Reactive Network's features. Potential impr
 
 ## Deployment & Testing
 
-To deploy the contracts to Ethereum Sepolia, follow these steps. Replace the relevant keys, addresses, and endpoints as needed. Make sure the following environment variables are correctly configured before proceeding:
+To deploy the contracts to Ethereum Sepolia and Kopli Testnet, follow these steps. Replace the relevant keys, addresses, and endpoints as needed. Make sure the following environment variables are correctly configured before proceeding:
 
 * `SEPOLIA_RPC` — https://rpc2.sepolia.org
 * `SEPOLIA_PRIVATE_KEY` — Ethereum Sepolia private key
