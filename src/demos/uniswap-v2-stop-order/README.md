@@ -41,7 +41,7 @@ The demo showcases essential stop order functionality but can be improved with:
 
 ## Deployment & Testing
 
-This script guides you through deploying and testing the Uniswap V2 stop order demo on the Sepolia Testnet. Ensure the following environment variables are configured appropriately before proceeding with this script:
+To deploy the contracts to Ethereum Sepolia, follow these steps. Replace the relevant keys, addresses, and endpoints as needed. Make sure the following environment variables are correctly configured before proceeding:
 
 * `SEPOLIA_RPC` — https://rpc2.sepolia.org
 * `SEPOLIA_PRIVATE_KEY` — Ethereum Sepolia private key
