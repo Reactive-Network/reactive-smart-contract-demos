@@ -2,33 +2,15 @@
 
 ## Overview
 
-This demo implements stop orders for Uniswap V2 liquidity pools using reactive contracts. It monitors a specified Uniswap V2 pair and triggers asset sales when the exchange rate reaches a defined threshold.
-
-```mermaid
-%%{ init: { 'flowchart': { 'curve': 'basis' } } }%%
-flowchart LR
-    subgraph Reactive Network
-        subgraph ReactVM
-            RC(Reactive Contract)
-        end
-    end
-    subgraph L1 Network
-        OCC(Origin Chain Contract)
-        DCC(Destination Chain Contract)
-    end
-OCC -.->|emitted log| RC
-RC -.->|callback| DCC
-```
+The **Uniswap V2 Stop Order Demo** implements a reactive smart contract that monitors `Sync` events in a Uniswap V2 liquidity pool. When the exchange rate reaches a predefined threshold, the contract automatically executes asset sales. This demo extends the principles introduced in the [Reactive Network Demo](https://github.com/Reactive-Network/reactive-smart-contract-demos/tree/main/src/demos/basic), which provides an introduction to building reactive smart contracts that respond to real-time events.
 
 ## Contracts
 
-The demo involves three contracts:
+- **Origin Chain Contract:** [UniswapDemoToken](https://github.com/Reactive-Network/reactive-smart-contract-demos/blob/main/src/demos/uniswap-v2-stop-order/UniswapDemoToken.sol) is a basic ERC-20 token with 100 tokens minted to the deployer's address. It provides integration points for Uniswap swaps.
 
-1. **Origin Chain Contract:** `UniswapDemoToken` is a basic ERC-20 token with 100 tokens minted to the deployer's address. It provides integration points for Uniswap swaps.
+- **Reactive Contract:** [UniswapDemoStopOrderReactive](https://github.com/Reactive-Network/reactive-smart-contract-demos/blob/main/src/demos/uniswap-v2-stop-order/UniswapDemoStopOrderReactive.sol) subscribes to a Uniswap V2 pair and stop order events. It checks if reserves fall below a threshold and triggers a stop order via callback.
 
-2. **Reactive Contract:** `UniswapDemoStopOrderReactive` subscribes to a Uniswap V2 pair and stop order events. It checks if reserves fall below a threshold and triggers a stop order via callback.
-
-3. **Destination Chain Contract:** `UniswapDemoStopOrderCallback` processes stop orders. It executes token swaps using the Uniswap V2 Router when triggered by the reactive contract.
+- **Destination Chain Contract:** [UniswapDemoStopOrderCallback](https://github.com/Reactive-Network/reactive-smart-contract-demos/blob/main/src/demos/uniswap-v2-stop-order/UniswapDemoStopOrderCallback.sol) processes stop orders. When the Reactive Network triggers the callback, the contract verifies the caller, checks the exchange rate and token balance, and performs the token swap through the Uniswap V2 router, transferring the swapped tokens back to the client. After execution, the contract emits a `Stop` event, signaling the reactive contract to conclude. The stateless callback contract can be used across multiple reactive stop orders with the same router.
 
 ## Further Considerations
 
