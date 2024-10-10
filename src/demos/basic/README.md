@@ -64,7 +64,7 @@ To deploy the contracts to Ethereum Sepolia, follow these steps. Replace the rel
 * `KOPLI_CALLBACK_PROXY_ADDR` — 0x0000000000000000000000000000000000FFFFFF
 * `SEPOLIA_CALLBACK_PROXY_ADDR` — 0x33Bbb7D0a2F1029550B0e91f653c4055DC9F4Dd8
 
-You can use the recommended Sepolia RPC URL: `https://rpc2.sepolia.org`.
+**Note**: To receive REACT, send SepETH to the Reactive faucet on Ethereum Sepolia (`0x9b9BB25f1A81078C544C829c5EB7822d747Cf434`). An equivalent amount will be sent to your address.
 
 ### Step 1
 

@@ -40,7 +40,9 @@ This script guides you through deploying and testing the `ApprovalMagicSwap` dem
 * `KOPLI_CALLBACK_PROXY_ADDR` — 0x0000000000000000000000000000000000FFFFFF
 * `CLIENT_WALLET` — Deployer's EOA wallet address 
 
-**IMPORTANT**: The following assumes that `ApprovalService` and `ApprovalListener` are deployed using the same private key. `ApprovalDemoToken` and `ApprovalEthExch`, however, can use other keys safely. The recommended Sepolia RPC URL: `https://rpc2.sepolia.org`.
+**IMPORTANT**: The following assumes that `ApprovalService` and `ApprovalListener` are deployed using the same private key. `ApprovalDemoToken` and `ApprovalEthExch` can use other keys if needed.
+
+**Note**: To receive REACT, send SepETH to the Reactive faucet on Ethereum Sepolia (`0x9b9BB25f1A81078C544C829c5EB7822d747Cf434`). An equivalent amount will be sent to your address.
 
 ### Step 1 — Service Deployment
 
