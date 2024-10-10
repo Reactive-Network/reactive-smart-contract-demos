@@ -2,7 +2,7 @@
 
 ## Overview
 
-This demo illustrates a basic use case of the Reactive Network with two key functionalities:
+The **Reactive Network Demo** illustrates a basic use case of the Reactive Network with two key functionalities:
 
 * Low-latency monitoring of logs emitted by contracts on the origin chain (Sepolia testnet).
 * Executing calls from the Reactive Network to contracts on the destination chain, also on Sepolia.
@@ -91,4 +91,4 @@ Test the whole setup by sending some ether to `ORIGIN_ADDR`:
 cast send $ORIGIN_ADDR --rpc-url $SEPOLIA_RPC --private-key $SEPOLIA_PRIVATE_KEY --value 0.1ether
 ```
 
-Ensure that the value sent is greater than or equal to 0.1 ether as this is the minimum required value to trigger the process, which should eventually result in a callback transaction to `CALLBACK_ADDR` being initiated by the Reactive Network.
+Ensure that the value sent is greater than or equal to 0.1 ether, as this is the minimum required value to trigger the process, which should eventually result in a callback transaction to `CALLBACK_ADDR` being initiated by the Reactive Network.
