@@ -6,26 +6,27 @@ import "../../IReactive.sol";
 import "../../AbstractReactive.sol";
 import "../../ISubscriptionService.sol";
 
-contract MultiPratyWalletReactive is IReactive, AbstractReactive {
+contract ReGovReactive is IReactive, AbstractReactive {
 
     uint256 private constant SEPOLIA_CHAIN_ID = 11155111;
 
-    uint256 private constant WALLET_CLOSED_TOPIC_0 =0xfa2763f7373a68fe3e9319f043584ac47e91ba6a95bef184a5a5ed00d198bba9;
-    uint256 private constant SHARE_HOLDER_LEFT_TOPIC_0=0x5d6712e456ca571022e39ac7fef2dc1faf6c7d5f308ad90462f775c670896e1c;
-    uint256 private constant FUND_RECIEVED_TOPIC_0=0x8e47b87b0ef542cdfa1659c551d88bad38aa7f452d2bbb349ab7530dfec8be8f;
-    
+    uint256 private constant VOTE_FOR_THRESOLD_REACH_TOPIC_0 =0x7edbeb06298438692f5e60c369b3d70cf26194c2263ff97ab5b32cecbddad8a7 ;
+    uint256 private constant VOTE_AGAINST_THRESOLD_REACH_TOPIC_0 = 0xba3d34a559bd7600063768ee32172d8872b43d899ccd8ca2f9e9849e289e9fa2
+;
+    uint256 private constant DEADLINE_REACH_TOPIC_0 =0xecbc3a8bcc8ece0c1c67901dca8b46a78df89c54d4c702fd932f3ad8e1b7241e ;
+
     uint64 private constant CALLBACK_GAS_LIMIT = 1000000;
 
 
     address private l1;
 
-    constructor( address _l1) {
+    constructor(address _l1) {
         
         bytes memory payload1 = abi.encodeWithSignature(
             "subscribe(uint256,address,uint256,uint256,uint256,uint256)",
             SEPOLIA_CHAIN_ID,
             _l1,
-            WALLET_CLOSED_TOPIC_0,
+            VOTE_FOR_THRESOLD_REACH_TOPIC_0,
             REACTIVE_IGNORE,
             REACTIVE_IGNORE,
             REACTIVE_IGNORE
@@ -34,13 +35,11 @@ contract MultiPratyWalletReactive is IReactive, AbstractReactive {
         if (!subscription_result1) {
             vm = true;
         }
-        
-        
         bytes memory payload2 = abi.encodeWithSignature(
             "subscribe(uint256,address,uint256,uint256,uint256,uint256)",
             SEPOLIA_CHAIN_ID,
             _l1,
-            SHARE_HOLDER_LEFT_TOPIC_0,
+            VOTE_AGAINST_THRESOLD_REACH_TOPIC_0,
             REACTIVE_IGNORE,
             REACTIVE_IGNORE,
             REACTIVE_IGNORE
@@ -53,7 +52,7 @@ contract MultiPratyWalletReactive is IReactive, AbstractReactive {
             "subscribe(uint256,address,uint256,uint256,uint256,uint256)",
             SEPOLIA_CHAIN_ID,
             _l1,
-            FUND_RECIEVED_TOPIC_0,
+            DEADLINE_REACH_TOPIC_0,
             REACTIVE_IGNORE,
             REACTIVE_IGNORE,
             REACTIVE_IGNORE
@@ -62,12 +61,13 @@ contract MultiPratyWalletReactive is IReactive, AbstractReactive {
         if (!subscription_result3) {
             vm = true;
         }
-        
 
         l1 = _l1;
         
     }
 
+    receive() external payable {}
+    
 
     function react(
         uint256 chain_id,
@@ -80,34 +80,30 @@ contract MultiPratyWalletReactive is IReactive, AbstractReactive {
         uint256 /* block number */,
         uint256 /* op_code */
     ) external vmOnly {
-        if (topic_0 == FUND_RECIEVED_TOPIC_0) {
+        if (topic_0 == VOTE_FOR_THRESOLD_REACH_TOPIC_0) {
            
             bytes memory payload = abi.encodeWithSignature(
-                "distributeAllFunds(address)",
-                address(0)
-            
+                "executeProposal(address,uint256)",
+                address(0),
+                topic_1
             );
             emit Callback(chain_id, l1, CALLBACK_GAS_LIMIT, payload);
-        }
-        if (topic_0 == WALLET_CLOSED_TOPIC_0) {
-           
-            bytes memory payload = abi.encodeWithSignature(
-                "updateShares(address)",
-                address(0)
+        } else if (topic_0 == VOTE_AGAINST_THRESOLD_REACH_TOPIC_0) {
             
+            
+            bytes memory payload = abi.encodeWithSignature(
+                "DeleteProposal(address,uint256)",
+                address(0),
+                topic_1
             );
             emit Callback(chain_id, l1, CALLBACK_GAS_LIMIT, payload);
-        }
-
-        if (topic_0 == SHARE_HOLDER_LEFT_TOPIC_0) {
-           
+        } else if (topic_0 == DEADLINE_REACH_TOPIC_0) {
             bytes memory payload = abi.encodeWithSignature(
-                "updateShares(address)",
-                address(0)
-            
+                "executeProposal(address,uint256)",
+                address(0),
+                topic_1
             );
             emit Callback(chain_id, l1, CALLBACK_GAS_LIMIT, payload);
         }
     }
-    receive() external payable{}
 }

@@ -37,10 +37,25 @@ This guide walks you through deploying and testing the `AutomatedPredictionMarke
 1. Deploy the `AutomatedPredictionMarket` contract:
 
 ```bash
-forge create --rpc-url $SEPOLIA_RPC --private-key $SEPOLIA_PRIVATE_KEY src/demos/automated-prediction-market/AutomatedPredictionMarket.sol:AutomatedPredictionMarket
+forge create --rpc-url $SEPOLIA_RPC --private-key $SEPOLIA_PRIVATE_KEY src/demos/automated-prediction-market/AutomatedPredictionMarket.sol:AutomatedPredictionMarket --constructor-args 0x0000000000000000000000000000000000000000
 ```
 
-2. Initialize the contract with required parameters:
+#### Callback Payment
+
+To ensure a successful callback, the callback contract must have an ETH balance. You can find more details [here](https://dev.reactive.network/system-contract#callback-payments). To fund the callback contract, run the following command:
+
+```bash
+cast send $CALLBACK_ADDR --rpc-url $SEPOLIA_RPC --private-key $SEPOLIA_PRIVATE_KEY --value 0.1ether
+```
+
+Alternatively, you can deposit the funds into the callback proxy smart contract using this command:
+
+```bash
+cast send --rpc-url $SEPOLIA_RPC --private-key $SEPOLIA_PRIVATE_KEY $CALLBACK_PROXY_ADDR "depositTo(address)" $CALLBACK_ADDR --value 0.1ether
+```
+
+
+2. Initialize the contract with required parameters initialize:
 
 ```bash
 cast send $PREDICTION_MARKET_ADDR "initialize(string,string,uint256,uint256,uint256,uint256,address[],uint256)" --rpc-url $SEPOLIA_RPC --private-key $SEPOLIA_PRIVATE_KEY
@@ -64,7 +79,7 @@ cast send $PREDICTION_MARKET_ADDR "purchaseShares(uint256,uint256)" --rpc-url $S
 cast send $PREDICTION_MARKET_ADDR "proposeResolution(uint256,bool)" --rpc-url $SEPOLIA_RPC --private-key $SEPOLIA_PRIVATE_KEY
 ```
 
-6. Vote on resolution:
+6. (MultiSig)Vote on resolution:
 
 ```bash
 cast send $PREDICTION_MARKET_ADDR "voteOnResolution(uint256,uint256,bool)" --rpc-url $SEPOLIA_RPC --private-key $SEPOLIA_PRIVATE_KEY

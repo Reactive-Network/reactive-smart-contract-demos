@@ -49,7 +49,7 @@ contract DestinationContract {
     );
 
 
-    constructor(address _callback_sender) AbstractCallback(_callback_sender) {
+    constructor(address _callback_sender) AbstractCallback(_callback_sender) payable {
         inputParameters = InputParameters({tokenOut: USDT, amountOutMin: 0, fee: 3000});
     }
 

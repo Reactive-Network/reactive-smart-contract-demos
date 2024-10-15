@@ -5,8 +5,9 @@ import "../../../lib/openzeppelin-contracts-upgradeable/contracts/access/Ownable
 import "../../../lib/openzeppelin-contracts-upgradeable/contracts/utils/ReentrancyGuardUpgradeable.sol";
 import "../../../lib/openzeppelin-contracts-upgradeable/contracts/utils/PausableUpgradeable.sol";
 import "../../../lib/openzeppelin-contracts/contracts/token/ERC20/ERC20.sol";
+import "../../AbstractCallback.sol";
 
-contract MultiPartyWallet is OwnableUpgradeable, ReentrancyGuardUpgradeable, PausableUpgradeable {
+contract MultiPartyWallet is OwnableUpgradeable, ReentrancyGuardUpgradeable, PausableUpgradeable,AbstractCallback {
     uint256 public creationTime;
     uint256 public totalContributions;
     bool public walletClosed;
@@ -55,6 +56,9 @@ contract MultiPartyWallet is OwnableUpgradeable, ReentrancyGuardUpgradeable, Pau
         _;
     }
 
+    constructor(address _callback_sender) AbstractCallback(_callback_sender) payable {
+    }
+
     function initialize(uint256 _minimumContribution, uint256 _closureTime, address _memeCoinAddress, uint256 _memeCoinsPerEth) public initializer {
         __Ownable_init(msg.sender);
         __ReentrancyGuard_init();
@@ -90,7 +94,7 @@ contract MultiPartyWallet is OwnableUpgradeable, ReentrancyGuardUpgradeable, Pau
     }
 
     function setClosureTime(uint256 _newClosureTime) external onlyOwner onlyOpen {
-        require(_newClosureTime > block.timestamp, "Closure time must be in the future");
+        require(_newClosureTime > block.timestamp, "Closure time must be in future");
         closureTime = _newClosureTime;
         emit ClosureTimeUpdated(_newClosureTime);
     }
@@ -122,7 +126,7 @@ contract MultiPartyWallet is OwnableUpgradeable, ReentrancyGuardUpgradeable, Pau
         emit MemeCoinsDistributed(msg.sender, rewardAmount);
     }
 
-    function updateShares(address) external onlyClosed {
+    function updateShares(address /*sender*/) external onlyClosed {
         for (uint256 i = 0; i < shareholderAddresses.length; i++) {
             if (shareholderActive[i]) {
                 address shareholderAddress = shareholderAddresses[i];
@@ -133,7 +137,7 @@ contract MultiPartyWallet is OwnableUpgradeable, ReentrancyGuardUpgradeable, Pau
         emit SharesUpdated();
     }
 
-    function distributeAllFunds(address) external onlyClosed nonReentrant {
+    function distributeAllFunds(address /*sender*/) external onlyClosed nonReentrant {
         uint256 fundsToDistribute = additionalFunds;
         require(fundsToDistribute > 0, "No funds to distribute");
 

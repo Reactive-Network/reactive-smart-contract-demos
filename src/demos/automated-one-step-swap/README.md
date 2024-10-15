@@ -65,6 +65,8 @@ To deploy and test the contracts, follow these steps. Ensure the following envir
 * `TOKEN_IN_ADDRESS`
 * `TOKEN_OUT_ADDRESS`
 * `AMOUNT_IN`
+* `CALLBACK_ADDR`
+* `CALLBACK_PROXY_ADDR`
 
 You can use the recommended Sepolia RPC URL: `https://rpc2.sepolia.org`.
 
@@ -76,17 +78,31 @@ Configure the `.env` file with appropriate keys, addresses, and endpoints.
 
 Deploy the `DestinationContract.sol` on Sepolia:
 
-```sh
-forge create --rpc-url $SEPOLIA_RPC --private-key $SEPOLIA_PRIVATE_KEY src/demos/automated-one-step-swap/DestinationContract.sol:DestinationContract
+```bash
+forge create --rpc-url $SEPOLIA_RPC --private-key $SEPOLIA_PRIVATE_KEY src/demos/automated-one-step-swap/DestinationContract.sol:DestinationContract --constructor-args 0x0000000000000000000000000000000000000000
 ```
 
 Save the deployed address in `DESTINATION_CONTRACT_ADDRESS` in the `.env` file.
+
+#### Callback Payment
+
+To ensure a successful callback, the callback contract must have an ETH balance. You can find more details [here](https://dev.reactive.network/system-contract#callback-payments). To fund the callback contract, run the following command:
+
+```bash
+cast send $CALLBACK_ADDR --rpc-url $SEPOLIA_RPC --private-key $SEPOLIA_PRIVATE_KEY --value 0.1ether
+```
+
+Alternatively, you can deposit the funds into the callback proxy smart contract using this command:
+
+```bash
+cast send --rpc-url $SEPOLIA_RPC --private-key $SEPOLIA_PRIVATE_KEY $CALLBACK_PROXY_ADDR "depositTo(address)" $CALLBACK_ADDR --value 0.1ether
+```
 
 ### Step 3: Deploy Reactive Contract
 
 Deploy the `ReactiveContract.sol` on the Reactive Network:
 
-```sh
+```bash
 forge create --rpc-url $REACTIVE_RPC --private-key $REACTIVE_PRIVATE_KEY src/demos/automated-one-step-swap/ReactiveContract.sol:ReactiveContract --constructor-args $SYSTEM_CONTRACT_ADDR $DESTINATION_CONTRACT_ADDRESS
 ```
 
@@ -94,7 +110,7 @@ forge create --rpc-url $REACTIVE_RPC --private-key $REACTIVE_PRIVATE_KEY src/dem
 
 If needed, adjust the input parameters for the Uniswap V3 swap router:
 
-```sh
+```bash
 cast send $DESTINATION_CONTRACT_ADDRESS "setInputParameters(address,uint256,uint256)" $NEW_TOKEN_OUT_ADDRESS $NEW_AMOUNT_OUT_MIN $NEW_FEE --rpc-url $SEPOLIA_RPC --private-key $SEPOLIA_PRIVATE_KEY
 ```
 
@@ -102,6 +118,6 @@ cast send $DESTINATION_CONTRACT_ADDRESS "setInputParameters(address,uint256,uint
 
 Initiate the swap by approving the Destination Contract to spend your tokens:
 
-```sh
+```bash
 cast send $TOKEN_IN_ADDRESS "approve(address,uint256)" $DESTINATION_CONTRACT_ADDRESS $AMOUNT_IN --rpc-url $SEPOLIA_RPC --private-key $SEPOLIA_PRIVATE_KEY
 ```

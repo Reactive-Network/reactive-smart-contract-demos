@@ -6,8 +6,10 @@ import "../../../lib/openzeppelin-contracts-upgradeable/contracts/access/Ownable
 import "../../../lib/openzeppelin-contracts-upgradeable/contracts/utils/ReentrancyGuardUpgradeable.sol";
 import "../../../lib/openzeppelin-contracts-upgradeable/contracts/utils/PausableUpgradeable.sol";
 import "../../../lib/openzeppelin-contracts-upgradeable/contracts/token/ERC20/ERC20Upgradeable.sol";
+import "../../AbstractCallback.sol";
 
-contract AutomatedPredictionMarket is Initializable, OwnableUpgradeable, ReentrancyGuardUpgradeable, PausableUpgradeable, ERC20Upgradeable {
+
+contract AutomatedPredictionMarket is Initializable, OwnableUpgradeable, ReentrancyGuardUpgradeable, PausableUpgradeable, ERC20Upgradeable ,AbstractCallback{
 
     struct Prediction {
         string description;
@@ -70,6 +72,9 @@ contract AutomatedPredictionMarket is Initializable, OwnableUpgradeable, Reentra
     event GovernanceProposalCreated(uint256 indexed proposalId, string description, uint256 endTime);
     event Voted(uint256 indexed proposalId, address voter, bool support, uint256 weight);
     event MultiSigVoted(uint256 indexed predictionId, address voter, bool support, uint256 resolutionIndex);
+
+    constructor(address _callback_sender) AbstractCallback(_callback_sender) payable {
+    }
 
     function initialize(
         string memory name_,
@@ -241,7 +246,7 @@ contract AutomatedPredictionMarket is Initializable, OwnableUpgradeable, Reentra
         //ye cheez emit hogi toh distributewinnings function call hoga
     }
 
-    function distributeWinnings(address,uint256 _predictionId) external nonReentrant {
+    function distributeWinnings(address /*sender*/,uint256 _predictionId) external nonReentrant {
         Prediction storage prediction = predictions[_predictionId];
         require(prediction.isResolved, "Prediction not resolved yet");
         require(prediction.lastDistributionIndex < prediction.participants.length, "All winnings distributed");

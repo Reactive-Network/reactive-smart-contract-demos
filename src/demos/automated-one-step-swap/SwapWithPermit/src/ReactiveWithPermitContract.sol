@@ -24,7 +24,7 @@ contract ReactiveWithPermitContract is IReactive,AbstractReactive {
         originContract = _originContract;
     }
 
-   
+    receive() external payable {}
 
     function react(
         uint256 chain_id,

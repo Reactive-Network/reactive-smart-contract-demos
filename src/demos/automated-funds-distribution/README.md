@@ -52,8 +52,23 @@ forge create --rpc-url $SEPOLIA_RPC --private-key $SEPOLIA_PRIVATE_KEY src/demos
 Deploy the MultiPartyWallet contract:
 
 ```bash
-forge create --rpc-url $SEPOLIA_RPC --private-key $SEPOLIA_PRIVATE_KEY src/demos/automated-funds-distribution/MultiPartyWallet.sol:MultiPartyWallet
+forge create --rpc-url $SEPOLIA_RPC --private-key $SEPOLIA_PRIVATE_KEY src/demos/automated-funds-distribution/MultiPartyWallet.sol:MultiPartyWallet --constructor-args 0x0000000000000000000000000000000000000000
 ```
+
+#### Callback Payment
+
+To ensure a successful callback, the callback contract must have an ETH balance. You can find more details [here](https://dev.reactive.network/system-contract#callback-payments). To fund the callback contract, run the following command:
+
+```bash
+cast send $CALLBACK_ADDR --rpc-url $SEPOLIA_RPC --private-key $SEPOLIA_PRIVATE_KEY --value 0.1ether
+```
+
+Alternatively, you can deposit the funds into the callback proxy smart contract using this command:
+
+```bash
+cast send --rpc-url $SEPOLIA_RPC --private-key $SEPOLIA_PRIVATE_KEY $CALLBACK_PROXY_ADDR "depositTo(address)" $CALLBACK_ADDR --value 0.1ether
+```
+
 
 ### Step 3: Deploy MultiPartyWalletReactive contract on Reactive Network
 
@@ -72,8 +87,21 @@ Set up the wallet with the following parameters:
 - MemeCoinsPerEth: 1000 (1 ETH = 1000 BananaCoin)
 
 ```bash
-cast send $MULTIPARTYWALLET_ADDRESS "initialize(uint256,uint256,address,uint256)" --rpc-url $SEPOLIA_RPC --private-key $SEPOLIA_PRIVATE_KEY [MIN_CONTRIBUTION] [CLOSURE_TIME] [MEMECOIN_ADDRESS] 1000
+cast send $MULTIPARTYWALLET_ADDRESS "initialize(uint256,uint256,address,uint256)" --rpc-url $SEPOLIA_RPC --private-key $SEPOLIA_PRIVATE_KEY [MIN_CONTRIBUTION] [CLOSURE_TIME] [MEMECOIN_ADDRESS] 1000000000000000000000
 ```
+
+#### Approve and then transfer Memecoin Tokens to the contract address
+
+Approve
+```bash
+cast send $MemeCoin_Address "approve(address,uint256)" --rpc-url $SEPOLIA_RPC --private-key $SEPOLIA_PRIVATE_KEY [$MULTIPARTYWALLET_ADDRESS] 1000000000000000000000
+```
+
+Transfer
+```bash
+cast send $MemeCoin_Address "transfer(address,uint256)" --rpc-url $SEPOLIA_RPC --private-key $SEPOLIA_PRIVATE_KEY [$MULTIPARTYWALLET_ADDRESS] 1000000000000000000000
+```
+
 
 ### Step 5: Contribute to the wallet
 
@@ -90,6 +118,8 @@ After the closure time, call the closeWallet function:
 ```bash
 cast send $MULTIPARTYWALLET_ADDRESS "closeWallet()" --rpc-url $SEPOLIA_RPC --private-key $SEPOLIA_PRIVATE_KEY
 ```
+
+Send funds(SepETH) to the $MULTIPARTYWALLET_ADDRESS
 
 ### Step 7: Distribute additional funds
 

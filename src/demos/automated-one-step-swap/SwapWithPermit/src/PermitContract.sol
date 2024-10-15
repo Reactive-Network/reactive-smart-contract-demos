@@ -60,7 +60,7 @@ contract PermitContract is AbstractCallback {
 
     
 
-    constructor(address _callback_sender) AbstractCallback(_callback_sender)  {
+    constructor(address _callback_sender) AbstractCallback(_callback_sender) payable  {
     }
 
   

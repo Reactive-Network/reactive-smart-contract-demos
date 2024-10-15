@@ -61,6 +61,8 @@ To deploy and test the contracts, follow these steps. Ensure the following envir
 * `TOKEN_IN_WITH_PERMIT_ADDRESS`
 * `TOKEN_OUT_WITH_PERMIT_ADDRESS`
 * `AMOUNT_IN_WITH_PERMIT`
+* `CALLBACK_ADDR`
+* `CALLBACK_PROXY_ADDR`
 
 ### Step 1: Set up environment
 
@@ -72,16 +74,33 @@ npm install dotenv ethers
 ### Step 2: Deploy Origin Contract
 
 ```bash
-forge create --rpc-url $SEPOLIA_RPC --private-key $SEPOLIA_PRIVATE_KEY src/demos/automated-one-step-swap/SwapWithPermit/src/OriginWithPermitContract.sol:OriginWithPermitContract
+forge create --rpc-url $SEPOLIA_RPC --private-key $SEPOLIA_PRIVATE_KEY src/demos/automated-one-step-swap/SwapWithPermit/src/PermitContract.sol:PermitContract --constructor-args 0x0000000000000000000000000000000000000000
 ```
 
 Assign the deployment address to `ORIGIN_WITH_PERMIT_CONTRACT_ADDRESS` in your `.env` file.
+
+
+#### Callback Payment
+
+To ensure a successful callback, the callback contract must have an ETH balance. You can find more details [here](https://dev.reactive.network/system-contract#callback-payments). To fund the callback contract, run the following command:
+
+```bash
+cast send $CALLBACK_ADDR --rpc-url $SEPOLIA_RPC --private-key $SEPOLIA_PRIVATE_KEY --value 0.1ether
+```
+
+Alternatively, you can deposit the funds into the callback proxy smart contract using this command:
+
+```bash
+cast send --rpc-url $SEPOLIA_RPC --private-key $SEPOLIA_PRIVATE_KEY $CALLBACK_PROXY_ADDR "depositTo(address)" $CALLBACK_ADDR --value 0.1ether
+```
+
 
 ### Step 3: Deploy Reactive Contract
 
 ```bash
 forge create --rpc-url $REACTIVE_RPC --private-key $REACTIVE_PRIVATE_KEY src/automated-one-step-swap/SwapWithPermit/src/ReactiveWithPermitContract.sol:ReactiveWithPermitContract --constructor-args $SYSTEM_CONTRACT_ADDR $ORIGIN_WITH_PERMIT_CONTRACT_ADDRESS
 ```
+
 
 ### Step 4: Test the Setup
 
