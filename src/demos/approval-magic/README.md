@@ -1,24 +1,20 @@
-# Magic Approval
+# Approval Magic Demo
 
 ## Overview
 
-This demo extends reactive and subscription-based concepts to implement a sophisticated approval-based token exchange across multiple chains. The provided smart contracts facilitate token transfers and swaps by monitoring token approvals and reacting accordingly. The demo shows how an approval service, integrated with the Reactive Network, manages and executes cross-chain token exchanges, with each smart contract serving a distinct role in the overall workflow.
+The **Approval Magic Demo** extends reactive and subscription-based concepts to implement an approval-based token exchange across multiple chains. The provided smart contracts facilitate token transfers and swaps by monitoring token approvals and reacting accordingly. The demo shows how an approval service integrated with the Reactive Network manages and executes cross-chain token exchanges, with each smart contract serving a distinct role in the overall workflow.
 
-## Contracts and Interfaces
+## Contracts
 
-The demo involves five contracts and one interface, each playing a distinct role in the multi-chain token exchange workflow:
+- **Subscription-Based Approval Service:** [ApprovalService](https://github.com/Reactive-Network/reactive-smart-contract-demos/blob/main/src/demos/approval-magic/ApprovalService.sol) manages subscription services, processes approval callbacks, and settles gas fees, updating subscription status based on transaction outcomes and emitting `Subscribe` and `Unsubscribe` events.
 
-1. **Token Initialization and Distribution:** `ApprovalDemoToken` is an ERC-20 token contract that allows for the creation of a token with a specified `name` and `symbol` during deployment. It mints 100 tokens to the deploying address and includes a `request()` function to issue additional tokens (1 Ether each) to addresses that haven't previously received tokens. This contract tracks token distribution using a `recipients` mapping to prevent multiple requests from the same address.
+- **Reactive Contract:** [ApprovalListener](https://github.com/Reactive-Network/reactive-smart-contract-demos/blob/main/src/demos/approval-magic/ApprovalListener.sol) interacts with `ISubscriptionService` and `ApprovalService` to manage subscriptions and handle reactive network events, triggering actions like approval handling and subscription updates.
 
-2. **Ethereum-Based Token Exchange:** `ApprovalEthExch` is a contract that implements the `IApprovalClient` interface to manage approvals and settlements for token exchanges. It interacts with an `ApprovalService` and an ERC-20 token, providing functionalities such as owner access control, subscription management, and handling of approval callbacks to facilitate secure token transfers and settlements.
+- **Token Initialization and Distribution:** [ApprovalDemoToken](https://github.com/Reactive-Network/reactive-smart-contract-demos/blob/main/src/demos/approval-magic/ApprovalDemoToken.sol) is an ERC-20 token contract that mints 100 tokens to the deployer and allows additional token requests (1 Ether each) through the `request()` function. A `recipients` mapping ensures each address can only request tokens once.
 
-3. **Reactive Network Integration:** `ApprovalListener` implements the `IReactive` interface and interacts with both an `ISubscriptionService` and an `ApprovalService`. It can operate as either a standard contract or as a ReactVM instance, managing subscriptions and processing reactive network events to trigger actions like subscription updates or approval handling within the `ApprovalService`.
+- **Token Exchange:** [ApprovalEthExch](https://github.com/Reactive-Network/reactive-smart-contract-demos/blob/main/src/demos/approval-magic/ApprovalEthExch.sol) manages token exchange approvals and settlements, interacting with `ApprovalService` and ERC-20 tokens. It includes owner access control, subscription management, and secure token transfers through approval callbacks.
 
-4. **Automated Token Swaps:** `ApprovalMagicSwap` is a contract that implements the `IApprovalClient` interface to facilitate token swaps using the Uniswap V2 Router. It handles subscription-based approvals through an `ApprovalService` and executes token swaps between two ERC-20 tokens (`token0` and `token1`). The contract manages swap execution by verifying token balances and allowances and performing transactions via the Uniswap Router.
-
-5. **Subscription-Based Approval Management:** `ApprovalService` is a contract that manages subscription services and handles approval callbacks for token operations. It controls subscription status, emits relevant events (`Subscribe` and `Unsubscribe`), and processes approvals by executing operations on target contracts, settling gas fees, and updating subscription status based on transaction outcomes.
-
-6. **Approval Handling Interface:** `IApprovalClient` is an interface that defines the essential functions for handling approvals within the workflow. It includes the `onApproval` function, which manages approval processes triggered by external actions or contracts, and the `settle` function, which handles the settlement of payments or token transfers according to the contract's requirements.
+- **Automated Token Swaps:** [ApprovalMagicSwap](https://github.com/Reactive-Network/reactive-smart-contract-demos/blob/main/src/demos/approval-magic/ApprovalMagicSwap.sol) facilitates token swaps between two ERC-20 tokens via Uniswap V2, using subscription-based approvals from `ApprovalService` to manage and execute these swaps.
 
 ## Further Considerations
 
@@ -31,22 +27,26 @@ Deploying these smart contracts in a live environment involves addressing key co
 
 ## Deployment & Testing
 
-This script guides you through deploying and testing the `ApprovalMagicSwap` demo on the Sepolia Testnet. Ensure the following environment variables are configured appropriately before proceeding:
+To deploy the contracts to Ethereum Sepolia and Kopli Testnet, follow these steps. Replace the relevant keys, addresses, and endpoints as needed. Make sure the following environment variables are correctly configured before proceeding:
 
-* `SEPOLIA_RPC`
-* `SEPOLIA_PRIVATE_KEY`
-* `REACTIVE_RPC`
-* `CLIENT_WALLET`
+* `SEPOLIA_RPC` — https://rpc2.sepolia.org
+* `SEPOLIA_PRIVATE_KEY` — Ethereum Sepolia private key
+* `REACTIVE_RPC` — https://kopli-rpc.rkt.ink
+* `SEPOLIA_CALLBACK_PROXY_ADDR` — 0x33Bbb7D0a2F1029550B0e91f653c4055DC9F4Dd8
+* `KOPLI_CALLBACK_PROXY_ADDR` — 0x0000000000000000000000000000000000FFFFFF
+* `CLIENT_WALLET` — Deployer's EOA wallet address 
 
-**IMPORTANT**: The following assumes that `ApprovalService` and `ApprovalListener` are deployed using the same private key. Demo token and "exchange" contract, however, can use other keys safely. The recommended Sepolia RPC URL is `https://rpc2.sepolia.org`.
+**IMPORTANT**: The following assumes that `ApprovalService` and `ApprovalListener` are deployed using the same private key. `ApprovalDemoToken` and `ApprovalEthExch` can use other keys if needed.
+
+**Note**: To receive REACT, send SepETH to the Reactive faucet on Ethereum Sepolia (`0x9b9BB25f1A81078C544C829c5EB7822d747Cf434`). An equivalent amount will be sent to your address.
 
 ### Step 1 — Service Deployment
 
 Current deployment addresses that can be reused:
 
 ```bash
-export APPROVAL_SRV_ADDR=0xEDb3ab6Dd9D5A8818C175324C8196804085bDEc3
-export APPROVAL_RCT_ADDR=0xc3e185561D2a8b04F0Fcd104A562f460D6cC503c
+export APPROVAL_SRV_ADDR=0x75eF46a6C6C6f59d282ffBA47F1066c43A9e9D55
+export APPROVAL_RCT_ADDR=0x6f1b2380946E6F54a08A38d2475a05090CaE0c36
 ```
 
 The `ApprovalService` and `ApprovalListener` contracts can be deployed once and used by any number of clients.
@@ -65,16 +65,22 @@ forge create src/demos/approval-magic/ApprovalService.sol:ApprovalService --rpc-
 
 The `Deployed to` address from the response should be assigned to `APPROVAL_SRV_ADDR`.
 
-**NOTE**: To ensure a successful callback, the callback contract (`APPROVAL_SRV_ADDR` in our case) must have an ETH balance. You can find more details [here](https://dev.reactive.network/system-contract#callback-payments). To fund the contract, run the following command:
+**NOTE**: To ensure a successful callback, `APPROVAL_SRV_ADDR` must have an ETH balance. Find more details [here](https://dev.reactive.network/system-contract#callback-payments). To fund the contract, run the following command:
 
 ```bash
 cast send $APPROVAL_SRV_ADDR --rpc-url $SEPOLIA_RPC --private-key $SEPOLIA_PRIVATE_KEY --value 0.1ether
 ```
 
-Alternatively, you can deposit funds into the [Sepolia callback proxy contract](https://dev.reactive.network/origins-and-destinations) using this command:
+To cover the debt of `APPROVAL_SRV_ADDR`, run this command:
 
 ```bash
-cast send --rpc-url $SEPOLIA_RPC --private-key $SEPOLIA_PRIVATE_KEY $CALLBACK_PROXY_ADDR "depositTo(address)" $APPROVAL_SRV_ADDR --value 0.1ether
+cast send --rpc-url $SEPOLIA_RPC --private-key $SEPOLIA_PRIVATE_KEY $APPROVAL_SRV_ADDR "coverDebt()"
+```
+
+Alternatively, you can deposit funds into the [Callback Proxy](https://dev.reactive.network/origins-and-destinations) contract on Sepolia, using the command below. The EOA address whose private key signs the transaction pays the fee.
+
+```bash
+cast send --rpc-url $SEPOLIA_RPC --private-key $SEPOLIA_PRIVATE_KEY $SEPOLIA_CALLBACK_PROXY_ADDR "depositTo(address)" $APPROVAL_SRV_ADDR --value 0.1ether
 ```
 
 #### Reactive Deployment
@@ -82,21 +88,27 @@ cast send --rpc-url $SEPOLIA_RPC --private-key $SEPOLIA_PRIVATE_KEY $CALLBACK_PR
 Deploy the `ApprovalListener` contract with the command shown below. Make sure to use the same private key (`SEPOLIA_PRIVATE_KEY`). Both contracts must be deployed from the same address as this ensures that the Sepolia contract can authenticate the RVM ID for callbacks.
 
 ```bash
-forge create src/demos/approval-magic/ApprovalListener.sol:ApprovalListener --rpc-url $REACTIVE_RPC --private-key $SEPOLIA_PRIVATE_KEY --value 0.1ether --constructor-args $APPROVAL_SRV_ADDR
+forge create src/demos/approval-magic/ApprovalListener.sol:ApprovalListener --rpc-url $REACTIVE_RPC --private-key $SEPOLIA_PRIVATE_KEY --constructor-args $APPROVAL_SRV_ADDR
 ```
 
 The `Deployed to` address should be assigned to `APPROVAL_RCT_ADDR`.
 
-**NOTE**: We added `--value 0.1ether` to the deployment command above to fund the contract as the callback function requires the contract to hold an ETH balance. If the contract balance is insufficient, fund it by running the following command:
+**NOTE**: To ensure a successful callback, `APPROVAL_RCT_ADDR` must have an ETH balance. Find more details [here](https://dev.reactive.network/system-contract#callback-payments). To fund the contract, run the following command:
 
 ```bash
-cast send $APPROVAL_RCT_ADDR --rpc-url $REACTIVE_RPC --private-key $SEPOLIA_PRIVATE_KEY --value 0.1ether
+cast send $APPROVAL_RCT_ADDR --rpc-url $REACTIVE_RPC --private-key $REACTIVE_PRIVATE_KEY --value 0.1ether
 ```
 
-Alternatively, you can deposit funds into the [Reactive callback proxy contract](https://dev.reactive.network/origins-and-destinations) using this command:
+To cover the debt of `APPROVAL_RCT_ADDR`, run this command:
 
 ```bash
-cast send --rpc-url $REACTIVE_RPC --private-key $SEPOLIA_PRIVATE_KEY $CALLBACK_PROXY_ADDR "depositTo(address)" $APPROVAL_RCT_ADDR --value 0.1ether
+cast send --rpc-url $REACTIVE_RPC --private-key $REACTIVE_PRIVATE_KEY $APPROVAL_RCT_ADDR "coverDebt()"
+```
+
+Alternatively, you can deposit funds into the [Callback Proxy](https://dev.reactive.network/origins-and-destinations) contract on Kopli Testnet, using the command below. The EOA address whose private key signs the transaction pays the fee.
+
+```bash
+cast send --rpc-url $REACTIVE_RPC --private-key $REACTIVE_PRIVATE_KEY $KOPLI_CALLBACK_PROXY_ADDR "depositTo(address)" $APPROVAL_RCT_ADDR --value 0.1ether
 ```
 
 ### Step 2 — Demo Client Deployment
@@ -154,8 +166,8 @@ cast send $TOKEN_ADDR "approve(address,uint256)" $EXCH_ADDR 100 --rpc-url $SEPOL
 You can use two pre-deployed tokens or deploy your own (see the Token Deployment section).
 
 ```bash
-export TOKEN1_ADDR=0x896D3720f6E7936Cc5aeD3a165cAc27e79543906
-export TOKEN2_ADDR=0x49CAb255DBB9e7484c9A976420e67B215956406a
+export TOKEN1_ADDR=0xC1FC32C2Ba7dbB4BFFE2FDcdcc2090fF01662b70
+export TOKEN2_ADDR=0xC6f44cda01b64bB05993Fe2b443Da91B206403de
 ```
 
 You can request each token once as follows:
@@ -195,7 +207,7 @@ cast send 0x7E0987E5b3a30e3f2828572Bb659A548460a3003 'createPair(address,address
 **NOTE**: Assign the pair address from transaction logs on [Sepolia scan](https://sepolia.etherscan.io/) to `PAIR_ADDR` or export the pre-made pair for the tokens above:
 
 ```bash
-export PAIR_ADDR=0x4B0c1B3b87089B5677b3a63Fc6ac8611bCCe8751
+export PAIR_ADDR=0x2EC44D4cD9afFdB64509Dc3C8c7b8Db62a1FDB27
 ```
 
 #### Add liquidity
@@ -230,7 +242,7 @@ The `Deployed to` address should be assigned to `SWAP_ADDR`.
 If needed, export the pre-deployed magic swap contract:
 
 ```bash
-export SWAP_ADDR=0x3089BBc4da0695f37680f9D6Ccd67B984899B6Bd
+export SWAP_ADDR=0xfC32e1a0a1ce26f354A8C7B6dA4Bf963304FA5a0
 ```
 
 Transfer some funds to the swap contract and subscribe to the service:

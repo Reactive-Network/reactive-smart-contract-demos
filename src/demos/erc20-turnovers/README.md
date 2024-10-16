@@ -2,18 +2,16 @@
 
 ## Overview
 
-This demo tracks ERC-20 token turnovers across all contracts, providing turnover data on request. It builds on the basic reactive setup and showcases two key functionalities:
+The **ERC-20 Turnovers Demo** tracks ERC-20 token turnovers across all contracts, providing the relevant data on request. This demo extends the principles introduced in the [Reactive Network Demo](https://github.com/Reactive-Network/reactive-smart-contract-demos/tree/main/src/demos/basic) and highlights two primary functionalities:
 
 - **Turnover Monitoring:** Observes token transfers to accumulate and report turnover data.
 - **Reactive Data Calls:** Provides real-time turnover information via callbacks to the origin contract.
 
 ## Contracts
 
-The demo involves two main contracts:
+- **Origin/Destination Chain Contract:** [TokenTurnoverL1](https://github.com/Reactive-Network/reactive-smart-contract-demos/blob/main/src/demos/erc20-turnovers/TokenTurnoverL1.sol) manages turnover requests and responses for ERC-20 tokens, allowing the owner to request turnover data, which is then processed and returned by the reactive contract via callbacks.
 
-1. **Origin Chain Contract:** `TokenTurnoverL1` manages turnover requests and responses for ERC-20 tokens. It allows the owner to request turnover data, which is then processed and returned by a reactive contract via callbacks.
-
-2. **Reactive Contract:** `TokenTurnoverReactive` listens for ERC-20 transfer events and specific requests from `TokenTurnoverL1`. It updates turnover records and responds to requests by emitting callbacks with current turnover data.
+- **Reactive Contract:** [TokenTurnoverReactive](https://github.com/Reactive-Network/reactive-smart-contract-demos/blob/main/src/demos/erc20-turnovers/TokenTurnoverReactive.sol) listens for ERC-20 transfer events and specific requests from `TokenTurnoverL1`. It updates turnover records and responds to requests by emitting callbacks with current turnover data.
 
 ## Further Considerations
 
@@ -26,16 +24,15 @@ There are several opportunities for improvement:
 
 ## Deployment & Testing
 
-To deploy and test the contracts, follow these steps. Ensure the following environment variables are configured appropriately:
+To deploy the contracts to Ethereum Sepolia and Kopli Testnet, follow these steps. Replace the relevant keys, addresses, and endpoints as needed. Make sure the following environment variables are correctly configured before proceeding:
 
-* `SEPOLIA_RPC`
-* `SEPOLIA_PRIVATE_KEY`
-* `REACTIVE_RPC`
-* `REACTIVE_PRIVATE_KEY`
-* `CALLBACK_ADDR`
-* `CALLBACK_PROXY_ADDR`
+* `SEPOLIA_RPC` — https://rpc2.sepolia.org
+* `SEPOLIA_PRIVATE_KEY` — Ethereum Sepolia private key
+* `REACTIVE_RPC` — https://kopli-rpc.rkt.ink
+* `REACTIVE_PRIVATE_KEY` — Kopli Testnet private key
+* `SEPOLIA_CALLBACK_PROXY_ADDR` — 0x33Bbb7D0a2F1029550B0e91f653c4055DC9F4Dd8
 
-You can use the recommended Sepolia RPC URL: `https://rpc2.sepolia.org`.
+**Note**: To receive REACT, send SepETH to the Reactive faucet on Ethereum Sepolia (`0x9b9BB25f1A81078C544C829c5EB7822d747Cf434`). An equivalent amount will be sent to your address.
 
 ### Step 1
 
@@ -47,16 +44,22 @@ forge create --rpc-url $SEPOLIA_RPC --private-key $SEPOLIA_PRIVATE_KEY src/demos
 
 #### Callback Payment
 
-To ensure a successful callback, the callback contract must have an ETH balance. You can find more details [here](https://dev.reactive.network/system-contract#callback-payments). To fund the callback contract, run the following command:
+To ensure a successful callback, the callback contract must have an ETH balance. Find more details [here](https://dev.reactive.network/system-contract#callback-payments). To fund the contract, run the following command:
 
 ```bash
-cast send $CALLBACK_ADDR --rpc-url $SEPOLIA_RPC --private-key $SEPOLIA_PRIVATE_KEY --value 0.1ether
+cast send $TURNOVER_L1_ADDR --rpc-url $SEPOLIA_RPC --private-key $SEPOLIA_PRIVATE_KEY --value 0.1ether
 ```
 
-Alternatively, you can deposit the funds into the callback proxy smart contract using this command:
+To cover the debt of the callback contact, run this command:
 
 ```bash
-cast send --rpc-url $SEPOLIA_RPC --private-key $SEPOLIA_PRIVATE_KEY $CALLBACK_PROXY_ADDR "depositTo(address)" $CALLBACK_ADDR --value 0.1ether
+cast send --rpc-url $SEPOLIA_RPC --private-key $SEPOLIA_PRIVATE_KEY $TURNOVER_L1_ADDR "coverDebt()"
+```
+
+Alternatively, you can deposit funds into the [Callback Proxy](https://dev.reactive.network/origins-and-destinations) contract on Sepolia, using the command below. The EOA address whose private key signs the transaction pays the fee.
+
+```bash
+cast send --rpc-url $SEPOLIA_RPC --private-key $SEPOLIA_PRIVATE_KEY $SEPOLIA_CALLBACK_PROXY_ADDR "depositTo(address)" $TURNOVER_L1_ADDR --value 0.1ether
 ```
 
 ### Step 2
@@ -69,7 +72,7 @@ forge create --rpc-url $REACTIVE_RPC --private-key $REACTIVE_PRIVATE_KEY src/dem
 
 ### Step 3
 
-Select a token contract address with some activity to monitor and assign it to `ACTIVE_TOKEN_ADDR`. Send a data request to the Sepolia contract.
+Select a token contract address with some activity to monitor and assign it to `ACTIVE_TOKEN_ADDR`. Send a data request to the Sepolia contract. You can use the USDT contract as your active token address `0xaA8E23Fb1079EA71e0a56F48a2aA51851D8433D0`.
 
 ```bash
 cast send $TURNOVER_L1_ADDR "request(address)" --rpc-url $SEPOLIA_RPC --private-key $SEPOLIA_PRIVATE_KEY $ACTIVE_TOKEN_ADDR
