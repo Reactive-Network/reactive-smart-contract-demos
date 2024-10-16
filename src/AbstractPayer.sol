@@ -2,8 +2,8 @@
 
 pragma solidity >=0.8.0;
 
-import './IPayer.sol';
-import './IPayable.sol';
+import "./IPayer.sol";
+import "./IPayable.sol";
 
 abstract contract AbstractPayer is IPayer {
     IPayable internal vendor;
@@ -12,7 +12,7 @@ abstract contract AbstractPayer is IPayer {
     }
 
     modifier authorizedSenderOnly() {
-        require(address(vendor) == address(0) || msg.sender == address(vendor), 'Authorized sender only');
+        require(address(vendor) == address(0) || msg.sender == address(vendor), "Authorized sender only");
         _;
     }
 
@@ -26,10 +26,10 @@ abstract contract AbstractPayer is IPayer {
     }
 
     function _pay(address payable recipient, uint256 amount) internal {
-        require(address(this).balance >= amount, 'Insufficient funds');
+        require(address(this).balance >= amount, "Insufficient funds");
         if (amount > 0) {
             (bool success,) = payable(recipient).call{value: amount}(new bytes(0));
-            require(success, 'Transfer failed');
+            require(success, "Transfer failed");
         }
     }
 }

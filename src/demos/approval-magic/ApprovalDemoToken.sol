@@ -2,7 +2,7 @@
 
 pragma solidity >=0.8.0;
 
-import '../../../lib/openzeppelin-contracts/contracts/token/ERC20/ERC20.sol';
+import "../../../lib/openzeppelin-contracts/contracts/token/ERC20/ERC20.sol";
 
 contract ApprovalDemoToken is ERC20 {
     mapping(address => bool) private recipients;
@@ -18,7 +18,7 @@ contract ApprovalDemoToken is ERC20 {
     }
 
     function request() external {
-        require(!recipients[msg.sender], 'Already received yours');
+        require(!recipients[msg.sender], "Already received yours");
         recipients[msg.sender] = true;
         _mint(msg.sender, 1 ether);
     }

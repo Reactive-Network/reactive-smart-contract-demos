@@ -2,9 +2,9 @@
 
 pragma solidity >=0.8.0;
 
-import '../../IReactive.sol';
-import '../../AbstractPausableReactive.sol';
-import '../../ISubscriptionService.sol';
+import "../../IReactive.sol";
+import "../../AbstractPausableReactive.sol";
+import "../../ISubscriptionService.sol";
 
     struct Transfer {
         uint256 tokens;

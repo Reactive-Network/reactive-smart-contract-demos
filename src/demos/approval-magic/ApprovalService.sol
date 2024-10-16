@@ -2,8 +2,8 @@
 
 pragma solidity >=0.8.0;
 
-import '../../AbstractCallback.sol';
-import './IApprovalClient.sol';
+import "../../AbstractCallback.sol";
+import "./IApprovalClient.sol";
 
 // TODO: A more flexible economic model, keeping track of contracts' debts, and requiring coverage of debt before attempting to resubscribe.
 contract ApprovalService is AbstractCallback {
@@ -37,7 +37,7 @@ contract ApprovalService is AbstractCallback {
     }
 
     modifier onlyOwner() {
-        require(msg.sender == owner, 'Not authorized');
+        require(msg.sender == owner, "Not authorized");
         _;
     }
 
@@ -49,14 +49,14 @@ contract ApprovalService is AbstractCallback {
 
     // TODO: This subscription model does not allow attackers to extract value, but is still vulnerable to attacks where the attackers spends less than the cost to us. Increase the flat fee to avoid this.
     function subscribe() external payable {
-        require(msg.value == subscription_fee, 'Incorrect fee');
-        require(!subscribers[msg.sender], 'Already subscribed');
+        require(msg.value == subscription_fee, "Incorrect fee");
+        require(!subscribers[msg.sender], "Already subscribed");
         emit Subscribe(msg.sender);
         subscribers[msg.sender] = true;
     }
 
     function unsubscribe() external {
-        require(subscribers[msg.sender], 'Not subscribed');
+        require(subscribers[msg.sender], "Not subscribed");
         emit Unsubscribe(msg.sender);
         subscribers[msg.sender] = false;
     }

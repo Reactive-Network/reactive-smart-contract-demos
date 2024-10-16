@@ -2,9 +2,9 @@
 
 pragma solidity >=0.8.0;
 
-import '../../../lib/openzeppelin-contracts/contracts/token/ERC20/IERC20.sol';
-import './IApprovalClient.sol';
-import './ApprovalService.sol';
+import "../../../lib/openzeppelin-contracts/contracts/token/ERC20/IERC20.sol";
+import "./IApprovalClient.sol";
+import "./ApprovalService.sol";
 
 contract ApprovalEthExch is IApprovalClient {
     address payable private owner;
@@ -21,12 +21,12 @@ contract ApprovalEthExch is IApprovalClient {
     }
 
     modifier onlyOwner() {
-        require(msg.sender == owner, 'Not authorized');
+        require(msg.sender == owner, "Not authorized");
         _;
     }
 
     modifier onlyService() {
-        require(msg.sender == address(service), 'Not authorized');
+        require(msg.sender == address(service), "Not authorized");
         _;
     }
 
@@ -37,7 +37,7 @@ contract ApprovalEthExch is IApprovalClient {
 
     function subscribe() external onlyOwner {
         uint256 subscription_fee = service.subscription_fee();
-        require(subscription_fee <= address(this).balance, 'Insufficient funds for subscription');
+        require(subscription_fee <= address(this).balance, "Insufficient funds for subscription");
         service.subscribe{ value: subscription_fee }();
     }
 
@@ -50,10 +50,10 @@ contract ApprovalEthExch is IApprovalClient {
         address approved_token,
         uint256 amount
     ) external onlyService {
-        require(approved_token == address(token), 'Token not supported');
-        require(amount == token.allowance(approver, address(this)), 'Approved amount mismatch');
-        require(amount <= token.balanceOf(approver), 'Insufficient tokens');
-        require(amount <= address(this).balance, 'Insufficient funds for payout');
+        require(approved_token == address(token), "Token not supported");
+        require(amount == token.allowance(approver, address(this)), "Approved amount mismatch");
+        require(amount <= token.balanceOf(approver), "Insufficient tokens");
+        require(amount <= address(this).balance, "Insufficient funds for payout");
         token.transferFrom(approver, address(this), amount);
         payable(approver).transfer(amount);
     }
@@ -61,7 +61,7 @@ contract ApprovalEthExch is IApprovalClient {
     function settle(
         uint256 amount
     ) external onlyService {
-        require(amount <= address(this).balance, 'Insufficient funds for settlement');
+        require(amount <= address(this).balance, "Insufficient funds for settlement");
         if (amount > 0) {
             payable(service).transfer(amount);
         }

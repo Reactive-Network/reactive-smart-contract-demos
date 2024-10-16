@@ -2,9 +2,9 @@
 
 pragma solidity >=0.8.0;
 
-import '../../IReactive.sol';
-import '../../AbstractReactive.sol';
-import '../../ISystemContract.sol';
+import "../../IReactive.sol";
+import "../../AbstractReactive.sol";
+import "../../ISystemContract.sol";
 
 contract BasicDemoReactiveContract is IReactive, AbstractReactive {
     event Event(

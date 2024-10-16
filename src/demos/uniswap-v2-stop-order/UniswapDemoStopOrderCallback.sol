@@ -2,10 +2,10 @@
 
 pragma solidity >=0.8.0;
 
-import '../../../lib/v2-periphery/contracts/interfaces/IUniswapV2Router02.sol';
-import '../../../lib/v2-core/contracts/interfaces/IUniswapV2Pair.sol';
-import '../../../lib/openzeppelin-contracts/contracts/token/ERC20/IERC20.sol';
-import '../../AbstractCallback.sol';
+import "../../../lib/v2-periphery/contracts/interfaces/IUniswapV2Router02.sol";
+import "../../../lib/v2-core/contracts/interfaces/IUniswapV2Pair.sol";
+import "../../../lib/openzeppelin-contracts/contracts/token/ERC20/IERC20.sol";
+import "../../AbstractCallback.sol";
 
     struct Reserves {
         uint112 reserve0;
@@ -22,7 +22,7 @@ contract UniswapDemoStopOrderCallback is AbstractCallback {
 
     IUniswapV2Router02 private router;
 
-    uint private constant DEADLINE = 2707391655;
+    uint256 private constant DEADLINE = 2707391655;
 
     constructor(address _callback_sender, address _router) AbstractCallback(_callback_sender) payable {
         router = IUniswapV2Router02(_router);
@@ -41,12 +41,12 @@ contract UniswapDemoStopOrderCallback is AbstractCallback {
         address token0 = IUniswapV2Pair(pair).token0();
         address token1 = IUniswapV2Pair(pair).token1();
         (uint112 reserve0, uint112 reserve1, ) = IUniswapV2Pair(pair).getReserves();
-        require(below_threshold(is_token0, Reserves({ reserve0: reserve0, reserve1: reserve1 }), coefficient, threshold), 'Rate above threshold');
+        require(below_threshold(is_token0, Reserves({ reserve0: reserve0, reserve1: reserve1 }), coefficient, threshold), "Rate above threshold");
         address token_sell = is_token0 ? token0 : token1;
         address token_buy = is_token0 ? token1 : token0;
         uint256 allowance = IERC20(token_sell).allowance(client, address(this));
-        require(allowance > 0, 'No allowance');
-        require(IERC20(token_sell).balanceOf(client) >= allowance, 'Insufficient funds');
+        require(allowance > 0, "No allowance");
+        require(IERC20(token_sell).balanceOf(client) >= allowance, "Insufficient funds");
         assert(IERC20(token_sell).transferFrom(client, address(this), allowance));
         assert(IERC20(token_sell).approve(address(router), allowance));
         address[] memory path = new address[](2);

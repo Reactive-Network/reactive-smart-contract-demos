@@ -2,9 +2,9 @@
 
 pragma solidity >=0.8.0;
 
-import './IReactive.sol';
-import './AbstractReactive.sol';
-import './ISubscriptionService.sol';
+import "./IReactive.sol";
+import "./AbstractReactive.sol";
+import "./ISubscriptionService.sol";
 
 abstract contract AbstractPausableReactive is IReactive, AbstractReactive {
     struct Subscription{
@@ -26,12 +26,12 @@ abstract contract AbstractPausableReactive is IReactive, AbstractReactive {
     function getPausableSubscriptions() virtual internal view returns (Subscription[] memory);
 
     modifier onlyOwner() {
-        require(msg.sender == owner, 'Unauthorized');
+        require(msg.sender == owner, "Unauthorized");
         _;
     }
 
     function pause() external rnOnly onlyOwner {
-        require(!paused, 'Already paused');
+        require(!paused, "Already paused");
         Subscription[] memory subscriptions = getPausableSubscriptions();
         for (uint256 ix = 0; ix != subscriptions.length; ++ix) {
             service.unsubscribe(
@@ -47,7 +47,7 @@ abstract contract AbstractPausableReactive is IReactive, AbstractReactive {
     }
 
     function resume() external rnOnly onlyOwner {
-        require(paused, 'Not paused');
+        require(paused, "Not paused");
         Subscription[] memory subscriptions = getPausableSubscriptions();
         for (uint256 ix = 0; ix != subscriptions.length; ++ix) {
             service.subscribe(
