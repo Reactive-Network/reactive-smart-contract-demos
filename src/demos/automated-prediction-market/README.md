@@ -79,7 +79,7 @@ cast send $PREDICTION_MARKET_ADDR "purchaseShares(uint256,uint256)" --rpc-url $S
 cast send $PREDICTION_MARKET_ADDR "proposeResolution(uint256,bool)" --rpc-url $SEPOLIA_RPC --private-key $SEPOLIA_PRIVATE_KEY
 ```
 
-6. (MultiSig)Vote on resolution:
+6. (MultiSig Holders)Vote on resolution:
 
 ```bash
 cast send $PREDICTION_MARKET_ADDR "voteOnResolution(uint256,uint256,bool)" --rpc-url $SEPOLIA_RPC --private-key $SEPOLIA_PRIVATE_KEY
