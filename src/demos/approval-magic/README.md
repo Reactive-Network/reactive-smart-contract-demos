@@ -45,8 +45,8 @@ To deploy the contracts to Ethereum Sepolia and Kopli Testnet, follow these step
 Current deployment addresses that can be reused:
 
 ```bash
-export APPROVAL_SRV_ADDR=0x75eF46a6C6C6f59d282ffBA47F1066c43A9e9D55
-export APPROVAL_RCT_ADDR=0x6f1b2380946E6F54a08A38d2475a05090CaE0c36
+export APPROVAL_SRV_ADDR=0x810B924Db9D52fE263408f231012d8e90D71D48d
+export APPROVAL_RCT_ADDR=0xb5C84B52D17a95dE108D21F7CE9AEc5A227bb1B6
 ```
 
 The `ApprovalService` and `ApprovalListener` contracts can be deployed once and used by any number of clients.
@@ -166,8 +166,8 @@ cast send $TOKEN_ADDR "approve(address,uint256)" $EXCH_ADDR 100 --rpc-url $SEPOL
 You can use two pre-deployed tokens or deploy your own (see the Token Deployment section).
 
 ```bash
-export TOKEN1_ADDR=0xC1FC32C2Ba7dbB4BFFE2FDcdcc2090fF01662b70
-export TOKEN2_ADDR=0xC6f44cda01b64bB05993Fe2b443Da91B206403de
+export TOKEN1_ADDR=0x8b6e74c0C1B1cb3aaFA950cCc359CC41C7A9E8c5
+export TOKEN2_ADDR=0xdaD2e45B8ab12d646C6756D8959BDbBbc14c206B
 ```
 
 You can request each token once as follows:
@@ -198,33 +198,33 @@ The `Deployed to` address should be assigned to `TOKEN2_ADDR`.
 
 #### Create Liquidity Pool
 
-Create a liquidity pool for the two tokens using the pair factory contract address `0x7E0987E5b3a30e3f2828572Bb659A548460a3003`, which is a constant in this context.
+Create a liquidity pool for the two tokens using the Uniswap pair factory contract address `0x7E0987E5b3a30e3f2828572Bb659A548460a3003`, which is a constant in this context.
 
 ```bash
 cast send 0x7E0987E5b3a30e3f2828572Bb659A548460a3003 'createPair(address,address)' --rpc-url $SEPOLIA_RPC --private-key $SEPOLIA_PRIVATE_KEY $TOKEN1_ADDR $TOKEN2_ADDR
 ```
 
-**NOTE**: Assign the pair address from transaction logs on [Sepolia scan](https://sepolia.etherscan.io/) to `PAIR_ADDR` or export the pre-made pair for the tokens above:
+**NOTE**: Assign the Uniswap pair address from transaction logs on [Sepolia scan](https://sepolia.etherscan.io/) to `UNISWAP_PAIR_ADDR` or export the pre-made pair for the tokens above:
 
 ```bash
-export PAIR_ADDR=0x2EC44D4cD9afFdB64509Dc3C8c7b8Db62a1FDB27
+export UNISWAP_PAIR_ADDR=0xe410faC0B719E6400cC966aDb23E16C2b2fDAB9d
 ```
 
 #### Add liquidity
 
-Transfer tokens to the pair:
+Transfer tokens to the Uniswap pair:
 
 ```bash
-cast send $TOKEN1_ADDR 'transfer(address,uint256)' --rpc-url $SEPOLIA_RPC --private-key $SEPOLIA_PRIVATE_KEY $PAIR_ADDR 0.5ether
+cast send $TOKEN1_ADDR 'transfer(address,uint256)' --rpc-url $SEPOLIA_RPC --private-key $SEPOLIA_PRIVATE_KEY $UNISWAP_PAIR_ADDR 0.5ether
 ```
 ```bash
-cast send $TOKEN2_ADDR 'transfer(address,uint256)' --rpc-url $SEPOLIA_RPC --private-key $SEPOLIA_PRIVATE_KEY $PAIR_ADDR 0.5ether
+cast send $TOKEN2_ADDR 'transfer(address,uint256)' --rpc-url $SEPOLIA_RPC --private-key $SEPOLIA_PRIVATE_KEY $UNISWAP_PAIR_ADDR 0.5ether
 ```
 
 Mint liquidity, using your EOA address (Client Wallet):
 
 ```bash
-cast send $PAIR_ADDR 'mint(address)' --rpc-url $SEPOLIA_RPC --private-key $SEPOLIA_PRIVATE_KEY $CLIENT_WALLET
+cast send $UNISWAP_PAIR_ADDR 'mint(address)' --rpc-url $SEPOLIA_RPC --private-key $SEPOLIA_PRIVATE_KEY $CLIENT_WALLET
 ```
 
 #### Swap Deployment
@@ -242,7 +242,7 @@ The `Deployed to` address should be assigned to `SWAP_ADDR`.
 If needed, export the pre-deployed magic swap contract:
 
 ```bash
-export SWAP_ADDR=0xfC32e1a0a1ce26f354A8C7B6dA4Bf963304FA5a0
+export SWAP_ADDR=0xC3B13E40Ff7c333246aDCD36b925cD4371775651
 ```
 
 Transfer some funds to the swap contract and subscribe to the service:
