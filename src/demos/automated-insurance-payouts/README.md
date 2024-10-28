@@ -33,12 +33,42 @@ While this demo presents a simplified version of automated insurance payouts, th
 - Incorporating premium calculations and insurance periods
 - Expanding to cover a wider range of smart contract vulnerabilities
 
+```mermaid
+flowchart TD
+    subgraph Sepolia Chain
+        SC[SecureContract.sol\n'Piggy Bank'] --> |Events| HO[HonestOracle.sol]
+        GV[GenerousVault.sol] --> |Payouts| DEV[Genius Developer]
+    end
+    
+    subgraph Off-Chain
+        OS[oracle.py Script] --> |Monitors| SC
+        OS --> |Updates| HO
+    end
+    
+    subgraph Reactive Network
+        RJ[ReactiveJudge.sol] --> |Triggers| GV
+    end
+    
+    HO --> |Emits Events| RJ
+    
+    style SC fill:#ffe6e6
+    style GV fill:#e6ffe6
+    style HO fill:#e6f3ff
+    style RJ fill:#fff5e6
+```
+
 ## Deployment & Testing
 
 To deploy and test the contracts, follow these steps. Ensure the following environment variables are configured in your `.env` file:
 
-* `SEPOLIA_RPC`
-* `REACTIVE_RPC`
+* `SEPOLIA_RPC` — https://rpc2.sepolia.org
+* `SEPOLIA_PRIVATE_KEY` — Ethereum Sepolia private key
+* `REACTIVE_RPC` — https://kopli-rpc.rkt.ink
+* `REACTIVE_PRIVATE_KEY` — Reactive Kopli private key
+* `SEPOLIA_CALLBACK_PROXY_ADDR` — 0x33Bbb7D0a2F1029550B0e91f653c4055DC9F4Dd8
+* `KOPLI_CALLBACK_PROXY_ADDR` — 0x0000000000000000000000000000000000FFFFFF
+
+- Also configure the following for demo usage:
 * `INFURA_PROJECT_ID`
 * `GENIUS_DEVELOPER_ADDR`
 * `WHATEVER_INSURANCE_ADDR`
@@ -59,26 +89,35 @@ To deploy and test the contracts, follow these steps. Ensure the following envir
 ### Step 2: Contract Deployment
 
 1. Deploy SecureContract.sol:
-   ```
+
+   ```bash
    forge create --rpc-url $SEPOLIA_RPC --private-key $GENIUS_DEVELOPER_PRIVATE_KEY src/demos/automated-insurance-payouts/SecureContract.sol:SecureContract
    ```
 
 2. Deploy HonestOracle.sol:
-   ```
+
+   ```bash
    forge create --rpc-url $SEPOLIA_RPC --private-key $WHATEVER_INSURANCE_PRIVATE_KEY src/demos/automated-insurance-payouts/HonestOracle.sol:HonestOracle
    ```
+    The `Deployed to` address from the response should be assigned to `HONEST_ORACLE_ADDR`
+
+    and 
+
+    `0xbc81b6bd809362423e274881c88ccb051c3a5e8cf8c9b6f8b625ddb589484e85` to `HONEST_ORACLE_TOPIC_0`
 
 3. Deploy GenerousVault.sol:
-   ```
+
+   ```bash
    forge create --rpc-url $SEPOLIA_RPC --private-key $WHATEVER_INSURANCE_PRIVATE_KEY src/demos/automated-insurance-payouts/GenerousVault.sol:GenerousVault --constructor-args 0x0000000000000000000000000000000000000000
    ```
+    The `Deployed to` address from the response should be assigned to `GENEROUS_VAULT_ADDRESS`
 
 #### Callback Payment
 
 To ensure a successful callback, the callback contract must have an ETH balance. You can find more details [here](https://dev.reactive.network/system-contract#callback-payments). To fund the callback contract, run the following command:
 
 ```bash
-cast send $CALLBACK_ADDR --rpc-url $SEPOLIA_RPC --private-key $SEPOLIA_PRIVATE_KEY --value 0.1ether
+cast send $GENEROUS_VAULT_ADDRESS --rpc-url $SEPOLIA_RPC --private-key $SEPOLIA_PRIVATE_KEY --value 0.1ether
 ```
 
 Alternatively, you can deposit the funds into the callback proxy smart contract using this command:
@@ -90,7 +129,8 @@ cast send --rpc-url $SEPOLIA_RPC --private-key $SEPOLIA_PRIVATE_KEY $CALLBACK_PR
 
 
 4. Deploy ReactiveJudge.sol:
-   ```
+
+   ```bash
    forge create --rpc-url $REACTIVE_RPC --private-key $WHATEVER_INSURANCE_PRIVATE_KEY src/demos/automated-insurance-payouts/ReactiveJudge.sol:ReactiveJudge --constructor-args $SYSTEM_CONTRACT_ADDR $HONEST_ORACLE_ADDR $HONEST_ORACLE_TOPIC_0 $GENEROUS_VAULT_ADDR
    ```
 

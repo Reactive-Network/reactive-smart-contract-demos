@@ -4,10 +4,17 @@ pragma solidity ^0.8.0;
 import "../../../lib/openzeppelin-contracts/contracts/access/Ownable.sol";
 import "../../AbstractCallback.sol";
 
-
-contract Governance is Ownable , AbstractCallback {
+contract Governance is Ownable, AbstractCallback {
     uint256 public proposalCount;
-    uint256 public voteThreshold=100;
+    uint256 public voteThreshold = 100;
+
+    // Custom Errors
+    error CannotVoteOnOwnProposal();
+    error VotingPeriodEnded();
+    error AlreadyVoted();
+    error VotingPeriodNotEnded();
+    error ProposalAlreadyExecuted();
+    error OnlyProposerCanDelete();
 
     struct Proposal {
         uint256 id;
@@ -29,13 +36,12 @@ contract Governance is Ownable , AbstractCallback {
     event ProposalRejected(uint256 id);
     event ProposalDeadlineReached(uint256 indexed id, uint256 deadline);
     event ProposalForThresholdReached(uint256 indexed id);
-    event ProposalAgainstThresholdReached(uint256 indexed  id);
+    event ProposalAgainstThresholdReached(uint256 indexed id);
 
     constructor(address _callback_sender) AbstractCallback(_callback_sender) payable Ownable(msg.sender) {
-       
     }
 
-    function createProposal( string memory description) external {
+    function createProposal(string memory description) external {
         proposalCount++;
         uint256 deadline = block.timestamp + 24 hours;
         proposals[proposalCount] = Proposal({
@@ -54,19 +60,27 @@ contract Governance is Ownable , AbstractCallback {
         checkProposalDeadlines();
     }
 
-    function vote(  uint256 proposalId, bool support) external {
-        address voter=msg.sender;
+    function vote(uint256 proposalId, bool support) external {
+        address voter = msg.sender;
         Proposal storage proposal = proposals[proposalId];
         checkProposalDeadlines();
-        require(voter != proposal.proposer, "You cannot vote on your own proposal");
 
-        require(block.timestamp < proposal.deadline, "Voting period has ended");
-        require(!votes[proposalId][voter], "Already voted");
+        if (voter == proposal.proposer) {
+            revert CannotVoteOnOwnProposal();
+        }
 
-        if(proposals[proposalId].votesFor >= voteThreshold){
+        if (block.timestamp >= proposal.deadline) {
+            revert VotingPeriodEnded();
+        }
+
+        if (votes[proposalId][voter]) {
+            revert AlreadyVoted();
+        }
+
+        if (proposals[proposalId].votesFor >= voteThreshold) {
             emit ProposalForThresholdReached(proposalId);
         }
-        else if(proposals[proposalId].votesAgainst >= voteThreshold){
+        else if (proposals[proposalId].votesAgainst >= voteThreshold) {
             emit ProposalAgainstThresholdReached(proposalId);
         }
         else if (support) {
@@ -78,15 +92,19 @@ contract Governance is Ownable , AbstractCallback {
             emit Voted(proposalId, voter, support);
             proposal.votesAgainst++;
         }
-
-
     }
 
-    function executeProposal(address /*sender*/ , uint256 proposalId) external {
+    function executeProposal(address /*sender*/, uint256 proposalId) external {
         Proposal storage proposal = proposals[proposalId];
         checkProposalDeadlines();
-        require(block.timestamp >= proposal.deadline, "Voting period not ended");
-        require(!proposal.executed, "Already executed");
+
+        if (block.timestamp < proposal.deadline) {
+            revert VotingPeriodNotEnded();
+        }
+
+        if (proposal.executed) {
+            revert ProposalAlreadyExecuted();
+        }
 
         if (proposal.votesFor > proposal.votesAgainst) {
             proposal.executed = true;
@@ -94,12 +112,15 @@ contract Governance is Ownable , AbstractCallback {
         } else {
             emit ProposalRejected(proposalId);
         }
-
     }
 
-    function DeleteProposal(address /*sender*/ ,uint256 proposalId) public{
+    function DeleteProposal(address /*sender*/, uint256 proposalId) public {
         Proposal storage proposal = proposals[proposalId];
-        require(msg.sender == proposal.proposer, "Only the proposer can delete the proposal");
+        
+        if (msg.sender != proposal.proposer) {
+            revert OnlyProposerCanDelete();
+        }
+
         delete proposals[proposalId];
         delete proposalDeadlines[proposalId];
     }

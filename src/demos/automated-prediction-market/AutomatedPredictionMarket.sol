@@ -1,15 +1,27 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.0;
 
-import "../../../lib/openzeppelin-contracts-upgradeable/contracts/proxy/utils/Initializable.sol";
-import "../../../lib/openzeppelin-contracts-upgradeable/contracts/access/OwnableUpgradeable.sol";
-import "../../../lib/openzeppelin-contracts-upgradeable/contracts/utils/ReentrancyGuardUpgradeable.sol";
-import "../../../lib/openzeppelin-contracts-upgradeable/contracts/utils/PausableUpgradeable.sol";
-import "../../../lib/openzeppelin-contracts-upgradeable/contracts/token/ERC20/ERC20Upgradeable.sol";
 import "../../AbstractCallback.sol";
 
+// Custom errors
+error FeeTooHigh();
+error DurationMustBePositive();
+error MinimumTwoOptionsRequired();
+error BettingMustEndBeforePredictionEnds();
+error BetAmountTooLow();
+error BettingPeriodEnded();
+error PredictionAlreadyResolved();
+error InvalidOption();
+error AlreadyProposed();
+error NotInResolutionPeriod();
+error NotAuthorized();
+error InvalidResolutionIndex();
+error ResolutionAlreadyFinalized();
+error ResolutionPeriodNotEnded();
+error ReferralAlreadySet();
+error CannotReferSelf();
 
-contract AutomatedPredictionMarket is Initializable, OwnableUpgradeable, ReentrancyGuardUpgradeable, PausableUpgradeable, ERC20Upgradeable ,AbstractCallback{
+contract AutomatedPredictionMarket is AbstractCallback{
 
     struct Prediction {
         string description;
@@ -36,25 +48,15 @@ contract AutomatedPredictionMarket is Initializable, OwnableUpgradeable, Reentra
         address proposer;
     }
 
-    struct GovernanceProposal {
-        string description;
-        uint256 forVotes;
-        uint256 againstVotes;
-        uint256 endTime;
-        bool executed;
-    }
 
     Prediction[] public predictions;
     mapping(uint256 => mapping(address => mapping(uint256 => uint256))) public userShares;
     mapping(uint256 => Resolution[]) public resolutions;
-    GovernanceProposal[] public governanceProposals;
 
     uint256 public minBet;
     uint256 public feePercentage;
     uint256 public constant MAX_FEE_PERCENTAGE = 5; // 5% max fee
-    uint256 public governanceThreshold;
 
-    mapping(address => uint256) public governanceTokens;
     mapping(address => address) public referrals;
     uint256 public referralRewardPercentage;
 
@@ -69,32 +71,22 @@ contract AutomatedPredictionMarket is Initializable, OwnableUpgradeable, Reentra
     event PredictionResolved(uint256 indexed predictionId, uint256 outcome);
     event RewardsClaimed(uint256 indexed predictionId, address user, uint256 reward);
     event WinningsDistributed(uint256 indexed predictionId, uint256 batchIndex, uint256 batchSize);
-    event GovernanceProposalCreated(uint256 indexed proposalId, string description, uint256 endTime);
     event Voted(uint256 indexed proposalId, address voter, bool support, uint256 weight);
     event MultiSigVoted(uint256 indexed predictionId, address voter, bool support, uint256 resolutionIndex);
 
-    constructor(address _callback_sender) AbstractCallback(_callback_sender) payable {
-    }
+    constructor(address _callback_sender) AbstractCallback(_callback_sender) payable {}
+    receive() external payable { }
 
     function initialize(
-        string memory name_,
-        string memory symbol_,
         uint256 _minBet,
         uint256 _feePercentage,
-        uint256 _governanceThreshold,
         uint256 _referralRewardPercentage,
         address[] memory _multiSigWallet,
         uint256 _requiredSignatures
-    ) public initializer {
-        __Ownable_init(msg.sender);
-        __ReentrancyGuard_init();
-        __Pausable_init();
-        __ERC20_init(name_, symbol_);
-
+    ) public {
         minBet = _minBet;
-        require(_feePercentage <= MAX_FEE_PERCENTAGE, "Fee too high");
+        if (_feePercentage > MAX_FEE_PERCENTAGE) revert FeeTooHigh();
         feePercentage = _feePercentage;
-        governanceThreshold = _governanceThreshold;
         referralRewardPercentage = _referralRewardPercentage;
         multiSigWallet = _multiSigWallet;
         requiredSignatures = _requiredSignatures;
@@ -106,13 +98,13 @@ contract AutomatedPredictionMarket is Initializable, OwnableUpgradeable, Reentra
         uint256[] memory _options,
         uint256 _bettingDuration,
         uint256 _resolutionDuration
-    ) external onlyOwner whenNotPaused {
-        require(_duration > 0, "Duration must be positive");
-        require(_options.length > 1, "Must have at least two options");
+    ) external {
+        if (_duration == 0) revert DurationMustBePositive();
+        if (_options.length <= 1) revert MinimumTwoOptionsRequired();
         uint256 endTime = block.timestamp + _duration;
         uint256 bettingEndTime = block.timestamp + _bettingDuration;
         uint256 resolutionEndTime = endTime + _resolutionDuration;
-        require(bettingEndTime < endTime, "Betting must end before prediction ends");
+        if (bettingEndTime >= endTime) revert BettingMustEndBeforePredictionEnds();
 
         uint256[] memory optionShares = new uint256[](_options.length);
         
@@ -134,12 +126,12 @@ contract AutomatedPredictionMarket is Initializable, OwnableUpgradeable, Reentra
         emit PredictionCreated(predictions.length - 1, _description, endTime);
     }
 
-    function purchaseShares(uint256 _predictionId, uint256 _option) external payable nonReentrant whenNotPaused {
-        require(msg.value >= minBet, "Bet amount too low");
+    function purchaseShares(uint256 _predictionId, uint256 _option) external payable {
+        if (msg.value < minBet) revert BetAmountTooLow();
         Prediction storage prediction = predictions[_predictionId];
-        require(block.timestamp < prediction.bettingEndTime, "Betting period has ended");
-        require(!prediction.isResolved, "Prediction already resolved");
-        require(_option < prediction.options.length, "Invalid option");
+        if (block.timestamp >= prediction.bettingEndTime) revert BettingPeriodEnded();
+        if (prediction.isResolved) revert PredictionAlreadyResolved();
+        if (_option >= prediction.options.length) revert InvalidOption();
 
         uint256 fee = msg.value * feePercentage / 100;
         uint256 betAmount = msg.value - fee;
@@ -149,9 +141,6 @@ contract AutomatedPredictionMarket is Initializable, OwnableUpgradeable, Reentra
         prediction.totalShares += betAmount;
         prediction.totalBetAmount += betAmount;
         userShares[_predictionId][msg.sender][_option] += shares;
-
-        _mint(msg.sender, shares);
-        governanceTokens[msg.sender] += shares;
 
         prediction.participants.push(msg.sender);
 
@@ -170,13 +159,13 @@ contract AutomatedPredictionMarket is Initializable, OwnableUpgradeable, Reentra
         return _amount * _currentShares / _totalShares;
     }
 
-    function proposeResolution(uint256 _predictionId, bool _outcome) external payable whenNotPaused {
+    function proposeResolution(uint256 _predictionId, bool _outcome) external payable{
         Prediction storage prediction = predictions[_predictionId];
-        require(!prediction.isResolved, "Prediction already resolved");
-        require(block.timestamp >= prediction.endTime && block.timestamp < prediction.resolutionEndTime, "Not in resolution period");
+        if (prediction.isResolved) revert PredictionAlreadyResolved();
+        if (block.timestamp < prediction.endTime || block.timestamp >= prediction.resolutionEndTime) revert NotInResolutionPeriod();
         
         Resolution storage resolution = resolutions[_predictionId].push();
-        require(resolution.stakerVotes[msg.sender] == 0, "Already proposed");
+        if (resolution.stakerVotes[msg.sender] != 0) revert AlreadyProposed();
 
         if (_outcome) {
             resolution.forStake = msg.value;
@@ -191,10 +180,10 @@ contract AutomatedPredictionMarket is Initializable, OwnableUpgradeable, Reentra
     }
 
     function voteOnResolution(uint256 _predictionId, uint256 _resolutionIndex, bool _support) external {
-        require(isMultiSigWallet(msg.sender), "Not authorized");
-        require(_resolutionIndex < resolutions[_predictionId].length, "Invalid resolution index");
+        if (!isMultiSigWallet(msg.sender)) revert NotAuthorized();
+        if (_resolutionIndex >= resolutions[_predictionId].length) revert InvalidResolutionIndex();
         Resolution storage resolution = resolutions[_predictionId][_resolutionIndex];
-        require(!resolution.isResolved, "Resolution already finalized");
+        if (resolution.isResolved) revert ResolutionAlreadyFinalized();
 
         if (_support) {
             resolution.approvalCount++;
@@ -210,8 +199,8 @@ contract AutomatedPredictionMarket is Initializable, OwnableUpgradeable, Reentra
     function finalizeResolution(uint256 _predictionId, uint256 _resolutionIndex) private {
         Prediction storage prediction = predictions[_predictionId];
         Resolution storage selectedResolution = resolutions[_predictionId][_resolutionIndex];
-        require(!prediction.isResolved, "Prediction already resolved");
-        require(block.timestamp >= prediction.resolutionEndTime, "Resolution period not ended");
+        if (prediction.isResolved) revert PredictionAlreadyResolved();
+        if (block.timestamp < prediction.resolutionEndTime) revert ResolutionPeriodNotEnded();
 
         bool outcome = selectedResolution.forStake > selectedResolution.againstStake;
         prediction.isResolved = true;
@@ -242,14 +231,12 @@ contract AutomatedPredictionMarket is Initializable, OwnableUpgradeable, Reentra
         }
 
         emit PredictionResolved(_predictionId, prediction.outcome);
-        //0xe0d11dcca65d89777e74a05aabfc99281a4c018644b33af1b397a7dbf5e2911b
-        //ye cheez emit hogi toh distributewinnings function call hoga
     }
 
-    function distributeWinnings(address /*sender*/,uint256 _predictionId) external nonReentrant {
+    function distributeWinnings(address /*sender*/,uint256 _predictionId) external{
         Prediction storage prediction = predictions[_predictionId];
-        require(prediction.isResolved, "Prediction not resolved yet");
-        require(prediction.lastDistributionIndex < prediction.participants.length, "All winnings distributed");
+        if (!prediction.isResolved) revert PredictionAlreadyResolved();
+        if (prediction.lastDistributionIndex >= prediction.participants.length) revert("All winnings distributed");
 
         uint256 startIndex = prediction.lastDistributionIndex;
         uint256 endIndex = startIndex + DISTRIBUTION_BATCH_SIZE;
@@ -263,7 +250,6 @@ contract AutomatedPredictionMarket is Initializable, OwnableUpgradeable, Reentra
             if (userSharesAmount > 0) {
                 uint256 reward = userSharesAmount * prediction.totalBetAmount / prediction.optionShares[prediction.outcome];
                 userShares[_predictionId][participant][prediction.outcome] = 0;
-                _burn(participant, userSharesAmount);
                 payable(participant).transfer(reward);
                 emit RewardsClaimed(_predictionId, participant, reward);
             }
@@ -274,8 +260,8 @@ contract AutomatedPredictionMarket is Initializable, OwnableUpgradeable, Reentra
     }
 
     function setReferral(address _referrer) external {
-        require(referrals[msg.sender] == address(0), "Referral already set");
-        require(_referrer != msg.sender, "Cannot refer yourself");
+        if (referrals[msg.sender] != address(0)) revert ReferralAlreadySet();
+        if (_referrer == msg.sender) revert CannotReferSelf();
         referrals[msg.sender] = _referrer;
     }
 
@@ -286,49 +272,5 @@ contract AutomatedPredictionMarket is Initializable, OwnableUpgradeable, Reentra
             }
         }
         return false;
-    }
-
-    function createGovernanceProposal(string memory _description, uint256 _duration) external {
-        require(governanceTokens[msg.sender] >= governanceThreshold, "Not enough governance tokens");
-        
-        governanceProposals.push(GovernanceProposal({
-            description: _description,
-            forVotes: 0,
-            againstVotes: 0,
-            endTime: block.timestamp + _duration,
-            executed: false
-        }));
-
-        emit GovernanceProposalCreated(governanceProposals.length - 1, _description, block.timestamp + _duration);
-    }
-
-    function vote(uint256 _proposalId, bool _support) external {
-        require(_proposalId < governanceProposals.length, "Invalid proposal ID");
-        GovernanceProposal storage proposal = governanceProposals[_proposalId];
-        require(block.timestamp < proposal.endTime, "Voting period has ended");
-        require(!proposal.executed, "Proposal already executed");
-
-        uint256 weight = governanceTokens[msg.sender];
-        require(weight > 0, "No voting power");
-
-        if (_support) {
-            proposal.forVotes += weight;
-        } else {
-            proposal.againstVotes += weight;
-        }
-
-        emit Voted(_proposalId, msg.sender, _support, weight);
-    }
-
-    function getGovernanceTokens(address _user) external view returns (uint256) {
-        return governanceTokens[_user];
-    }
-
-    function pause() external onlyOwner {
-        _pause();
-    }
-
-    function unpause() external onlyOwner {
-        _unpause();
     }
 }

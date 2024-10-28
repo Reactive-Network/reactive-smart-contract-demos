@@ -12,29 +12,6 @@ The Automated Governance Contract is a decentralized governance system that enab
 4. **Cross-Chain Communication:** Utilizes a reactive contract to monitor and respond to events on the origin chain.
 5. **Event Emission:** Emits various events to track proposal lifecycle and voting activities.
 
-## Workflow
-
-```mermaid
-%%{ init: {'flowchart': { 'curve':'basis'}}}%%
-flowchart LR
-    User([User])
-    subgraph GC[Governance Contract]
-        CreateProposal[createProposal]
-        Vote[vote]
-        Execute[executeProposal]
-        CheckDeadlines[checkProposalDeadlines]
-    end
-    subgraph RC[Reactive Contract]
-        ListenEvents[Listen for Events]
-        TriggerActions[Trigger Actions]
-    end
-
-    User -->|1. Creates proposal| CreateProposal
-    User -->|2. Votes on proposal| Vote
-    CheckDeadlines -->|3. Checks deadlines| GC
-    GC -->|4. Emits events| RC
-    RC -->|5. Executes or deletes proposals| Execute
-```
 
 ## Contracts
 
@@ -53,6 +30,50 @@ While this demo showcases basic automated governance, potential improvements inc
 - **Delegation:** Allow users to delegate their voting power.
 - **Multi-chain Governance:** Extend the system to govern multiple chains simultaneously.
 
+## Architecture And WorkFlow
+
+```mermaid
+graph TB
+    subgraph Sepolia Network
+        subgraph Governance Contract
+            P[Proposal Creation] -->|Emit Event| V{Voting Period<br/>10 min timer}
+            V -->|Vote FOR| VF[Vote Count +1]
+            V -->|Vote AGAINST| VA[Vote Count -1]
+            VF -->|Check Threshold| T1{FOR Threshold<br/>Reached?}
+            VA -->|Check Threshold| T2{AGAINST Threshold<br/>Reached?}
+            V -->|Deadline Check| T3{Time Expired?}
+            
+            T1 -->|Yes| E[Execute Proposal]
+            T1 -->|No| V
+            T2 -->|Yes| D[Delete Proposal]
+            T2 -->|No| V
+            T3 -->|Yes & No Threshold Met| E
+            
+            E --> CP[Callback Proxy]
+            D --> CP
+        end
+    end
+
+    subgraph Reactive Network
+        CP -->|Cross-chain Message| RG[ReGovReactive Contract]
+        RG -->|Process Events| A{Action Type}
+        A -->|Execute| EX[Execute Proposal<br/>on Reactive Chain]
+        A -->|Delete| DEL[Delete Proposal<br/>from System]
+    end
+
+    U((Users)) -->|Create Proposal| P
+    U -->|Cast Votes| V
+
+    classDef process fill:#e1e1e1,stroke:#333,stroke-width:1px
+    classDef decision fill:#f9f9f9,stroke:#333,stroke-width:1px
+    classDef network fill:#f0f8ff,stroke:#666,stroke-width:2px
+    
+    class P,VF,VA,E,D,EX,DEL process
+    class T1,T2,T3,V,A decision
+    class Sepolia,Reactive network
+```
+
+
 ## Deployment & Testing
 
 To deploy and test the contracts, follow these steps. Ensure the following environment variables are configured appropriately:
@@ -65,6 +86,12 @@ To deploy and test the contracts, follow these steps. Ensure the following envir
 
 You can use the recommended Sepolia RPC URL: `https://rpc2.sepolia.org`.
 
+### NOTE BEFORE TESTING:
+- Before testing, modify the in the [Governance.sol](https://github.com/Reactive-Network/reactive-smart-contract-demos/blob/main/src/demos/automated-governance/Governance.sol) contract according to the need like:
+    - set the duration to 10 min or 1 min according to your need
+    - set the VoteThreshold to be 1 or 2.
+
+
 ### Step 1: Deploy Governance contract on Sepolia
 
 Deploy the Governance contract:
@@ -73,7 +100,7 @@ Deploy the Governance contract:
 forge create --rpc-url $SEPOLIA_RPC --private-key $SEPOLIA_PRIVATE_KEY src/demos/automated-governance/Governance.sol:Governance --constructor-args 0x0000000000000000000000000000000000000000
 ```
 
-Save the returned address in `O_ORIGIN_ADDR`.
+The `Deployed to` address from the response should be assigned to `GOVERNANCE_ADDRESS`.
 
 
 #### Callback Payment
@@ -81,7 +108,7 @@ Save the returned address in `O_ORIGIN_ADDR`.
 To ensure a successful callback, the callback contract must have an ETH balance. You can find more details [here](https://dev.reactive.network/system-contract#callback-payments). To fund the callback contract, run the following command:
 
 ```bash
-cast send $CALLBACK_ADDR --rpc-url $SEPOLIA_RPC --private-key $SEPOLIA_PRIVATE_KEY --value 0.1ether
+cast send $GOVERNANCE_ADDRESS --rpc-url $SEPOLIA_RPC --private-key $SEPOLIA_PRIVATE_KEY --value 0.1ether
 ```
 
 Alternatively, you can deposit the funds into the callback proxy smart contract using this command:
@@ -96,7 +123,7 @@ cast send --rpc-url $SEPOLIA_RPC --private-key $SEPOLIA_PRIVATE_KEY $CALLBACK_PR
 Deploy the ReGovReactive contract, passing in the Subscription Service address and the Governance contract address:
 
 ```sh
-forge create --rpc-url $REACTIVE_RPC --private-key $REACTIVE_PRIVATE_KEY src/demos/automated-governance/ReGovReactive.sol:ReGovReactive --constructor-args $SYSTEM_CONTRACT_ADDR $O_ORIGIN_ADDR
+forge create --rpc-url $REACTIVE_RPC --private-key $REACTIVE_PRIVATE_KEY src/demos/automated-governance/ReGovReactive.sol:ReGovReactive --constructor-args $GOVERNANCE_ADDRESS
 ```
 
 ### Step 3: Create a proposal
@@ -104,17 +131,17 @@ forge create --rpc-url $REACTIVE_RPC --private-key $REACTIVE_PRIVATE_KEY src/dem
 Call the createProposal function on the Governance contract:
 
 ```sh
-cast send $O_ORIGIN_ADDR "createProposal(string memory)" task1 --rpc-url $SEPOLIA_RPC --private-key $SEPOLIA_PRIVATE_KEY
+cast send $GOVERNANCE_ADDRESS "createProposal(string memory)" task1 --rpc-url $SEPOLIA_RPC --private-key $SEPOLIA_PRIVATE_KEY
 ```
 
-This creates a new proposal with a 5-minute deadline.
+This creates a new proposal with a 10-minute deadline.
 
 ### Step 4: Vote on the proposal
 
 Multiple users call the vote function to vote on the proposal:
 
 ```sh
-cast send $O_ORIGIN_ADDR "vote(uint256,bool)" 1 true --rpc-url $SEPOLIA_RPC --private-key $SEPOLIA_PRIVATE_KEY
+cast send $GOVERNANCE_ADDRESS "vote(uint256,bool)" 1 true --rpc-url $SEPOLIA_RPC --private-key $SEPOLIA_PRIVATE_KEY
 ```
 
 ### Step 5: Proposal Resolution

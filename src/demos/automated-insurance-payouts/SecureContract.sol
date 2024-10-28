@@ -7,9 +7,15 @@ contract SecureContract {
     // Event to be emitted on ETH transfer
     event EthTransferred(address indexed initiator, uint256 value, address indexed recipient);
 
+    // Custom errors
+    error NotGeniusDeveloperError();
+    error InsufficientBalanceError();
+
     // Modifier to restrict access to only the Genius Developer
     modifier onlyGeniusDeveloper(address recipient) {
-        require(recipient == msg.sender, "Piggy funds can be sent only to Genius Developer");
+        if (recipient != msg.sender) {
+            revert NotGeniusDeveloperError();
+        }
         _;
     }
 
@@ -31,9 +37,11 @@ contract SecureContract {
     }
 
     // Function to transfer ETH from the contract to any address
-    // Bug introduced: The modifier is not applied, allowing Mysterious Hecker to call this function
-    function transferEth(address payable recipient, uint256 amount) public {
-        require(address(this).balance >= amount, "Insufficient ETH balance in SecureContract");
+    // Fixed: Added the onlyGeniusDeveloper modifier to secure the function
+    function transferEth(address payable recipient, uint256 amount) public onlyGeniusDeveloper(recipient) {
+        if (address(this).balance < amount) {
+            revert InsufficientBalanceError();
+        }
         recipient.transfer(amount);
 
         // Emit the EthTransferred event

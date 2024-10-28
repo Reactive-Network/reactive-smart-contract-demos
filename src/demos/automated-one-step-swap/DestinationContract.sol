@@ -7,7 +7,7 @@ import "../../../lib/openzeppelin-contracts/contracts/token/ERC20/extensions/IER
 import "../../AbstractCallback.sol";
 
 
-interface ISwapRouter02 is AbstractCallback {
+interface ISwapRouter02 {
     struct ExactInputSingleParams {
         address tokenIn;
         address tokenOut;
@@ -21,7 +21,7 @@ interface ISwapRouter02 is AbstractCallback {
     function exactInputSingle(ExactInputSingleParams calldata params) external payable returns (uint256 amountOut);
 }
 
-contract DestinationContract {
+contract DestinationContract is AbstractCallback {
    
 
     address constant SWAP_ROUTER = 0x3bFA4769FB09eefC5a80d6E87c3B9C650f7Ae48E;
@@ -53,6 +53,8 @@ contract DestinationContract {
         inputParameters = InputParameters({tokenOut: USDT, amountOutMin: 0, fee: 3000});
     }
 
+    receive() external payable { }
+
     function setInputParameters(address _tokenOut, uint256 _amountOutMin, uint24 _fee) external {
         if (_tokenOut != address(0)) inputParameters.tokenOut = _tokenOut;
         if (_amountOutMin != 0) inputParameters.amountOutMin = _amountOutMin;
@@ -62,7 +64,6 @@ contract DestinationContract {
 
     function callback(address, /* sender */ address owner, address spender, address tokenIn, uint256 amountIn)
         external
-        onlyReactive
     {
         emit CallbackReceived(owner, spender, tokenIn, amountIn, 42);
 
