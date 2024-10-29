@@ -12,25 +12,18 @@ Key functionalities:
 - Automated execution of Uniswap V3 swaps
 
 ```mermaid
-%%{ init: { 'flowchart': { 'curve': 'basis' } } }%%
-flowchart LR
-    User([User])
-    Script[SwapWithPermit.js]
-    subgraph OC[Origin Contract]
-        Approve[approve]
-        Callback[callback]
-        UniswapSwap[_uniSwapV3Swap]
-    end
-    subgraph RC[Reactive Contract]
-        React[react]
-    end
+flowchart TD
+    User([User Initiates Swap Script])
+    Signature[Generate Off-Chain Signature]
+    OriginContract[Origin Contract - Approves and Emits Event]
+    ReactiveContract[Reactive Contract - Detects Event and Calls Callback]
+    UniswapSwap[Execute Swap on Uniswap]
 
-    User -->|1. Runs| Script
-    Script -->|2. Generates signature| Script
-    Script -->|3. Calls| Approve
-    Approve -->|4. Emits event| React
-    React -->|5. Triggers| Callback
-    Callback -->|6. Executes| UniswapSwap
+    User --> Signature
+    Signature --> OriginContract
+    OriginContract --> ReactiveContract
+    ReactiveContract --> UniswapSwap
+
 ```
 
 ## Contracts
