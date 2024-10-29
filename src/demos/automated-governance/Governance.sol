@@ -40,6 +40,7 @@ contract Governance is Ownable, AbstractCallback {
 
     constructor(address _callback_sender) AbstractCallback(_callback_sender) payable Ownable(msg.sender) {
     }
+    receive() external payable {}
 
     function createProposal(string memory description) external {
         proposalCount++;
