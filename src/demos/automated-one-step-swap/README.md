@@ -155,5 +155,5 @@ cast send --rpc-url $SEPOLIA_RPC --private-key $SEPOLIA_PRIVATE_KEY 0xfFf9976782
 
 - check the updated usdt balance which should change corresponding to the amount of weth9 approved:
 ```bash
-cast call --rpc-url $SEPOLIA_RPC --private-key $SEPOLIA_PRIVATE_KEY 0xfFf9976782d46CC05630D1f6eBAb18b2324d6B14 "balanceOf(address)" <your-address>
+cast call --rpc-url $SEPOLIA_RPC --private-key $SEPOLIA_PRIVATE_KEY 0xaA8E23Fb1079EA71e0a56F48a2aA51851D8433D0 "balanceOf(address)" <your-address>
 ```
