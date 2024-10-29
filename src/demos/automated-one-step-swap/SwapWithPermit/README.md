@@ -46,16 +46,14 @@ Potential improvements include:
 
 To deploy and test the contracts, follow these steps. Ensure the following environment variables are configured in your `.env` file:
 
-* `SEPOLIA_RPC`
-* `SEPOLIA_PRIVATE_KEY`
-* `REACTIVE_RPC`
-* `REACTIVE_PRIVATE_KEY`
-* `SYSTEM_CONTRACT_ADDR`
-* `TOKEN_IN_WITH_PERMIT_ADDRESS`
-* `TOKEN_OUT_WITH_PERMIT_ADDRESS`
-* `AMOUNT_IN_WITH_PERMIT`
-* `CALLBACK_ADDR`
-* `CALLBACK_PROXY_ADDR`
+* `SEPOLIA_RPC` — https://rpc2.sepolia.org
+* `SEPOLIA_PRIVATE_KEY` — Ethereum Sepolia private key
+* `REACTIVE_RPC` — https://kopli-rpc.rkt.ink
+* `REACTIVE_PRIVATE_KEY` — Reactive Kopli private key
+* `SEPOLIA_CALLBACK_PROXY_ADDR` — 0x33Bbb7D0a2F1029550B0e91f653c4055DC9F4Dd8
+* `KOPLI_CALLBACK_PROXY_ADDR` — 0x0000000000000000000000000000000000FFFFFF
+* `TOKEN_IN_ADDRESS` — 0xfFf9976782d46CC05630D1f6eBAb18b2324d6B14(Weth9-here for demonstration purpose can be changed as per requirement)
+* `TOKEN_OUT_ADDRESS` —0xaA8E23Fb1079EA71e0a56F48a2aA51851D8433D0(USDT-here for demonstration purpose can be changed as per requirement)
 
 ### Step 1: Set up environment
 
@@ -103,6 +101,8 @@ node SwapWithPermit.js
 ```
 
 This script will generate off-chain signatures and initiate the swap process.
+
+"To acquire tokens refer to `Readme.md` file of WithoutPermit"
 
 ## Troubleshooting
 
