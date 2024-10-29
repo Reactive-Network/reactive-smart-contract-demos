@@ -23,10 +23,10 @@ Deploying these smart contracts in a live environment involves addressing key co
 ## Architecture And WorkFlow
 
 ```mermaid
+
 graph TB
     subgraph Sepolia["Sepolia Testnet"]
-        PM[AutomatedPredictionMarket Contract]
-        CP1[Callback Proxy]
+        PM[AutomatedPrediction Market Contract]
         
         subgraph Users["User Actions"]
             U1[Create Prediction]
@@ -39,32 +39,22 @@ graph TB
         U2 --> PM
         U3 --> PM
         U4 --> PM
+        
+        PM -- "Emit PredictionResolved" --> RC
     end
     
     subgraph Reactive["Reactive Testnet"]
-        RC[AutomatedPredictionReactive Contract]
-        CP2[Callback Proxy]
+        RC[AutomatedPrediction Reactive Contract]
         
-        subgraph Reactive_Flow["Reactive Processing"]
-            R1[Listen for Events]
-            R2[Process Resolution]
-            R3[Trigger Callback]
-        end
+        R1[Listen for Events]
+        R2[Process Resolution]
+        R3[Trigger Callback]
         
         R1 --> R2
         R2 --> R3
+        
+        R3 -- "Execute Callback" --> PM
     end
-    
-    PM -- "1. Emit PredictionResolved" --> RC
-    RC -- "2. Process & Verify" --> R2
-    R3 -- "3. Cross-chain Callback" --> CP1
-    CP1 -- "4. Execute distributeWinnings()" --> PM
-    
-    style Sepolia fill:#e6f3ff,stroke:#333,stroke-width:2px
-    style Reactive fill:#f0fff0,stroke:#333,stroke-width:2px
-    style Users fill:#fff5e6,stroke:#333,stroke-width:2px
-    style Reactive_Flow fill:#fff0f5,stroke:#333,stroke-width:2px
-
 ```
 
 
