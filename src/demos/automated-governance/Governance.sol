@@ -113,8 +113,6 @@ contract Governance is Ownable, AbstractCallback {
     }
 
     function DeleteProposal(address /*sender*/, uint256 proposalId) public {
-        Proposal storage proposal = proposals[proposalId];
-        
         delete proposals[proposalId];
         delete proposalDeadlines[proposalId];
     }
