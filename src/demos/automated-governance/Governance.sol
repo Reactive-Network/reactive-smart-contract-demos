@@ -99,9 +99,6 @@ contract Governance is Ownable, AbstractCallback {
         Proposal storage proposal = proposals[proposalId];
         checkProposalDeadlines();
 
-        if (block.timestamp < proposal.deadline) {
-            revert VotingPeriodNotEnded();
-        }
 
         if (proposal.executed) {
             revert ProposalAlreadyExecuted();
@@ -118,10 +115,6 @@ contract Governance is Ownable, AbstractCallback {
     function DeleteProposal(address /*sender*/, uint256 proposalId) public {
         Proposal storage proposal = proposals[proposalId];
         
-        if (msg.sender != proposal.proposer) {
-            revert OnlyProposerCanDelete();
-        }
-
         delete proposals[proposalId];
         delete proposalDeadlines[proposalId];
     }
