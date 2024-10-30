@@ -139,9 +139,17 @@ This creates a new proposal with a 10-minute deadline.
 ### Step 4: Vote on the proposal
 
 Multiple users call the vote function to vote on the proposal:
+** Note **: the creator of the proposal cannot vote on the proposal, use different accounts to vote
 
 ```sh
-cast send $GOVERNANCE_ADDRESS "vote(uint256,bool)" 1 true --rpc-url $SEPOLIA_RPC --private-key $SEPOLIA_PRIVATE_KEY
+cast send $GOVERNANCE_ADDRESS "vote(uint256,bool)" 1 true --rpc-url $SEPOLIA_RPC --private-key $SEPOLIA_PRIVATE_KEY_VOTER
+```
+
+** NOTE **: if the threshold is set to 2 you need to vote for the third time so that it can check for the threshold and if the threshold is not reached 
+the user might need to call this:
+
+```bash
+$ cast send $GOVERNANCE_ADDRESS "checkProposalDeadlines()" --rpc-url $SEPOLIA_RPC --private-key $SEPOLIA_PRIVATE_KEY
 ```
 
 ### Step 5: Proposal Resolution
