@@ -157,7 +157,7 @@ $ cast send $GOVERNANCE_ADDRESS "checkProposalDeadlines()" --rpc-url $SEPOLIA_RP
 The proposal will be automatically resolved based on voting outcomes:
 
 - If the "For" threshold is reached, the Reactive contract will execute the proposal.
-- If the "Against" threshold is reached, the Reactive contract will delete the proposal.
+- If the "Against" threshold is reached, the Reactive Smart contract will "delete the proposal".
 - If the deadline is reached without meeting either threshold, the Reactive contract will execute the proposal.
 
 The system will automatically handle these actions based on the emitted events from the Governance contract.
