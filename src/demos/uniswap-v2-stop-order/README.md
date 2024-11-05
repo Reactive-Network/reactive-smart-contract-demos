@@ -25,7 +25,7 @@ The demo showcases essential stop order functionality but can be improved with:
 
 To deploy the contracts to Ethereum Sepolia and Kopli Testnet, follow these steps. Replace the relevant keys, addresses, and endpoints as needed. Make sure the following environment variables are correctly configured before proceeding:
 
-* `SEPOLIA_RPC` — https://rpc2.sepolia.org
+* `SEPOLIA_RPC` — https://ethereum-sepolia-rpc.publicnode.com/ or https://1rpc.io/sepolia
 * `SEPOLIA_PRIVATE_KEY` — Ethereum Sepolia private key
 * `REACTIVE_RPC` — https://kopli-rpc.rkt.ink
 * `REACTIVE_PRIVATE_KEY` — Kopli Testnet private key
