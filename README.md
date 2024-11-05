@@ -48,7 +48,7 @@ The following environment variables are used in the instructions for running the
 
 #### `SEPOLIA_RPC`
 
-Ethereum Sepolia RPC address — `https://rpc2.sepolia.org`.
+Ethereum Sepolia RPC address — `https://ethereum-sepolia-rpc.publicnode.com/` or `https://1rpc.io/sepolia`.
 
 #### `SEPOLIA_PRIVATE_KEY`
 
