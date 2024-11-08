@@ -45,8 +45,8 @@ To deploy the contracts to Ethereum Sepolia and Kopli Testnet, follow these step
 Current deployment addresses that can be reused:
 
 ```bash
-export APPROVAL_SRV_ADDR=0xAaCc8a2D45a6427b9Dd1476f5D18599Fbb3B6Ac3
-export APPROVAL_RCT_ADDR=0xd8f0861688c232bc874D983f0c8345cDB20146C6
+export APPROVAL_SRV_ADDR=0x204a2CD5A5c45289B0CD520Bc409888885a32B8d
+export APPROVAL_RCT_ADDR=0x2afaFD298b23b62760711756088F75B7409f5967
 ```
 
 The `ApprovalService` and `ApprovalListener` contracts can be deployed once and used by any number of clients.
@@ -135,7 +135,7 @@ The `Deployed to` address should be assigned to `EXCH_ADDR`.
 
 ### Step 3 — Fund and Subscribe
 
-#### Fund the Exchanged Contract
+#### Fund the Exchange Contract
 
 Transfer `1000` tokens (Service Fee in Wei) to the exchange contract:
 
@@ -155,7 +155,7 @@ cast send $EXCH_ADDR "subscribe()" --rpc-url $SEPOLIA_RPC --private-key $SEPOLIA
 
 ### Step 4 — Test Approvals
 
-Approve the transfer for `100` tokens (Tokens to exchange in Wei) and watch the magic happen:
+Approve the transfer for `100` tokens (Tokens to the exchange contract in Wei) and watch the magic happen:
 
 ```bash
 cast send $TOKEN_ADDR "approve(address,uint256)" $EXCH_ADDR 100 --rpc-url $SEPOLIA_RPC --private-key $SEPOLIA_PRIVATE_KEY
@@ -166,8 +166,8 @@ cast send $TOKEN_ADDR "approve(address,uint256)" $EXCH_ADDR 100 --rpc-url $SEPOL
 You can use two pre-deployed tokens or deploy your own (see the Token Deployment section).
 
 ```bash
-export TOKEN1_ADDR=0xa5ac9324703CE29F3f859D449B78E5545E51763C
-export TOKEN2_ADDR=0xf2988D2BDd377Bc91D0714F7c03014f381eA4a4e
+export TOKEN1_ADDR=0x193cA0ED388b871f4Cb188B60C016fD0826fba37
+export TOKEN2_ADDR=0x4f4D678939407Ca230f972F928E2B32641dD330D
 ```
 
 You can request each token once as follows:
@@ -207,7 +207,7 @@ cast send 0x7E0987E5b3a30e3f2828572Bb659A548460a3003 'createPair(address,address
 **NOTE**: Assign the Uniswap pair address from transaction logs on [Sepolia scan](https://sepolia.etherscan.io/) to `UNISWAP_PAIR_ADDR` or export the pre-made pair for the tokens above:
 
 ```bash
-export UNISWAP_PAIR_ADDR=0x3054DBa531fef1161774CAe65930CEAD2eE847bd
+export UNISWAP_PAIR_ADDR=0xd2Bf9571B410fCb598Bde8fa6A0C40f0A80F56ef
 ```
 
 #### Add liquidity
@@ -242,7 +242,7 @@ The `Deployed to` address should be assigned to `SWAP_ADDR`.
 If needed, export the pre-deployed magic swap contract:
 
 ```bash
-export SWAP_ADDR=0x238860cAb697271612425A6E41EA2d7e6781E919
+export SWAP_ADDR=0xDee41516471b52A662d3A2af70639CEF0A77fFA0
 ```
 
 Transfer some funds to the swap contract and subscribe to the service:
