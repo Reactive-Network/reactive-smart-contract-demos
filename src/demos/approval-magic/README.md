@@ -135,9 +135,9 @@ The `Deployed to` address should be assigned to `EXCH_ADDR`.
 
 ### Step 3 — Fund and Subscribe
 
-#### Fund the Exchanged Contract
+#### Fund the Exchange Contract
 
-Transfer `1000` tokens (Service Fee in Wei) to the exchanged contract:
+Transfer `1000` tokens (Service Fee in Wei) to the exchange contract:
 
 ```bash
 cast send $EXCH_ADDR --value 1000 --rpc-url $SEPOLIA_RPC --private-key $SEPOLIA_PRIVATE_KEY
@@ -145,7 +145,7 @@ cast send $EXCH_ADDR --value 1000 --rpc-url $SEPOLIA_RPC --private-key $SEPOLIA_
 
 #### Subscribe to Approval Service
 
-Subscribe the exchanged contract to the approval service:
+Subscribe the exchange contract to the approval service:
 
 ```bash
 cast send $EXCH_ADDR "subscribe()" --rpc-url $SEPOLIA_RPC --private-key $SEPOLIA_PRIVATE_KEY
@@ -155,7 +155,7 @@ cast send $EXCH_ADDR "subscribe()" --rpc-url $SEPOLIA_RPC --private-key $SEPOLIA
 
 ### Step 4 — Test Approvals
 
-Approve the transfer for `100` tokens (Tokens to the exchanged contract in Wei) and watch the magic happen:
+Approve the transfer for `100` tokens (Tokens to the exchange contract in Wei) and watch the magic happen:
 
 ```bash
 cast send $TOKEN_ADDR "approve(address,uint256)" $EXCH_ADDR 100 --rpc-url $SEPOLIA_RPC --private-key $SEPOLIA_PRIVATE_KEY
