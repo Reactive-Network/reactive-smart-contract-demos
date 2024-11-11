@@ -2,9 +2,9 @@
 
 pragma solidity >=0.8.0;
 
-import '../../IReactive.sol';
-import '../../AbstractPausableReactive.sol';
-import '../../ISubscriptionService.sol';
+import '../../../lib/reactive-lib/src/interfaces/IReactive.sol';
+import '../../../lib/reactive-lib/src/abstract-base/AbstractPausableReactive.sol';
+import '../../../lib/reactive-lib/src/interfaces/ISubscriptionService.sol';
 
 contract NftOwnershipReactive is IReactive, AbstractPausableReactive {
     event OwnershipTransfer(
@@ -54,8 +54,6 @@ contract NftOwnershipReactive is IReactive, AbstractPausableReactive {
         (bool subscription_result_2,) = address(service).call(payload_2);
         vm = !subscription_result_2;
     }
-
-    receive() external payable {}
 
     function getPausableSubscriptions() override internal pure returns (Subscription[] memory) {
         Subscription[] memory result = new Subscription[](1);

@@ -2,7 +2,7 @@
 
 pragma solidity >=0.8.0;
 
-import '../../AbstractCallback.sol';
+import '../../../lib/reactive-lib/src/abstract-base/AbstractCallback.sol';
 import './IApprovalClient.sol';
 
 // TODO: A more flexible economic model, keeping track of contracts' debts, and requiring coverage of debt before attempting to resubscribe.
@@ -39,8 +39,6 @@ contract ApprovalService is AbstractCallback {
         require(msg.sender == owner, 'Not authorized');
         _;
     }
-
-    receive() external payable {}
 
     function withdraw() external onlyOwner {
         owner.transfer(address(this).balance);

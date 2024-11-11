@@ -2,8 +2,8 @@
 
 pragma solidity >=0.8.0;
 
-import '../../ISubscriptionService.sol';
-import '../../AbstractReactive.sol';
+import '../../../lib/reactive-lib/src/interfaces/ISubscriptionService.sol';
+import '../../../lib/reactive-lib/src/abstract-base/AbstractReactive.sol';
 import './ApprovalService.sol';
 
 contract ApprovalListener is AbstractReactive {
@@ -49,8 +49,6 @@ contract ApprovalListener is AbstractReactive {
             vm = true;
         }
     }
-
-    receive() external payable {}
 
     modifier callbackOnly(
         address evm_id

@@ -2,14 +2,14 @@
 
 pragma solidity >=0.8.0;
 
-import '../../IReactive.sol';
-import '../../AbstractReactive.sol';
-import '../../ISubscriptionService.sol';
+import '../../../lib/reactive-lib/src/interfaces/IReactive.sol';
+import '../../../lib/reactive-lib/src/abstract-base/AbstractReactive.sol';
+import '../../../lib/reactive-lib/src/interfaces/ISubscriptionService.sol';
 
-    struct Reserves {
-        uint112 reserve0;
-        uint112 reserve1;
-    }
+struct Reserves {
+    uint112 reserve0;
+    uint112 reserve1;
+}
 
 contract UniswapDemoStopOrderReactive is IReactive, AbstractReactive {
     event Subscribed(
@@ -98,8 +98,6 @@ contract UniswapDemoStopOrderReactive is IReactive, AbstractReactive {
         coefficient = _coefficient;
         threshold = _threshold;
     }
-
-    receive() external payable {}
 
     // Methods specific to ReactVM instance of the contract.
 

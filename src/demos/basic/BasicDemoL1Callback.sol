@@ -2,7 +2,7 @@
 
 pragma solidity >=0.8.0;
 
-import '../../AbstractCallback.sol';
+import '../../../lib/reactive-lib/src/abstract-base/AbstractCallback.sol';
 
 contract BasicDemoL1Callback is AbstractCallback {
     event CallbackReceived(
@@ -13,8 +13,6 @@ contract BasicDemoL1Callback is AbstractCallback {
 
     constructor() AbstractCallback(address(0)) payable {
     }
-
-    receive() external payable {}
 
     function callback(address sender) external {
         emit CallbackReceived(
