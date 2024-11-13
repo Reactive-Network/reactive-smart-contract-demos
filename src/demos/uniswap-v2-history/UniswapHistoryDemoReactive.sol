@@ -2,19 +2,19 @@
 
 pragma solidity >=0.8.0;
 
-import '../../IReactive.sol';
-import '../../AbstractPausableReactive.sol';
-import '../../ISubscriptionService.sol';
+import '../../../lib/reactive-lib/src/interfaces/IReactive.sol';
+import '../../../lib/reactive-lib/src/abstract-base/AbstractPausableReactive.sol';
+import '../../../lib/reactive-lib/src/interfaces/ISubscriptionService.sol';
 
-    struct Reserves {
-        uint112 reserve0;
-        uint112 reserve1;
-    }
+struct Reserves {
+    uint112 reserve0;
+    uint112 reserve1;
+}
 
-    struct Tick {
-        uint256 block_number;
-        Reserves reserves;
-    }
+struct Tick {
+    uint256 block_number;
+    Reserves reserves;
+}
 
 contract UniswapHistoryDemoReactive is IReactive, AbstractPausableReactive {
     event Sync(
@@ -65,8 +65,6 @@ contract UniswapHistoryDemoReactive is IReactive, AbstractPausableReactive {
         (bool subscription_result_2,) = address(service).call(payload_2);
         vm = !subscription_result_2;
     }
-
-    receive() external payable {}
 
     function getPausableSubscriptions() override internal pure returns (Subscription[] memory) {
         Subscription[] memory result = new Subscription[](1);

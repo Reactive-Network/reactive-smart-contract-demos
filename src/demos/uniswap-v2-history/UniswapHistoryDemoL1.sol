@@ -2,7 +2,7 @@
 
 pragma solidity >=0.8.0;
 
-import '../../AbstractCallback.sol';
+import '../../../lib/reactive-lib/src/abstract-base/AbstractCallback.sol';
 
 contract UniswapHistoryDemoL1 is AbstractCallback {
     event RequestReSync(
@@ -27,8 +27,6 @@ contract UniswapHistoryDemoL1 is AbstractCallback {
         require(msg.sender == owner, 'Unauthorized');
         _;
     }
-
-    receive() external payable {}
 
     function request(
         address pair,

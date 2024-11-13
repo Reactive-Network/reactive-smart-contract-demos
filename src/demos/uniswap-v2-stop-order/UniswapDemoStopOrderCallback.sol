@@ -5,12 +5,12 @@ pragma solidity >=0.8.0;
 import '../../../lib/v2-periphery/contracts/interfaces/IUniswapV2Router02.sol';
 import '../../../lib/v2-core/contracts/interfaces/IUniswapV2Pair.sol';
 import '../../../lib/openzeppelin-contracts/contracts/token/ERC20/IERC20.sol';
-import '../../AbstractCallback.sol';
+import '../../../lib/reactive-lib/src/abstract-base/AbstractCallback.sol';
 
-    struct Reserves {
-        uint112 reserve0;
-        uint112 reserve1;
-    }
+struct Reserves {
+    uint112 reserve0;
+    uint112 reserve1;
+}
 
 contract UniswapDemoStopOrderCallback is AbstractCallback {
     event Stop(
@@ -27,8 +27,6 @@ contract UniswapDemoStopOrderCallback is AbstractCallback {
     constructor(address _callback_sender, address _router) AbstractCallback(_callback_sender) payable {
         router = IUniswapV2Router02(_router);
     }
-
-    receive() external payable {}
 
     function stop(
         address /* sender */,

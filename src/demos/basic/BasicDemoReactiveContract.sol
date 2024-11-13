@@ -2,9 +2,9 @@
 
 pragma solidity >=0.8.0;
 
-import '../../IReactive.sol';
-import '../../AbstractReactive.sol';
-import '../../ISystemContract.sol';
+import '../../../lib/reactive-lib/src/interfaces/IReactive.sol';
+import '../../../lib/reactive-lib/src/abstract-base/AbstractReactive.sol';
+import '../../../lib/reactive-lib/src/interfaces/ISystemContract.sol';
 
 contract BasicDemoReactiveContract is IReactive, AbstractReactive {
     event Event(
@@ -45,8 +45,6 @@ contract BasicDemoReactiveContract is IReactive, AbstractReactive {
         vm = !subscription_result;
         _callback = callback;
     }
-
-    receive() external payable {}
 
     // Methods specific to ReactVM instance of the contract
 
