@@ -86,7 +86,7 @@ To deploy and test the contracts, follow these steps. Ensure the following envir
    pip3 install python-dotenv==1.0.1   
    ```
    Docs:
-   - https://pypi.org/project/web3/6.20.0/
+   - [web3](https://web3py.readthedocs.io/en/latest/)
    - https://pypi.org/project/python-dotenv/1.0.1/   
 
 ### Step 2: Contract Deployment
