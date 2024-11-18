@@ -113,7 +113,7 @@ To deploy and test the contracts, follow these steps. Ensure the following envir
    ```bash
    forge create --rpc-url $SEPOLIA_RPC --private-key $WHATEVER_INSURANCE_PRIVATE_KEY src/demos/automated-insurance-payouts/GenerousVault.sol:GenerousVault --constructor-args 0x0000000000000000000000000000000000000000
    ```
-    The `Deployed to` address from the response should be assigned to `GENEROUS_VAULT_ADDRESS`
+    The `Deployed to` address from the response should be assigned to `GENEROUS_VAULT_ADDR`
 
 #### Callback Payment
 
@@ -134,7 +134,7 @@ cast send --rpc-url $SEPOLIA_RPC --private-key $SEPOLIA_PRIVATE_KEY $CALLBACK_PR
 4. Deploy ReactiveJudge.sol:
 
    ```bash
-   forge create --rpc-url $REACTIVE_RPC --private-key $WHATEVER_INSURANCE_PRIVATE_KEY src/demos/automated-insurance-payouts/ReactiveJudge.sol:ReactiveJudge --constructor-args $SYSTEM_CONTRACT_ADDR $HONEST_ORACLE_ADDR $HONEST_ORACLE_TOPIC_0 $GENEROUS_VAULT_ADDR
+   forge create --rpc-url $REACTIVE_RPC --private-key $WHATEVER_INSURANCE_PRIVATE_KEY src/demos/automated-insurance-payouts/ReactiveJudge.sol:ReactiveJudge --constructor-args $HONEST_ORACLE_ADDR $HONEST_ORACLE_TOPIC_0 $GENEROUS_VAULT_ADDR
    ```
 
 ### Step 3: Testing
