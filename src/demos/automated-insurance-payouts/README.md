@@ -69,7 +69,7 @@ To deploy and test the contracts, follow these steps. Ensure the following envir
 * `KOPLI_CALLBACK_PROXY_ADDR` — 0x0000000000000000000000000000000000FFFFFF
 
 - Also configure the following for demo usage:
-* `INFURA_PROJECT_ID`
+* `INFURA_PROJECT_ID=<INSERT_API_KEY_HERE>` //Infura API key to feed the oracle EVM data (free Core Plan is sufficient).
 * `GENIUS_DEVELOPER_ADDR`
 * `WHATEVER_INSURANCE_ADDR`
 * `MYSTERIOUS_HECKER_ADDR`
@@ -83,8 +83,11 @@ To deploy and test the contracts, follow these steps. Ensure the following envir
 2. Install the necessary Python libraries:
    ```
    pip3 install web3==6.20.0
-   pip3 install python-dotenv==1.0.1
+   pip3 install python-dotenv==1.0.1   
    ```
+   Docs:
+   - https://pypi.org/project/web3/6.20.0/
+   - https://pypi.org/project/python-dotenv/1.0.1/   
 
 ### Step 2: Contract Deployment
 
