@@ -87,7 +87,7 @@ To deploy and test the contracts, follow these steps. Ensure the following envir
    ```
    Docs:
    - [web3](https://web3py.readthedocs.io/en/latest/)
-   - https://pypi.org/project/python-dotenv/1.0.1/   
+   - [dotenv](https://pypi.org/project/python-dotenv/1.0.1/)
 
 ### Step 2: Contract Deployment
 
