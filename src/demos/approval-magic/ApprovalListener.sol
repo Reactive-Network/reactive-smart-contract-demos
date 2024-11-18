@@ -2,9 +2,9 @@
 
 pragma solidity >=0.8.0;
 
-import '../../ISubscriptionService.sol';
-import '../../AbstractReactive.sol';
-import './ApprovalService.sol';
+import "../../ISubscriptionService.sol";
+import "../../AbstractReactive.sol";
+import "./ApprovalService.sol";
 
 contract ApprovalListener is AbstractReactive {
     uint256 private constant REACTIVE_CHAIN_ID = 0x512578;
@@ -55,8 +55,8 @@ contract ApprovalListener is AbstractReactive {
     modifier callbackOnly(
         address evm_id
     ) {
-        require(msg.sender == address(service), 'Callback only');
-        require(evm_id == owner, 'Wrong EVM ID');
+        require(msg.sender == address(service), "Callback only");
+        require(evm_id == owner, "Wrong EVM ID");
         _;
     }
 

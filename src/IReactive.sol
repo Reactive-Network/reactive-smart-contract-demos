@@ -2,8 +2,8 @@
 
 pragma solidity >=0.8.0;
 
-import './ISubscriptionService.sol';
-import './IPayer.sol';
+import "./ISubscriptionService.sol";
+import "./IPayer.sol";
 
 // @title Interface for reactive contracts.
 // @notice Reactive contracts receive notifications about new events matching the criteria of their event subscriptions.
