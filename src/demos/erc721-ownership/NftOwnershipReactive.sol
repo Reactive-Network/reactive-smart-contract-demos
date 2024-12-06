@@ -25,35 +25,31 @@ contract NftOwnershipReactive is IReactive, AbstractPausableReactive {
     mapping(address => mapping(uint256 => address[])) private ownership;
     address private l1;
 
-    constructor(
-        address _l1
-    ) {
+    constructor(address _l1) {
         owner = msg.sender;
         paused = false;
         l1 = _l1;
-        bytes memory payload = abi.encodeWithSignature(
-            "subscribe(uint256,address,uint256,uint256,uint256,uint256)",
-            SEPOLIA_CHAIN_ID,
-            0,
-            ERC721_TRANSFER_TOPIC_0,
-            REACTIVE_IGNORE,
-            REACTIVE_IGNORE,
-            REACTIVE_IGNORE
-        );
-        (bool subscription_result,) = address(service).call(payload);
-        vm = !subscription_result;
-        bytes memory payload_2 = abi.encodeWithSignature(
-            "subscribe(uint256,address,uint256,uint256,uint256,uint256)",
-            SEPOLIA_CHAIN_ID,
-            l1,
-            L1_RQ_TOPIC_0,
-            REACTIVE_IGNORE,
-            REACTIVE_IGNORE,
-            REACTIVE_IGNORE
-        );
-        (bool subscription_result_2,) = address(service).call(payload_2);
-        vm = !subscription_result_2;
+
+        if (!vm) {
+            service.subscribe(
+                SEPOLIA_CHAIN_ID,
+                0,
+                ERC721_TRANSFER_TOPIC_0,
+                REACTIVE_IGNORE,
+                REACTIVE_IGNORE,
+                REACTIVE_IGNORE
+            );
+            service.subscribe(
+                SEPOLIA_CHAIN_ID,
+                l1,
+                L1_RQ_TOPIC_0,
+                REACTIVE_IGNORE,
+                REACTIVE_IGNORE,
+                REACTIVE_IGNORE
+            );
+        }
     }
+
 
     function getPausableSubscriptions() override internal pure returns (Subscription[] memory) {
         Subscription[] memory result = new Subscription[](1);
