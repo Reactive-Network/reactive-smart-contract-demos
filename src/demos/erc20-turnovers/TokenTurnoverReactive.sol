@@ -28,12 +28,11 @@ contract TokenTurnoverReactive is IReactive, AbstractPausableReactive {
     mapping(address => uint256) private turnovers;
     address private l1;
 
-    constructor(
-        address _l1
-    ) {
+    constructor(address _l1) {
         paused = false;
         owner = msg.sender;
         l1 = _l1;
+
         if (!vm) {
             service.subscribe(
                 SEPOLIA_CHAIN_ID,
@@ -43,7 +42,6 @@ contract TokenTurnoverReactive is IReactive, AbstractPausableReactive {
                 REACTIVE_IGNORE,
                 REACTIVE_IGNORE
             );
-        }
             service.subscribe(
                 SEPOLIA_CHAIN_ID,
                 l1,
@@ -53,53 +51,55 @@ contract TokenTurnoverReactive is IReactive, AbstractPausableReactive {
                 REACTIVE_IGNORE
             );
         }
-
-    function getPausableSubscriptions() override internal pure returns (Subscription[] memory) {
-        Subscription[] memory result = new Subscription[](1);
-        result[0] = Subscription(
-            SEPOLIA_CHAIN_ID,
-            address(0),
-            ERC20_TRANSFER_TOPIC_0,
-            REACTIVE_IGNORE,
-            REACTIVE_IGNORE,
-            REACTIVE_IGNORE
-        );
-        return result;
     }
 
-    // Methods specific to ReactVM instance of the contract
+
+    function getPausableSubscriptions() override internal pure returns (Subscription[] memory) {
+    Subscription[] memory result = new Subscription[](1);
+    result[0] = Subscription(
+    SEPOLIA_CHAIN_ID,
+    address(0),
+    ERC20_TRANSFER_TOPIC_0,
+    REACTIVE_IGNORE,
+    REACTIVE_IGNORE,
+    REACTIVE_IGNORE
+    );
+    return result;
+    }
+
+        // Methods specific to ReactVM instance of the contract
 
     function react(
-        uint256 chain_id,
-        address _contract,
-        uint256 topic_0,
-        uint256 topic_1,
-        uint256 /* topic_2 */,
-        uint256 /* topic_3 */,
-        bytes calldata data,
-        uint256 /* block_number */,
-        uint256 op_code
+    uint256 chain_id,
+    address _contract,
+    uint256 topic_0,
+    uint256 topic_1,
+    uint256 /* topic_2 */,
+    uint256 /* topic_3 */,
+    bytes calldata data,
+    uint256 /* block_number */,
+    uint256 op_code
     ) external vmOnly {
         // Note that we cannot directly check the `paused` variable, because the state of the contract
         // in reactive network is not shared with ReactVM state.
-        if (topic_0 == ERC20_TRANSFER_TOPIC_0) {
-            if (op_code == 3) {
-                Transfer memory xfer = abi.decode(data, ( Transfer ));
-                turnovers[_contract] += xfer.tokens;
-                emit Turnover(_contract, xfer.tokens);
-            }
-        } else {
-            bytes memory payload = abi.encodeWithSignature(
-                "callback(address,address,uint256)",
-                address(0),
-                address(uint160(topic_1)),
-                turnover(address(uint160(topic_1)))
-            );
-            emit Callback(chain_id, l1, CALLBACK_GAS_LIMIT, payload);
-        }
+    if (topic_0 == ERC20_TRANSFER_TOPIC_0) {
+    if (op_code == 3) {
+    Transfer memory xfer = abi.decode(data, (Transfer));
+    turnovers[_contract] += xfer.tokens;
+    emit Turnover(_contract, xfer.tokens);
+    }
+    } else {
+    bytes memory payload = abi.encodeWithSignature(
+    "callback(address,address,uint256)",
+    address(0),
+    address(uint160(topic_1)),
+    turnover(address(uint160(topic_1)))
+    );
+    emit Callback(chain_id, l1, CALLBACK_GAS_LIMIT, payload);
+    }
     }
 
     function turnover(address token) internal view returns (uint256) {
-        return turnovers[token];
+    return turnovers[token];
     }
-}
+    }
