@@ -32,17 +32,16 @@ contract BasicDemoReactiveContract is IReactive, AbstractReactive {
 
     constructor(address _service, address _contract, uint256 topic_0, address callback) {
         service = ISystemContract(payable(_service));
-        bytes memory payload = abi.encodeWithSignature(
-            "subscribe(uint256,address,uint256,uint256,uint256,uint256)",
-            SEPOLIA_CHAIN_ID,
-            _contract,
-            topic_0,
-            REACTIVE_IGNORE,
-            REACTIVE_IGNORE,
-            REACTIVE_IGNORE
-        );
-        (bool subscription_result,) = address(service).call(payload);
-        vm = !subscription_result;
+        if (!vm) {
+            service.subscribe(
+                SEPOLIA_CHAIN_ID,
+                _contract,
+                topic_0,
+                REACTIVE_IGNORE,
+                REACTIVE_IGNORE,
+                REACTIVE_IGNORE
+            );
+        }
         _callback = callback;
     }
 
