@@ -44,7 +44,6 @@ contract TokenTurnoverReactive is IReactive, AbstractPausableReactive {
                 REACTIVE_IGNORE
             );
         }
-        _callback = callback;
     }
 
     function getPausableSubscriptions() override internal pure returns (Subscription[] memory) {
