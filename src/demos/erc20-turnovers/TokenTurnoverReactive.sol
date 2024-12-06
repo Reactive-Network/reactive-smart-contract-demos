@@ -33,6 +33,7 @@ contract TokenTurnoverReactive is IReactive, AbstractPausableReactive {
     ) {
         paused = false;
         owner = msg.sender;
+        l1 = _l1;
         if (!vm) {
             service.subscribe(
                 SEPOLIA_CHAIN_ID,
@@ -43,8 +44,15 @@ contract TokenTurnoverReactive is IReactive, AbstractPausableReactive {
                 REACTIVE_IGNORE
             );
         }
-        l1 = _l1;
-    }
+            service.subscribe(
+                SEPOLIA_CHAIN_ID,
+                l1,
+                L1_RQ_TOPIC_0,
+                REACTIVE_IGNORE,
+                REACTIVE_IGNORE,
+                REACTIVE_IGNORE
+            );
+        }
 
     function getPausableSubscriptions() override internal pure returns (Subscription[] memory) {
         Subscription[] memory result = new Subscription[](1);
