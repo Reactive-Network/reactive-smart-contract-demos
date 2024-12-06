@@ -60,44 +60,32 @@ contract UniswapDemoStopOrderReactive is IReactive, AbstractReactive {
         triggered = false;
         done = false;
         pair = _pair;
-        bytes memory payload = abi.encodeWithSignature(
-            "subscribe(uint256,address,uint256,uint256,uint256,uint256)",
-            SEPOLIA_CHAIN_ID,
-            pair,
-            UNISWAP_V2_SYNC_TOPIC_0,
-            REACTIVE_IGNORE,
-            REACTIVE_IGNORE,
-            REACTIVE_IGNORE
-        );
-        (bool subscription_result,) = address(service).call(payload);
-        if (!subscription_result) {
-            vm = true;
-            emit VM();
-        } else {
-            emit Subscribed(address(service), pair, UNISWAP_V2_SYNC_TOPIC_0);
-        }
         stop_order = _stop_order;
-        bytes memory payload_2 = abi.encodeWithSignature(
-            "subscribe(uint256,address,uint256,uint256,uint256,uint256)",
-            SEPOLIA_CHAIN_ID,
-            stop_order,
-            STOP_ORDER_STOP_TOPIC_0,
-            REACTIVE_IGNORE,
-            REACTIVE_IGNORE,
-            REACTIVE_IGNORE
-        );
-        (bool subscription_result_2,) = address(service).call(payload_2);
-        if (!subscription_result_2) {
-            vm = true;
-            emit VM();
-        } else {
-            emit Subscribed(address(service), stop_order, STOP_ORDER_STOP_TOPIC_0);
-        }
         client = _client;
         token0 = _token0;
         coefficient = _coefficient;
         threshold = _threshold;
+
+        if (!vm) {
+            service.subscribe(
+                SEPOLIA_CHAIN_ID,
+                pair,
+                UNISWAP_V2_SYNC_TOPIC_0,
+                REACTIVE_IGNORE,
+                REACTIVE_IGNORE,
+                REACTIVE_IGNORE
+            );
+            service.subscribe(
+                SEPOLIA_CHAIN_ID,
+                stop_order,
+                STOP_ORDER_STOP_TOPIC_0,
+                REACTIVE_IGNORE,
+                REACTIVE_IGNORE,
+                REACTIVE_IGNORE
+            );
+        }
     }
+
 
     // Methods specific to ReactVM instance of the contract.
 
