@@ -34,28 +34,17 @@ contract TokenTurnoverReactive is IReactive, AbstractPausableReactive {
         paused = false;
         owner = msg.sender;
         l1 = _l1;
-        bytes memory payload = abi.encodeWithSignature(
-            "subscribe(uint256,address,uint256,uint256,uint256,uint256)",
-            SEPOLIA_CHAIN_ID,
-            0,
-            ERC20_TRANSFER_TOPIC_0,
-            REACTIVE_IGNORE,
-            REACTIVE_IGNORE,
-            REACTIVE_IGNORE
-        );
-        (bool subscription_result,) = address(service).call(payload);
-        vm = !subscription_result;
-        bytes memory payload_2 = abi.encodeWithSignature(
-            "subscribe(uint256,address,uint256,uint256,uint256,uint256)",
-            SEPOLIA_CHAIN_ID,
-            l1,
-            L1_RQ_TOPIC_0,
-            REACTIVE_IGNORE,
-            REACTIVE_IGNORE,
-            REACTIVE_IGNORE
-        );
-        (bool subscription_result_2,) = address(service).call(payload_2);
-        vm = !subscription_result_2;
+        if (!vm) {
+            service.subscribe(
+                SEPOLIA_CHAIN_ID,
+                0,
+                ERC20_TRANSFER_TOPIC_0,
+                REACTIVE_IGNORE,
+                REACTIVE_IGNORE,
+                REACTIVE_IGNORE
+            );
+        }
+        _callback = callback;
     }
 
     function getPausableSubscriptions() override internal pure returns (Subscription[] memory) {
