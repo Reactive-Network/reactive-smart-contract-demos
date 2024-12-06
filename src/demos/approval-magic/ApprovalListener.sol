@@ -22,31 +22,24 @@ contract ApprovalListener is AbstractReactive {
     ) payable {
         owner = msg.sender;
         approval_service = service_;
-        bytes memory payload = abi.encodeWithSignature(
-            "subscribe(uint256,address,uint256,uint256,uint256,uint256)",
-            SEPOLIA_CHAIN_ID,
-            approval_service,
-            SUBSCRIBE_TOPIC_0,
-            REACTIVE_IGNORE,
-            REACTIVE_IGNORE,
-            REACTIVE_IGNORE
-        );
-        (bool subscription_result,) = address(service).call(payload);
-        if (!subscription_result) {
-            vm = true;
-        }
-        payload = abi.encodeWithSignature(
-            "subscribe(uint256,address,uint256,uint256,uint256,uint256)",
-            SEPOLIA_CHAIN_ID,
-            approval_service,
-            UNSUBSCRIBE_TOPIC_0,
-            REACTIVE_IGNORE,
-            REACTIVE_IGNORE,
-            REACTIVE_IGNORE
-        );
-        (subscription_result,) = address(service).call(payload);
-        if (!subscription_result) {
-            vm = true;
+        if (!vm) {
+            service.subscribe(
+                SEPOLIA_CHAIN_ID,
+                approval_service,
+                SUBSCRIBE_TOPIC_0,
+                REACTIVE_IGNORE,
+                REACTIVE_IGNORE,
+                REACTIVE_IGNORE
+            );
+            service.subscribe(
+                SEPOLIA_CHAIN_ID,
+                approval_service,
+                UNSUBSCRIBE_TOPIC_0,
+                REACTIVE_IGNORE,
+                REACTIVE_IGNORE,
+                REACTIVE_IGNORE
+            );
+
         }
     }
 
