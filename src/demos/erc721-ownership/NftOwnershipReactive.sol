@@ -33,7 +33,7 @@ contract NftOwnershipReactive is IReactive, AbstractPausableReactive {
         if (!vm) {
             service.subscribe(
                 SEPOLIA_CHAIN_ID,
-                0,
+                address(0),
                 ERC721_TRANSFER_TOPIC_0,
                 REACTIVE_IGNORE,
                 REACTIVE_IGNORE,
