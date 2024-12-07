@@ -14,14 +14,11 @@ contract NftOwnershipReactive is IReactive, AbstractPausableReactive {
     );
 
     uint256 private constant SEPOLIA_CHAIN_ID = 11155111;
-
     uint256 private constant ERC721_TRANSFER_TOPIC_0 = 0xddf252ad1be2c89b69c2b068fc378daa952ba7f163c4a11628f55a4df523b3ef;
     uint256 private constant L1_RQ_TOPIC_0 = 0xe31c60e37ab1301f69f01b436a1d13486e6c16cc22c888a08c0e64a39230b6ac;
-
     uint64 private constant CALLBACK_GAS_LIMIT = 1000000;
 
     // State specific to ReactVM instance of the contract
-
     mapping(address => mapping(uint256 => address[])) private ownership;
     address private l1;
 
@@ -51,7 +48,7 @@ contract NftOwnershipReactive is IReactive, AbstractPausableReactive {
     }
 
 
-    function getPausableSubscriptions() override internal pure returns (Subscription[] memory) {
+    function getPausableSubscriptions() internal pure override returns (Subscription[] memory) {
         Subscription[] memory result = new Subscription[](1);
         result[0] = Subscription(
             SEPOLIA_CHAIN_ID,
@@ -65,7 +62,6 @@ contract NftOwnershipReactive is IReactive, AbstractPausableReactive {
     }
 
     // Methods specific to ReactVM instance
-
     function react(
         uint256 chain_id,
         address _contract,
@@ -97,9 +93,11 @@ contract NftOwnershipReactive is IReactive, AbstractPausableReactive {
     function owners(address _contract, uint256 token_id) internal view returns (address[] memory) {
         uint256 length = ownership[_contract][token_id].length;
         address[] memory result = new address[](length);
+
         for (uint256 ix = 0; ix != length; ++ix) {
             result[ix] = ownership[_contract][token_id][ix];
         }
+
         return result;
     }
 }
