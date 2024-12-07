@@ -6,9 +6,9 @@ import '../../../lib/reactive-lib/src/interfaces/IReactive.sol';
 import '../../../lib/reactive-lib/src/abstract-base/AbstractPausableReactive.sol';
 import '../../../lib/reactive-lib/src/interfaces/ISubscriptionService.sol';
 
-    struct Transfer {
-        uint256 tokens;
-    }
+struct Transfer {
+    uint256 tokens;
+}
 
 contract TokenTurnoverReactive is IReactive, AbstractPausableReactive {
     event Turnover(
@@ -17,10 +17,8 @@ contract TokenTurnoverReactive is IReactive, AbstractPausableReactive {
     );
 
     uint256 private constant SEPOLIA_CHAIN_ID = 11155111;
-
     uint256 private constant ERC20_TRANSFER_TOPIC_0 = 0xddf252ad1be2c89b69c2b068fc378daa952ba7f163c4a11628f55a4df523b3ef;
     uint256 private constant L1_RQ_TOPIC_0 = 0x9a26a1f9def08abe958f09f08b27ca5d3dcc90dc0bd84ac65a66e096560f3071;
-
     uint64 private constant CALLBACK_GAS_LIMIT = 1000000;
 
     // State specific to ReactVM instance of the contract.
@@ -53,7 +51,7 @@ contract TokenTurnoverReactive is IReactive, AbstractPausableReactive {
         }
     }
 
-    function getPausableSubscriptions() override internal pure returns (Subscription[] memory) {
+    function getPausableSubscriptions() internal pure override returns (Subscription[] memory) {
         Subscription[] memory result = new Subscription[](1);
         result[0] = Subscription(
             SEPOLIA_CHAIN_ID,
@@ -67,7 +65,6 @@ contract TokenTurnoverReactive is IReactive, AbstractPausableReactive {
     }
 
     // Methods specific to ReactVM instance of the contract
-
     function react(
         uint256 chain_id,
         address _contract,
@@ -81,6 +78,7 @@ contract TokenTurnoverReactive is IReactive, AbstractPausableReactive {
     ) external vmOnly {
         // Note that we cannot directly check the `paused` variable, because the state of the contract
         // in reactive network is not shared with ReactVM state.
+
         if (topic_0 == ERC20_TRANSFER_TOPIC_0) {
             if (op_code == 3) {
                 Transfer memory xfer = abi.decode(data, ( Transfer ));
