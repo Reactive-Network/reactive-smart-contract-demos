@@ -22,48 +22,36 @@ contract ApprovalListener is AbstractReactive {
     ) payable {
         owner = msg.sender;
         approval_service = service_;
-        bytes memory payload = abi.encodeWithSignature(
-            "subscribe(uint256,address,uint256,uint256,uint256,uint256)",
-            SEPOLIA_CHAIN_ID,
-            approval_service,
-            SUBSCRIBE_TOPIC_0,
-            REACTIVE_IGNORE,
-            REACTIVE_IGNORE,
-            REACTIVE_IGNORE
-        );
-        (bool subscription_result,) = address(service).call(payload);
-        if (!subscription_result) {
-            vm = true;
-        }
-        payload = abi.encodeWithSignature(
-            "subscribe(uint256,address,uint256,uint256,uint256,uint256)",
-            SEPOLIA_CHAIN_ID,
-            approval_service,
-            UNSUBSCRIBE_TOPIC_0,
-            REACTIVE_IGNORE,
-            REACTIVE_IGNORE,
-            REACTIVE_IGNORE
-        );
-        (subscription_result,) = address(service).call(payload);
-        if (!subscription_result) {
-            vm = true;
+
+        if (!vm) {
+            service.subscribe(
+                SEPOLIA_CHAIN_ID,
+                approval_service,
+                SUBSCRIBE_TOPIC_0,
+                REACTIVE_IGNORE,
+                REACTIVE_IGNORE,
+                REACTIVE_IGNORE
+            );
+            service.subscribe(
+                SEPOLIA_CHAIN_ID,
+                approval_service,
+                UNSUBSCRIBE_TOPIC_0,
+                REACTIVE_IGNORE,
+                REACTIVE_IGNORE,
+                REACTIVE_IGNORE
+            );
+
         }
     }
 
-    modifier callbackOnly(
-        address evm_id
-    ) {
+    modifier callbackOnly(address evm_id) {
         require(msg.sender == address(service), 'Callback only');
         require(evm_id == owner, 'Wrong EVM ID');
         _;
     }
 
     // Methods specific to reactive network contract instance
-
-    function subscribe(
-        address rvm_id,
-        address subscriber
-    ) external rnOnly callbackOnly(rvm_id) {
+    function subscribe(address rvm_id, address subscriber) external rnOnly callbackOnly(rvm_id) {
         service.subscribe(
             SEPOLIA_CHAIN_ID,
             address(0),
@@ -74,10 +62,7 @@ contract ApprovalListener is AbstractReactive {
         );
     }
 
-    function unsubscribe(
-        address rvm_id,
-        address subscriber
-    ) external rnOnly callbackOnly(rvm_id) {
+    function unsubscribe(address rvm_id, address subscriber) external rnOnly callbackOnly(rvm_id) {
         service.unsubscribe(
             SEPOLIA_CHAIN_ID,
             address(0),
@@ -89,7 +74,6 @@ contract ApprovalListener is AbstractReactive {
     }
 
     // Methods specific to ReactVM contract instance
-
     function react(
         uint256 /* chain_id */,
         address _contract,

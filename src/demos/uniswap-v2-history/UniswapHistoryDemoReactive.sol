@@ -25,48 +25,40 @@ contract UniswapHistoryDemoReactive is IReactive, AbstractPausableReactive {
     );
 
     uint256 private constant SEPOLIA_CHAIN_ID = 11155111;
-
     uint256 private constant UNISWAP_V2_SYNC_TOPIC_0 = 0x1c411e9a96e071241c2f21f7726b17ae89e3cab4c78be50e062b03a9fffbbad1;
     uint256 private constant REQUEST_RESYNC_TOPIC_0 = 0xef3ee55037493e03bbb6926db7e59fe91b2af41184a35b32a106eac1557081ea;
-
     uint64 private constant CALLBACK_GAS_LIMIT = 1000000;
 
     // State specific to ReactVM contract instance
-
     address private l1;
     mapping(address => Tick[]) private reserves;
 
-    constructor(
-        address _l1
-    ) {
+    constructor(address _l1) {
         owner = msg.sender;
         paused = false;
         l1 = _l1;
-        bytes memory payload = abi.encodeWithSignature(
-            "subscribe(uint256,address,uint256,uint256,uint256,uint256)",
-            SEPOLIA_CHAIN_ID,
-            0,
-            UNISWAP_V2_SYNC_TOPIC_0,
-            REACTIVE_IGNORE,
-            REACTIVE_IGNORE,
-            REACTIVE_IGNORE
-        );
-        (bool subscription_result,) = address(service).call(payload);
-        vm = !subscription_result;
-        bytes memory payload_2 = abi.encodeWithSignature(
-            "subscribe(uint256,address,uint256,uint256,uint256,uint256)",
-            SEPOLIA_CHAIN_ID,
-            l1,
-            REQUEST_RESYNC_TOPIC_0,
-            REACTIVE_IGNORE,
-            REACTIVE_IGNORE,
-            REACTIVE_IGNORE
-        );
-        (bool subscription_result_2,) = address(service).call(payload_2);
-        vm = !subscription_result_2;
+
+        if (!vm) {
+            service.subscribe(
+                SEPOLIA_CHAIN_ID,
+                address(0),
+                UNISWAP_V2_SYNC_TOPIC_0,
+                REACTIVE_IGNORE,
+                REACTIVE_IGNORE,
+                REACTIVE_IGNORE
+            );
+            service.subscribe(
+                SEPOLIA_CHAIN_ID,
+                l1,
+                REQUEST_RESYNC_TOPIC_0,
+                REACTIVE_IGNORE,
+                REACTIVE_IGNORE,
+                REACTIVE_IGNORE
+            );
+        }
     }
 
-    function getPausableSubscriptions() override internal pure returns (Subscription[] memory) {
+    function getPausableSubscriptions() internal pure override returns (Subscription[] memory) {
         Subscription[] memory result = new Subscription[](1);
         result[0] = Subscription(
             SEPOLIA_CHAIN_ID,
@@ -80,7 +72,6 @@ contract UniswapHistoryDemoReactive is IReactive, AbstractPausableReactive {
     }
 
     // Methods specific to ReactVM contract instance
-
     function react(
         uint256 chain_id,
         address _contract,
@@ -101,6 +92,7 @@ contract UniswapHistoryDemoReactive is IReactive, AbstractPausableReactive {
             Tick[] storage ticks = reserves[address(uint160(topic_1))];
             uint112 reserve0 = 0;
             uint112 reserve1 = 0;
+
             for (uint ix = 0; ix != ticks.length; ++ix) {
                 if (ticks[ix].block_number > topic_2) {
                     break;
@@ -116,6 +108,7 @@ contract UniswapHistoryDemoReactive is IReactive, AbstractPausableReactive {
                 reserve0,
                 reserve1
             );
+
             emit Callback(chain_id, l1, CALLBACK_GAS_LIMIT, payload);
         }
     }
