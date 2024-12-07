@@ -19,7 +19,6 @@ contract UniswapDemoStopOrderReactive is IReactive, AbstractReactive {
     );
 
     event VM();
-
     event AboveThreshold(
         uint112 indexed reserve0,
         uint112 indexed reserve1,
@@ -28,14 +27,11 @@ contract UniswapDemoStopOrderReactive is IReactive, AbstractReactive {
     );
 
     event CallbackSent();
-
     event Done();
 
     uint256 private constant SEPOLIA_CHAIN_ID = 11155111;
-
     uint256 private constant UNISWAP_V2_SYNC_TOPIC_0 = 0x1c411e9a96e071241c2f21f7726b17ae89e3cab4c78be50e062b03a9fffbbad1;
     uint256 private constant STOP_ORDER_STOP_TOPIC_0 = 0x9996f0dd09556ca972123b22cf9f75c3765bc699a1336a85286c7cb8b9889c6b;
-
     uint64 private constant CALLBACK_GAS_LIMIT = 1000000;
 
     // State specific to ReactVM instance of the contract.
@@ -88,7 +84,6 @@ contract UniswapDemoStopOrderReactive is IReactive, AbstractReactive {
 
 
     // Methods specific to ReactVM instance of the contract.
-
     function react(
         uint256 chain_id,
         address _contract,
@@ -103,6 +98,7 @@ contract UniswapDemoStopOrderReactive is IReactive, AbstractReactive {
         // TODO: Support for multiple dynamic orders? Not viable until we have dynamic subscriptions.
         // TODO: Unsubscribe on completion.
         assert(!done);
+
         if (_contract == stop_order) {
             // TODO: Practically speaking, it's broken, because we also need to check the transfer direction.
             //       For the purposes of the demo, I'm just going to ignore that complication.
