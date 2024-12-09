@@ -42,25 +42,37 @@ Deploy the origin chain contract and assign the contract address from the respon
 forge create --rpc-url $SEPOLIA_RPC --private-key $SEPOLIA_PRIVATE_KEY src/demos/uniswap-v2-history/UniswapHistoryDemoL1.sol:UniswapHistoryDemoL1 --constructor-args 0x0000000000000000000000000000000000000000
 ```
 
-#### Callback Payment
+[//]: # (#### Callback Payment)
 
-To ensure a successful callback, the callback contract must have an ETH balance. Find more details [here](https://dev.reactive.network/system-contract#callback-payments). To fund the contract, run the following command:
+[//]: # ()
+[//]: # (To ensure a successful callback, the callback contract must have an ETH balance. Find more details [here]&#40;https://dev.reactive.network/system-contract#callback-payments&#41;. To fund the contract, run the following command:)
 
-```bash
-cast send $UNISWAP_L1_ADDR --rpc-url $SEPOLIA_RPC --private-key $SEPOLIA_PRIVATE_KEY --value 0.1ether
-```
+[//]: # ()
+[//]: # (```bash)
 
-To cover the debt of the callback contact, run this command:
+[//]: # (cast send $UNISWAP_L1_ADDR --rpc-url $SEPOLIA_RPC --private-key $SEPOLIA_PRIVATE_KEY --value 0.1ether)
 
-```bash
-cast send --rpc-url $SEPOLIA_RPC --private-key $SEPOLIA_PRIVATE_KEY $UNISWAP_L1_ADDR "coverDebt()"
-```
+[//]: # (```)
 
-Alternatively, you can deposit funds into the [Callback Proxy](https://dev.reactive.network/origins-and-destinations) contract on Sepolia, using the command below. The EOA address whose private key signs the transaction pays the fee.
+[//]: # ()
+[//]: # (To cover the debt of the callback contact, run this command:)
 
-```bash
-cast send --rpc-url $SEPOLIA_RPC --private-key $SEPOLIA_PRIVATE_KEY $SEPOLIA_CALLBACK_PROXY_ADDR "depositTo(address)" $UNISWAP_L1_ADDR --value 0.1ether
-```
+[//]: # ()
+[//]: # (```bash)
+
+[//]: # (cast send --rpc-url $SEPOLIA_RPC --private-key $SEPOLIA_PRIVATE_KEY $UNISWAP_L1_ADDR "coverDebt&#40;&#41;")
+
+[//]: # (```)
+
+[//]: # ()
+[//]: # (Alternatively, you can deposit funds into the [Callback Proxy]&#40;https://dev.reactive.network/origins-and-destinations&#41; contract on Sepolia, using the command below. The EOA address whose private key signs the transaction pays the fee.)
+
+[//]: # ()
+[//]: # (```bash)
+
+[//]: # (cast send --rpc-url $SEPOLIA_RPC --private-key $SEPOLIA_PRIVATE_KEY $SEPOLIA_CALLBACK_PROXY_ADDR "depositTo&#40;address&#41;" $UNISWAP_L1_ADDR --value 0.1ether)
+
+[//]: # (```)
 
 ### Step 2
 
