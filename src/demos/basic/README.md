@@ -97,7 +97,7 @@ Deploy the `BasicDemoReactiveContract` contract, configuring it to listen to `OR
 forge create --rpc-url $REACTIVE_RPC --private-key $REACTIVE_PRIVATE_KEY src/demos/basic/BasicDemoReactiveContract.sol:BasicDemoReactiveContract --constructor-args $KOPLI_CALLBACK_PROXY_ADDR $ORIGIN_ADDR 0x8cabf31d2b1b11ba52dbb302817a3c9c83e4b2a5194d35121ab1354d69f6a4cb $CALLBACK_ADDR
 ```
 
-### Step 4
+### Step 4 — Test Reactive Callback
 
 Test the whole setup by sending some ether to `ORIGIN_ADDR`:
 
