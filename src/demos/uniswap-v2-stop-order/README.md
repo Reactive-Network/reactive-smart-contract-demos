@@ -23,16 +23,17 @@ The demo showcases essential stop order functionality but can be improved with:
 
 ## Deployment & Testing
 
-To deploy the contracts to Ethereum Sepolia and Reactive Kopli, follow these steps. Replace the relevant keys, addresses, and endpoints as needed. Make sure the following environment variables are correctly configured before proceeding:
+Deploy the contracts to Ethereum Sepolia and Reactive Kopli by following these steps. Ensure the following environment variables are configured:
 
-* `SEPOLIA_RPC` — the RPC URL for Ethereum Sepolia, which can be found on [Chainlist](https://chainlist.org/chain/11155111)
+* `SEPOLIA_RPC` — RPC URL for Ethereum Sepolia, (see [Chainlist](https://chainlist.org/chain/11155111))
 * `SEPOLIA_PRIVATE_KEY` — Ethereum Sepolia private key
-* `REACTIVE_RPC` — https://kopli-rpc.rkt.ink
+* `REACTIVE_RPC` — RPC URL for Reactive Kopli (https://kopli-rpc.rkt.ink).
 * `REACTIVE_PRIVATE_KEY` — Reactive Kopli private key
+* `CLIENT_WALLET` — Deployer's EOA wallet address
 
 [//]: # (* `SEPOLIA_CALLBACK_PROXY_ADDR` — 0x33Bbb7D0a2F1029550B0e91f653c4055DC9F4Dd8)
 
-**Note**: To receive REACT, send SepETH to the Reactive faucet on Ethereum Sepolia at `0x9b9BB25f1A81078C544C829c5EB7822d747Cf434`. An equivalent amount will be sent to your address.
+**Faucet**: To receive REACT tokens, send SepETH to the Reactive faucet at `0x9b9BB25f1A81078C544C829c5EB7822d747Cf434`. An equivalent amount of REACT will be sent to your address.
 
 ### Step 1 — Test Tokens and Liquidity Pool
 
@@ -63,7 +64,7 @@ If you use pre-existing tokens shown in Step 1, export the address of their Unis
 export UNISWAP_V2_PAIR_ADDR=0x1DD11fD3690979f2602E42e7bBF68A19040E2e25
 ```
 
-To create a new pair, use the `PAIR_FACTORY_CONTRACT` address `0x7E0987E5b3a30e3f2828572Bb659A548460a3003` and the token addresses deployed in Step 1. After the transaction, retrieve the pair's address from the `PairCreated` event on [Sepolia scan](https://sepolia.etherscan.io/tx/0x4a373bc6ebe815105abf44e6b26e9cdcd561fb9e796196849ae874c7083692a4/advanced#eventlog):
+To create a new pair, use the Uniswap V2 Factory contract `0x7E0987E5b3a30e3f2828572Bb659A548460a3003` and the token addresses deployed in Step 1. After the transaction, retrieve the pair's address from the `PairCreated` event on [Sepolia scan](https://sepolia.etherscan.io/tx/0x4a373bc6ebe815105abf44e6b26e9cdcd561fb9e796196849ae874c7083692a4/advanced#eventlog):
 
 ```bash
 cast send 0x7E0987E5b3a30e3f2828572Bb659A548460a3003 'createPair(address,address)' --rpc-url $SEPOLIA_RPC --private-key $SEPOLIA_PRIVATE_KEY $TOKEN0_ADDR $TOKEN1_ADDR
