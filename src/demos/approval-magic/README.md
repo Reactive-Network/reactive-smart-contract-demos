@@ -97,24 +97,11 @@ forge create src/demos/approval-magic/ApprovalListener.sol:ApprovalListener --rp
 
 The `Deployed to` address should be assigned to `APPROVAL_RCT_ADDR`.
 
-[//]: # (**NOTE**: To ensure a successful callback, `APPROVAL_RCT_ADDR` must have an ETH balance. Find more details [here]&#40;https://dev.reactive.network/system-contract#callback-payments&#41;. To fund the contract, run the following command:)
+**Callback Payment**: To ensure a successful callback, `APPROVAL_RCT_ADDR` must have REACT tokens. To fund the contract, run:
 
-[//]: # ()
-[//]: # (```bash)
-
-[//]: # (cast send $APPROVAL_RCT_ADDR --rpc-url $REACTIVE_RPC --private-key $REACTIVE_PRIVATE_KEY --value 0.1ether)
-
-[//]: # (```)
-
-[//]: # ()
-[//]: # (To cover the debt of `APPROVAL_RCT_ADDR`, run this command:)
-
-[//]: # ()
-[//]: # (```bash)
-
-[//]: # (cast send --rpc-url $REACTIVE_RPC --private-key $REACTIVE_PRIVATE_KEY $APPROVAL_RCT_ADDR "coverDebt&#40;&#41;")
-
-[//]: # (```)
+```bash
+cast send $APPROVAL_RCT_ADDR --rpc-url $REACTIVE_RPC --private-key $REACTIVE_PRIVATE_KEY --value 0.1ether
+```
 
 ### Step 3 — Client Contract
 
