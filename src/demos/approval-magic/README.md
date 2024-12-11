@@ -42,6 +42,8 @@ Deploy the contracts to Ethereum Sepolia and Reactive Kopli by following these s
 
 **Note**: Use the same private key for deploying `ApprovalService` and `ApprovalListener`. `ApprovalDemoToken` and `ApprovalEthExch` may use different keys if needed.
 
+## Magic Exchange
+
 ### Step 1 — Approval Service
 
 Use the pre-deployed `ApprovalService` contract or deploy your own.
@@ -153,8 +155,6 @@ Approve the transfer of `100` tokens (in Wei) to the exchange contract:
 cast send $TOKEN_ADDR "approve(address,uint256)" $EXCH_ADDR 100 --rpc-url $SEPOLIA_RPC --private-key $SEPOLIA_PRIVATE_KEY
 ```
 
-- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-
 ## Magic Swap
 
 ### Step 1 — Token Deployment
@@ -204,7 +204,7 @@ To create a new pair, run the following command with the Uniswap V2 Factory cont
 cast send 0x7E0987E5b3a30e3f2828572Bb659A548460a3003 'createPair(address,address)' --rpc-url $SEPOLIA_RPC --private-key $SEPOLIA_PRIVATE_KEY $TOKEN1_ADDR $TOKEN2_ADDR
 ```
 
-Assign the Uniswap pair address from transaction logs on [Sepolia scan](https://sepolia.etherscan.io/tx/0x4a373bc6ebe815105abf44e6b26e9cdcd561fb9e796196849ae874c7083692a4/advanced#eventlog) to `UNISWAP_PAIR_ADDR`.
+Assign the Uniswap pair address from transaction logs as shown on [Sepolia scan](https://sepolia.etherscan.io/tx/0x4a373bc6ebe815105abf44e6b26e9cdcd561fb9e796196849ae874c7083692a4/advanced#eventlog) to `UNISWAP_PAIR_ADDR`.
 
 ### Step 3 — Add liquidity
 
