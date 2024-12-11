@@ -26,7 +26,7 @@ contract ApprovalListener is AbstractReactive {
         if (!vm) {
             service.subscribe(
                 SEPOLIA_CHAIN_ID,
-                approval_service,
+                address(approval_service),
                 SUBSCRIBE_TOPIC_0,
                 REACTIVE_IGNORE,
                 REACTIVE_IGNORE,
@@ -34,7 +34,7 @@ contract ApprovalListener is AbstractReactive {
             );
             service.subscribe(
                 SEPOLIA_CHAIN_ID,
-                approval_service,
+                address(approval_service),
                 UNSUBSCRIBE_TOPIC_0,
                 REACTIVE_IGNORE,
                 REACTIVE_IGNORE,

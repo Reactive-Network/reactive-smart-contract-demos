@@ -42,6 +42,8 @@ Deploy the contracts to Ethereum Sepolia and Reactive Kopli by following these s
 
 **Note**: Use the same private key for deploying `ApprovalService` and `ApprovalListener`. `ApprovalDemoToken` and `ApprovalEthExch` may use different keys if needed.
 
+## Magic Exchange
+
 ### Step 1 — Approval Service
 
 Use the pre-deployed `ApprovalService` contract or deploy your own.
@@ -97,24 +99,11 @@ forge create src/demos/approval-magic/ApprovalListener.sol:ApprovalListener --rp
 
 The `Deployed to` address should be assigned to `APPROVAL_RCT_ADDR`.
 
-[//]: # (**NOTE**: To ensure a successful callback, `APPROVAL_RCT_ADDR` must have an ETH balance. Find more details [here]&#40;https://dev.reactive.network/system-contract#callback-payments&#41;. To fund the contract, run the following command:)
+**Callback Payment**: To ensure a successful callback, `APPROVAL_RCT_ADDR` must have REACT tokens. To fund the contract, run:
 
-[//]: # ()
-[//]: # (```bash)
-
-[//]: # (cast send $APPROVAL_RCT_ADDR --rpc-url $REACTIVE_RPC --private-key $REACTIVE_PRIVATE_KEY --value 0.1ether)
-
-[//]: # (```)
-
-[//]: # ()
-[//]: # (To cover the debt of `APPROVAL_RCT_ADDR`, run this command:)
-
-[//]: # ()
-[//]: # (```bash)
-
-[//]: # (cast send --rpc-url $REACTIVE_RPC --private-key $REACTIVE_PRIVATE_KEY $APPROVAL_RCT_ADDR "coverDebt&#40;&#41;")
-
-[//]: # (```)
+```bash
+cast send $APPROVAL_RCT_ADDR --rpc-url $REACTIVE_RPC --private-key $REACTIVE_PRIVATE_KEY --value 0.1ether
+```
 
 ### Step 3 — Client Contract
 
@@ -166,8 +155,6 @@ Approve the transfer of `100` tokens (in Wei) to the exchange contract:
 cast send $TOKEN_ADDR "approve(address,uint256)" $EXCH_ADDR 100 --rpc-url $SEPOLIA_RPC --private-key $SEPOLIA_PRIVATE_KEY
 ```
 
-- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-
 ## Magic Swap
 
 ### Step 1 — Token Deployment
@@ -217,7 +204,7 @@ To create a new pair, run the following command with the Uniswap V2 Factory cont
 cast send 0x7E0987E5b3a30e3f2828572Bb659A548460a3003 'createPair(address,address)' --rpc-url $SEPOLIA_RPC --private-key $SEPOLIA_PRIVATE_KEY $TOKEN1_ADDR $TOKEN2_ADDR
 ```
 
-Assign the Uniswap pair address from transaction logs on [Sepolia scan](https://sepolia.etherscan.io/tx/0x4a373bc6ebe815105abf44e6b26e9cdcd561fb9e796196849ae874c7083692a4/advanced#eventlog) to `UNISWAP_PAIR_ADDR`.
+Assign the Uniswap pair address from transaction logs as shown on [Sepolia scan](https://sepolia.etherscan.io/tx/0x4a373bc6ebe815105abf44e6b26e9cdcd561fb9e796196849ae874c7083692a4/advanced#eventlog) to `UNISWAP_PAIR_ADDR`.
 
 ### Step 3 — Add liquidity
 
