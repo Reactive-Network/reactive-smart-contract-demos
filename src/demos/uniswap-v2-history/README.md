@@ -24,19 +24,20 @@ There are several opportunities for improvement:
 
 ## Deployment & Testing
 
-To deploy the contracts to Ethereum Sepolia and Kopli Testnet, follow these steps. Replace the relevant keys, addresses, and endpoints as needed. Make sure the following environment variables are correctly configured before proceeding:
+Deploy the contracts to Ethereum Sepolia and Reactive Kopli by following these steps. Ensure the following environment variables are configured:
 
-* `SEPOLIA_RPC` — https://ethereum-sepolia-rpc.publicnode.com/ or https://1rpc.io/sepolia
+* `SEPOLIA_RPC` — RPC URL for Ethereum Sepolia, (see [Chainlist](https://chainlist.org/chain/11155111))
 * `SEPOLIA_PRIVATE_KEY` — Ethereum Sepolia private key
-* `REACTIVE_RPC` — https://kopli-rpc.rkt.ink
-* `REACTIVE_PRIVATE_KEY` — Kopli Testnet private key
-* `SEPOLIA_CALLBACK_PROXY_ADDR` — 0x33Bbb7D0a2F1029550B0e91f653c4055DC9F4Dd8
+* `REACTIVE_RPC` — RPC URL for Reactive Kopli (https://kopli-rpc.rkt.ink).
+* `REACTIVE_PRIVATE_KEY` — Reactive Kopli private key
 
-**Note**: To receive REACT, send SepETH to the Reactive faucet on Ethereum Sepolia (`0x9b9BB25f1A81078C544C829c5EB7822d747Cf434`). An equivalent amount will be sent to your address.
+[//]: # (* `SEPOLIA_CALLBACK_PROXY_ADDR` — 0x33Bbb7D0a2F1029550B0e91f653c4055DC9F4Dd8)
 
-### Step 1
+**Faucet**: To receive REACT tokens, send SepETH to the Reactive faucet at `0x9b9BB25f1A81078C544C829c5EB7822d747Cf434`. An equivalent amount of REACT will be sent to your address.
 
-Deploy the origin chain contract and assign the contract address from the response to `UNISWAP_L1_ADDR`.
+### Step 1 — Origin/Destination Contract
+
+Deploy the `UniswapHistoryDemoL1` contract and assign the `Deployed to` address from the response to `UNISWAP_L1_ADDR`.
 
 ```bash
 forge create --rpc-url $SEPOLIA_RPC --private-key $SEPOLIA_PRIVATE_KEY src/demos/uniswap-v2-history/UniswapHistoryDemoL1.sol:UniswapHistoryDemoL1 --constructor-args 0x0000000000000000000000000000000000000000
@@ -74,25 +75,23 @@ forge create --rpc-url $SEPOLIA_RPC --private-key $SEPOLIA_PRIVATE_KEY src/demos
 
 [//]: # (```)
 
-### Step 2
+### Step 2 — Reactive Contract
 
-Deploy the reactive contract and assign the contract address from the response to `UNISWAP_REACTIVE_ADDR`.
+Deploy the `UniswapHistoryDemoReactive` contract and assign the `Deployed to` address from the response to `UNISWAP_REACTIVE_ADDR`.
 
 ```bash
 forge create --rpc-url $REACTIVE_RPC --private-key $REACTIVE_PRIVATE_KEY src/demos/uniswap-v2-history/UniswapHistoryDemoReactive.sol:UniswapHistoryDemoReactive --constructor-args $UNISWAP_L1_ADDR
 ```
 
-### Step 3
+### Step 3 — Monitor Token Pair Activity
 
-Monitor the contract's activity by selecting an active pair address and assigning it to `ACTIVE_PAIR_ADDR`. Then, specify the desired block number and assign it to `BLOCK_NUMBER`. Send a data request to the Sepolia contract. You can use `0x85b6E66594C2DfAf7DC83b1a25D8FAE1091AF063` as pair address and `6843582` as block number.
+Assign the active pair address to `ACTIVE_PAIR_ADDR` and the block number to `BLOCK_NUMBER`. For example, use `0x85b6E66594C2DfAf7DC83b1a25D8FAE1091AF063` as the pair address and `6843582` as the block number. Send the data request to `UniswapHistoryDemoL1`. The contract will emit a log with the activity data shortly after.
 
 ```bash
-cast send $UNISWAP_L1_ADDR "request(address,uint256)" --rpc-url $SEPOLIA_RPC --private-key $SEPOLIA_PRIVATE_KEY $ACTIVE_PAIR_ADDR $BLOCK_NUMBER
+cast send $UNISWAP_L1_ADDR "request(address,uint256)" --rpc-url $SEPOLIA_RPC --private-key $SEPOLIA_PRIVATE_KEY 0x85b6E66594C2DfAf7DC83b1a25D8FAE1091AF063 6843582
 ```
 
-The contract should emit a log record with the collected turnover data of the specified token shortly thereafter.
-
-### Step 4
+### Step 4 — Reactive Contract State
 
 To stop the reactive contract:
 
