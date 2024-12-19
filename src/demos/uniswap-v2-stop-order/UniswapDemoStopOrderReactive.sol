@@ -84,35 +84,25 @@ contract UniswapDemoStopOrderReactive is IReactive, AbstractReactive {
 
 
     // Methods specific to ReactVM instance of the contract.
-    function react(
-        uint256 chain_id,
-        address _contract,
-        uint256 topic_0,
-        uint256 topic_1,
-        uint256 topic_2,
-        uint256 /* topic_3 */,
-        bytes calldata data,
-        uint256 /* block_number */,
-        uint256 /* op_code */
-    ) external vmOnly {
+    function react(LogRecord calldata log) external vmOnly {
         // TODO: Support for multiple dynamic orders? Not viable until we have dynamic subscriptions.
         // TODO: Unsubscribe on completion.
         assert(!done);
 
-        if (_contract == stop_order) {
+        if (log._contract == stop_order) {
             // TODO: Practically speaking, it's broken, because we also need to check the transfer direction.
             //       For the purposes of the demo, I'm just going to ignore that complication.
             if (
                 triggered &&
-                topic_0 == STOP_ORDER_STOP_TOPIC_0 &&
-                topic_1 == uint256(uint160(pair)) &&
-                topic_2 == uint256(uint160(client))
+                log.topic_0 == STOP_ORDER_STOP_TOPIC_0 &&
+                log.topic_1 == uint256(uint160(pair)) &&
+                log.topic_2 == uint256(uint160(client))
             ) {
                 done = true;
                 emit Done();
             }
         } else {
-            Reserves memory sync = abi.decode(data, ( Reserves ));
+            Reserves memory sync = abi.decode(log.data, ( Reserves ));
             if (below_threshold(sync) && !triggered) {
                 emit CallbackSent();
                 bytes memory payload = abi.encodeWithSignature(
@@ -125,7 +115,7 @@ contract UniswapDemoStopOrderReactive is IReactive, AbstractReactive {
                     threshold
                 );
                 triggered = true;
-                emit Callback(chain_id, stop_order, CALLBACK_GAS_LIMIT, payload);
+                emit Callback(log.chain_id, stop_order, CALLBACK_GAS_LIMIT, payload);
             }
         }
     }

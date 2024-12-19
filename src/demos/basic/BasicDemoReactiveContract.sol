@@ -34,7 +34,6 @@ contract BasicDemoReactiveContract is IReactive, AbstractReactive {
         address callback
     ) {
         service = ISystemContract(payable(_service));
-
         if (!vm) {
             service.subscribe(
                 SEPOLIA_CHAIN_ID,
@@ -49,22 +48,21 @@ contract BasicDemoReactiveContract is IReactive, AbstractReactive {
     }
 
     // Methods specific to ReactVM instance of the contract
-    function react(
-        uint256 chain_id,
-        address _contract,
-        uint256 topic_0,
-        uint256 topic_1,
-        uint256 topic_2,
-        uint256 topic_3,
-        bytes calldata data,
-        uint256 /* block_number */,
-        uint256 /* op_code */
-    ) external vmOnly {
-        emit Event(chain_id, _contract, topic_0, topic_1, topic_2, topic_3, data, ++counter);
+    function react(LogRecord calldata log) external vmOnly {
+        emit Event(
+            log.chain_id,
+            log._contract,
+            log.topic_0,
+            log.topic_1,
+            log.topic_2,
+            log.topic_3,
+            log.data,
+            ++counter
+        );
 
-        if (topic_3 >= 0.1 ether) {
+        if (log.topic_3 >= 0.01 ether) {
             bytes memory payload = abi.encodeWithSignature("callback(address)", address(0));
-            emit Callback(chain_id, _callback, GAS_LIMIT, payload);
+            emit Callback(log.chain_id, _callback, GAS_LIMIT, payload);
         }
     }
 
