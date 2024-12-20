@@ -33,7 +33,7 @@ contract UniswapHistoryDemoReactive is IReactive, AbstractPausableReactive {
     address private l1;
     mapping(address => Tick[]) private reserves;
 
-    constructor(address _l1) {
+    constructor(address _l1) payable {
         owner = msg.sender;
         paused = false;
         l1 = _l1;

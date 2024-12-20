@@ -22,7 +22,7 @@ contract NftOwnershipReactive is IReactive, AbstractPausableReactive {
     mapping(address => mapping(uint256 => address[])) private ownership;
     address private l1;
 
-    constructor(address _l1) {
+    constructor(address _l1) payable {
         owner = msg.sender;
         paused = false;
         l1 = _l1;

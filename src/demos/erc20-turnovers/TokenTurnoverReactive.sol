@@ -26,7 +26,7 @@ contract TokenTurnoverReactive is IReactive, AbstractPausableReactive {
     mapping(address => uint256) private turnovers;
     address private l1;
 
-    constructor(address _l1) {
+    constructor(address _l1) payable {
         paused = false;
         owner = msg.sender;
         l1 = _l1;

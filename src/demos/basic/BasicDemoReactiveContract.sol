@@ -32,7 +32,7 @@ contract BasicDemoReactiveContract is IReactive, AbstractReactive {
         address _contract,
         uint256 topic_0,
         address callback
-    ) {
+    ) payable {
         service = ISystemContract(payable(_service));
         if (!vm) {
             service.subscribe(

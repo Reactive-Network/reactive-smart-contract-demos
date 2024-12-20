@@ -52,7 +52,7 @@ contract UniswapDemoStopOrderReactive is IReactive, AbstractReactive {
         bool _token0,
         uint256 _coefficient,
         uint256 _threshold
-    ) {
+    ) payable {
         triggered = false;
         done = false;
         pair = _pair;
