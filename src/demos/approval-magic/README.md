@@ -35,7 +35,6 @@ Deploy the contracts to Ethereum Sepolia and Reactive Kopli by following these s
 * `CLIENT_WALLET` — Deployer's EOA wallet address
 
 [//]: # (* `SEPOLIA_CALLBACK_PROXY_ADDR` — 0x33Bbb7D0a2F1029550B0e91f653c4055DC9F4Dd8)
-
 [//]: # (* `KOPLI_CALLBACK_PROXY_ADDR` — 0x0000000000000000000000000000000000FFFFFF)
 
 **Faucet**: To receive REACT tokens, send SepETH to the Reactive faucet at `0x9b9BB25f1A81078C544C829c5EB7822d747Cf434`. An equivalent amount of REACT will be sent to your address.
@@ -70,16 +69,6 @@ The `Deployed to` address from the response should be assigned to `APPROVAL_SRV_
 [//]: # (```bash)
 
 [//]: # (cast send $APPROVAL_SRV_ADDR --rpc-url $SEPOLIA_RPC --private-key $SEPOLIA_PRIVATE_KEY --value 0.1ether)
-
-[//]: # (```)
-
-[//]: # ()
-[//]: # (To cover the debt of `APPROVAL_SRV_ADDR`, run this command:)
-
-[//]: # ()
-[//]: # (```bash)
-
-[//]: # (cast send --rpc-url $SEPOLIA_RPC --private-key $SEPOLIA_PRIVATE_KEY $APPROVAL_SRV_ADDR "coverDebt&#40;&#41;")
 
 [//]: # (```)
 
