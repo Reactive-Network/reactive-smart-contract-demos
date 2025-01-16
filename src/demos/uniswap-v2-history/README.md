@@ -9,9 +9,7 @@ The **Uniswap V2 Exchange Rate History Demo** tracks historical exchange rates f
 
 ## Contracts
 
-**Origin/Destination Chain Contract:** [UniswapHistoryDemoL1](https://github.com/Reactive-Network/reactive-smart-contract-demos/blob/main/src/demos/uniswap-v2-history/UniswapHistoryDemoL1.sol) handles resynchronization requests and processes responses. It emits `RequestReSync` for new requests and `ReSync` for processed data.
-
-**Reactive Contract:** [UniswapHistoryDemoReactive](https://github.com/Reactive-Network/reactive-smart-contract-demos/blob/main/src/demos/uniswap-v2-history/UniswapHistoryDemoReactive.sol) subscribes to Uniswap V2 sync events and processes resynchronization requests. It updates historical reserve data and emits `Sync` events for new data.
+**Origin/Destination Chain Contract**: [UniswapHistoryDemoL1](https://github.com/Reactive-Network/reactive-smart-contract-demos/blob/main/src/demos/uniswap-v2-history/UniswapHistoryDemoL1.sol) handles resynchronization requests and processes responses. It emits `RequestReSync` for new requests and `ReSync` for processed data.
 
 **Reactive Contract**: [UniswapHistoryDemoReactive](https://github.com/Reactive-Network/reactive-smart-contract-demos/blob/main/src/demos/uniswap-v2-history/UniswapHistoryDemoReactive.sol) subscribes to Uniswap V2 `Sync` events via `UNISWAP_V2_SYNC_TOPIC_0` and resynchronization requests via `REQUEST_RESYNC_TOPIC_0` on Ethereum Sepolia. It maintains a history of pair reserves in a local data structure. When a new `Sync` event arrives, the contract appends a record of the updated reserves and emits its own `Sync` event. On detecting a resync request, it retrieves the last known reserves up to the requested block number and emits a `Callback` event containing those reserves. As an extension of `AbstractPausableReactive`, this contract also supports pausing and resuming subscriptions.
 

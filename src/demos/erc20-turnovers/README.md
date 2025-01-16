@@ -4,23 +4,23 @@
 
 The **ERC-20 Turnovers Demo** tracks ERC-20 token turnovers across all contracts, providing the relevant data on request. This demo extends the principles introduced in the [Reactive Network Demo](https://github.com/Reactive-Network/reactive-smart-contract-demos/tree/main/src/demos/basic) and highlights two primary functionalities:
 
-- **Turnover Monitoring:** Observes token transfers to accumulate and report turnover data.
-- **Reactive Data Calls:** Provides real-time turnover information via callbacks to the origin contract.
+- **Turnover Monitoring**: Observes token transfers to accumulate and report turnover data.
+- **Reactive Data Calls**: Provides real-time turnover information via callbacks to the origin contract.
 
 ## Contracts
 
-**Origin/Destination Chain Contract:** [TokenTurnoverL1](https://github.com/Reactive-Network/reactive-smart-contract-demos/blob/main/src/demos/erc20-turnovers/TokenTurnoverL1.sol) manages turnover requests and responses for ERC-20 tokens, allowing the owner to request turnover data, which is then processed and returned by the reactive contract via callbacks.
+**Origin/Destination Chain Contract**: [TokenTurnoverL1](https://github.com/Reactive-Network/reactive-smart-contract-demos/blob/main/src/demos/erc20-turnovers/TokenTurnoverL1.sol) manages turnover requests and responses for ERC-20 tokens, allowing the owner to request turnover data, which is then processed and returned by the reactive contract via callbacks.
 
-**Reactive Contract:** [TokenTurnoverReactive](https://github.com/Reactive-Network/reactive-smart-contract-demos/blob/main/src/demos/erc20-turnovers/TokenTurnoverReactive.sol) subscribes to ERC‑20 transfer events via `ERC20_TRANSFER_TOPIC_0` and request events from `TokenTurnoverL1` via `L1_RQ_TOPIC_0` on Ethereum Sepolia. When a transfer event is received, it updates the token’s turnover record and emits a `Turnover` event. If the contract detects a request from `TokenTurnoverL1`, it responds by emitting a `Callback` event containing the current turnover data for the requested token. This contract extends `AbstractPausableReactive`, allowing subscriptions to be paused or resumed as needed.
+**Reactive Contract**: [TokenTurnoverReactive](https://github.com/Reactive-Network/reactive-smart-contract-demos/blob/main/src/demos/erc20-turnovers/TokenTurnoverReactive.sol) subscribes to ERC‑20 transfer events via `ERC20_TRANSFER_TOPIC_0` and request events from `TokenTurnoverL1` via `L1_RQ_TOPIC_0` on Ethereum Sepolia. When a transfer event is received, it updates the token’s turnover record and emits a `Turnover` event. If the contract detects a request from `TokenTurnoverL1`, it responds by emitting a `Callback` event containing the current turnover data for the requested token. This contract extends `AbstractPausableReactive`, allowing subscriptions to be paused or resumed as needed.
 
 ## Further Considerations
 
 There are several opportunities for improvement:
 
-- **Multi-Origin Subscriptions:** Expand to monitor multiple contracts for event tracking.
-- **Dynamic Subscriptions:** Enable real-time adjustments to subscriptions, allowing flexible and responsive tracking.
-- **Persistent State Management:** Maintain historical data context to improve reliability.
-- **Dynamic Callbacks:** Use arbitrary transaction payloads for more complex interactions and automation.
+- **Multi-Origin Subscriptions**: Expand to monitor multiple contracts for event tracking.
+- **Dynamic Subscriptions**: Enable real-time adjustments to subscriptions, allowing flexible and responsive tracking.
+- **Persistent State Management**: Maintain historical data context to improve reliability.
+- **Dynamic Callbacks**: Use arbitrary transaction payloads for more complex interactions and automation.
 
 ## Deployment & Testing
 
