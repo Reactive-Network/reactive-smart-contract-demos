@@ -4,7 +4,6 @@ pragma solidity >=0.8.0;
 
 import '../../../lib/reactive-lib/src/interfaces/IReactive.sol';
 import '../../../lib/reactive-lib/src/abstract-base/AbstractPausableReactive.sol';
-import '../../../lib/reactive-lib/src/interfaces/ISubscriptionService.sol';
 
 contract NftOwnershipReactive is IReactive, AbstractPausableReactive {
     event OwnershipTransfer(
