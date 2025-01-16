@@ -11,11 +11,11 @@ This setup can be adapted for various scenarios, from simple stop orders to full
 
 ## Contracts
 
-- **Origin Chain Contract**: [BasicDemoL1Contract](https://github.com/Reactive-Network/reactive-smart-contract-demos/blob/main/src/demos/basic/BasicDemoL1Contract.sol) receives Ether and returns it to the sender, emitting a `Received` event with transaction details.
+**Origin Chain Contract**: [BasicDemoL1Contract](https://github.com/Reactive-Network/reactive-smart-contract-demos/blob/main/src/demos/basic/BasicDemoL1Contract.sol) receives Ether and returns it to the sender, emitting a `Received` event with transaction details.
 
-- **Reactive Contract**: [BasicDemoReactiveContract](https://github.com/Reactive-Network/reactive-smart-contract-demos/blob/main/src/demos/basic/BasicDemoReactiveContract.sol) demonstrates a reactive subscription model on Ethereum Sepolia. It listens for logs from a specified contract and emits an `Event` for each incoming log while incrementing a local `counter`. If the incoming log’s `topic_3` value is at least `0.01 Ether`, it emits a `Callback` event containing a payload to invoke a `callback` function externally.
+**Reactive Contract**: [BasicDemoReactiveContract](https://github.com/Reactive-Network/reactive-smart-contract-demos/blob/main/src/demos/basic/BasicDemoReactiveContract.sol) demonstrates a reactive subscription model on Ethereum Sepolia. It listens for logs from a specified contract and emits an `Event` for each incoming log while incrementing a local `counter`. If the incoming log’s `topic_3` value is at least `0.01 Ether`, it emits a `Callback` event containing a payload to invoke a `callback` function externally.
 
-- **Destination Chain Contract**: [BasicDemoL1Callback](https://github.com/Reactive-Network/reactive-smart-contract-demos/blob/main/src/demos/basic/BasicDemoL1Callback.sol) logs callback details upon receiving a call, capturing the origin, sender, and reactive sender addresses. It could also be a third-party contract.
+**Destination Chain Contract**: [BasicDemoL1Callback](https://github.com/Reactive-Network/reactive-smart-contract-demos/blob/main/src/demos/basic/BasicDemoL1Callback.sol) logs callback details upon receiving a call, capturing the origin, sender, and reactive sender addresses. It could also be a third-party contract.
 
 ## Further Considerations
 
