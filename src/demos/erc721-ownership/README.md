@@ -9,9 +9,10 @@ The **ERC-721 Ownership Demo** tracks ERC-721 token ownership and synchronizes o
 
 ## Contracts
 
-- **Origin/Destination Chain Contract:** [NftOwnershipL1](https://github.com/Reactive-Network/reactive-smart-contract-demos/blob/main/src/demos/erc721-ownership/NftOwnershipL1.sol) manages ownership requests and responses for ERC-721 tokens, allowing the owner to request ownership data, which is then processed and returned by the reactive contract via callbacks.
+**Origin/Destination Chain Contract:** [NftOwnershipL1](https://github.com/Reactive-Network/reactive-smart-contract-demos/blob/main/src/demos/erc721-ownership/NftOwnershipL1.sol) manages ownership requests and responses for ERC-721 tokens, allowing the owner to request ownership data, which is then processed and returned by the reactive contract via callbacks.
 
-- **Reactive Contract:** [NftOwnershipReactive](https://github.com/Reactive-Network/reactive-smart-contract-demos/blob/main/src/demos/erc721-ownership/NftOwnershipReactive.sol) listens for ERC-721 transfer events and requests from `NftOwnershipL1`. It updates ownership records and responds with callbacks containing current ownership data.
+**Reactive Contract**:  
+[NftOwnershipReactive](https://github.com/Reactive-Network/reactive-smart-contract-demos/blob/main/src/demos/erc721-ownership/NftOwnershipReactive.sol) subscribes to ERC‑721 transfer events via `ERC721_TRANSFER_TOPIC_0` and ownership‑related requests via `L1_RQ_TOPIC_0` from the `NftOwnershipL1` contract on Ethereum Sepolia. When an eligible transfer is recorded, it appends the new owner to the token’s ownership list and emits an `OwnershipTransfer` event. On detecting a request from `NftOwnershipL1`, it responds by emitting a `Callback` event containing the full ownership history for the requested token. As an extension of `AbstractPausableReactive`, this contract also supports pausing and resuming its subscriptions.
 
 ## Further Considerations
 
