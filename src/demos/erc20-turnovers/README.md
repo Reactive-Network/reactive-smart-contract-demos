@@ -9,9 +9,9 @@ The **ERC-20 Turnovers Demo** tracks ERC-20 token turnovers across all contracts
 
 ## Contracts
 
-- **Origin/Destination Chain Contract:** [TokenTurnoverL1](https://github.com/Reactive-Network/reactive-smart-contract-demos/blob/main/src/demos/erc20-turnovers/TokenTurnoverL1.sol) manages turnover requests and responses for ERC-20 tokens, allowing the owner to request turnover data, which is then processed and returned by the reactive contract via callbacks.
+**Origin/Destination Chain Contract:** [TokenTurnoverL1](https://github.com/Reactive-Network/reactive-smart-contract-demos/blob/main/src/demos/erc20-turnovers/TokenTurnoverL1.sol) manages turnover requests and responses for ERC-20 tokens, allowing the owner to request turnover data, which is then processed and returned by the reactive contract via callbacks.
 
-- **Reactive Contract:** [TokenTurnoverReactive](https://github.com/Reactive-Network/reactive-smart-contract-demos/blob/main/src/demos/erc20-turnovers/TokenTurnoverReactive.sol) listens for ERC-20 transfer events and specific requests from `TokenTurnoverL1`. It updates turnover records and responds to requests by emitting callbacks with current turnover data.
+**Reactive Contract:** [TokenTurnoverReactive](https://github.com/Reactive-Network/reactive-smart-contract-demos/blob/main/src/demos/erc20-turnovers/TokenTurnoverReactive.sol) subscribes to ERC‑20 transfer events via `ERC20_TRANSFER_TOPIC_0` and request events from `TokenTurnoverL1` via `L1_RQ_TOPIC_0` on Ethereum Sepolia. When a transfer event is received, it updates the token’s turnover record and emits a `Turnover` event. If the contract detects a request from `TokenTurnoverL1`, it responds by emitting a `Callback` event containing the current turnover data for the requested token. This contract extends `AbstractPausableReactive`, allowing subscriptions to be paused or resumed as needed.
 
 ## Further Considerations
 
@@ -41,18 +41,6 @@ Deploy the `TokenTurnoverL1` contract and assign the `Deployed to` address from 
 ```bash
 forge create --rpc-url $SEPOLIA_RPC --private-key $SEPOLIA_PRIVATE_KEY src/demos/erc20-turnovers/TokenTurnoverL1.sol:TokenTurnoverL1 --constructor-args $SEPOLIA_CALLBACK_PROXY_ADDR
 ```
-
-[//]: # (#### Callback Payment)
-
-[//]: # ()
-[//]: # (To ensure a successful callback, the callback contract must have an ETH balance. Find more details [here]&#40;https://dev.reactive.network/system-contract#callback-payments&#41;. To fund the contract, run the following command:)
-
-[//]: # ()
-[//]: # (```bash)
-
-[//]: # (cast send $TURNOVER_L1_ADDR --rpc-url $SEPOLIA_RPC --private-key $SEPOLIA_PRIVATE_KEY --value 0.1ether)
-
-[//]: # (```)
 
 ### Step 2 — Reactive Contract
 
