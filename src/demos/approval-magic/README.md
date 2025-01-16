@@ -6,15 +6,15 @@ The **Approval Magic Demo** extends reactive and subscription-based concepts to 
 
 ## Contracts
 
-- **Subscription-Based Approval Service:** [ApprovalService](https://github.com/Reactive-Network/reactive-smart-contract-demos/blob/main/src/demos/approval-magic/ApprovalService.sol) manages subscription services, processes approval callbacks, and settles gas fees, updating subscription status based on transaction outcomes and emitting `Subscribe` and `Unsubscribe` events.
+- **Subscription-Based Approval Service**: The [ApprovalService](https://github.com/Reactive-Network/reactive-smart-contract-demos/blob/main/src/demos/approval-magic/ApprovalService.sol) contract is responsible for subscription-based approvals. Users (or contracts) can subscribe by paying a fee, enabling them to receive and process approval callbacks that originate from token approvals. This service tracks subscribers, covers the gas cost of triggered callbacks, and emits `Subscribe`/`Unsubscribe` events. If the subscription conditions aren’t met or a contract fails to pay for its gas usage, the subscriber is automatically unsubscribed.
 
-- **Reactive Contract:** [ApprovalListener](https://github.com/Reactive-Network/reactive-smart-contract-demos/blob/main/src/demos/approval-magic/ApprovalListener.sol) interacts with `ISubscriptionService` and `ApprovalService` to manage subscriptions and handle reactive network events, triggering actions like approval handling and subscription updates.
+- **Reactive Contract**: The [ApprovalListener](https://github.com/Reactive-Network/reactive-smart-contract-demos/blob/main/src/demos/approval-magic/ApprovalListener.sol) contract elaborates on how the Reactive Network can integrate with the `ApprovalService`. It listens for specific log events — such as `Subscribe`, `Unsubscribe`, and ERC-20 approval signatures — and reacts accordingly. When these events occur, `ApprovalListener` triggers callbacks to manage subscriptions or handle token approvals.
 
-- **Token Initialization and Distribution:** [ApprovalDemoToken](https://github.com/Reactive-Network/reactive-smart-contract-demos/blob/main/src/demos/approval-magic/ApprovalDemoToken.sol) is an ERC-20 token contract that mints 100 tokens to the deployer and allows additional token requests (1 Ether each) through the `request()` function. A `recipients` mapping ensures each address can only request tokens once.
+- **Token Initialization and Distribution**: The [ApprovalDemoToken](https://github.com/Reactive-Network/reactive-smart-contract-demos/blob/main/src/demos/approval-magic/ApprovalDemoToken.sol) is an ERC-20 token used for testing. At deployment, it mints 100 tokens for the deployer. Additionally, anyone can call `request()` once to receive 1 token (costing 1 Ether).
 
-- **Token Exchange:** [ApprovalEthExch](https://github.com/Reactive-Network/reactive-smart-contract-demos/blob/main/src/demos/approval-magic/ApprovalEthExch.sol) manages token exchange approvals and settlements, interacting with `ApprovalService` and ERC-20 tokens. It includes owner access control, subscription management, and secure token transfers through approval callbacks.
+- **Token Exchange**: The [ApprovalEthExch](https://github.com/Reactive-Network/reactive-smart-contract-demos/blob/main/src/demos/approval-magic/ApprovalEthExch.sol) contract shows how a subscription-based approval flow can facilitate token-for-ETH exchanges. It relies on `ApprovalService` to handle approval callbacks, ensuring tokens can be transferred without requiring extra user interaction. Owners can manage subscriptions, withdraw funds, and perform this exchange as a building block for more complex trading or DeFi protocols.
 
-- **Automated Token Swaps:** [ApprovalMagicSwap](https://github.com/Reactive-Network/reactive-smart-contract-demos/blob/main/src/demos/approval-magic/ApprovalMagicSwap.sol) facilitates token swaps between two ERC-20 tokens via Uniswap V2, using subscription-based approvals from `ApprovalService` to manage and execute these swaps.
+- **Automated Token Swaps**: The [ApprovalMagicSwap](https://github.com/Reactive-Network/reactive-smart-contract-demos/blob/main/src/demos/approval-magic/ApprovalMagicSwap.sol) contract extends the subscription-based approach by incorporating Uniswap V2 token swaps. When a token approval triggers a callback, this contract automatically swaps the approved tokens for another ERC-20 token via Uniswap — again, without requiring the user to take any extra steps.
 
 ## Further Considerations
 
@@ -33,9 +33,6 @@ Deploy the contracts to Ethereum Sepolia and Reactive Kopli by following these s
 * `SEPOLIA_PRIVATE_KEY` — Ethereum Sepolia private key
 * `REACTIVE_RPC` — RPC URL for Reactive Kopli (https://kopli-rpc.rkt.ink).
 * `CLIENT_WALLET` — Deployer's EOA wallet address
-
-[//]: # (* `SEPOLIA_CALLBACK_PROXY_ADDR` — 0x33Bbb7D0a2F1029550B0e91f653c4055DC9F4Dd8)
-[//]: # (* `KOPLI_CALLBACK_PROXY_ADDR` — 0x0000000000000000000000000000000000FFFFFF)
 
 **Faucet**: To receive REACT tokens, send SepETH to the Reactive faucet at `0x9b9BB25f1A81078C544C829c5EB7822d747Cf434`. An equivalent amount of REACT will be sent to your address.
 
@@ -62,15 +59,6 @@ forge create src/demos/approval-magic/ApprovalService.sol:ApprovalService --rpc-
 ```
 
 The `Deployed to` address from the response should be assigned to `APPROVAL_SRV_ADDR`.
-
-[//]: # (**NOTE**: To ensure a successful callback, `APPROVAL_SRV_ADDR` must have an ETH balance. Find more details [here]&#40;https://dev.reactive.network/system-contract#callback-payments&#41;. To fund the contract, run the following command:)
-
-[//]: # ()
-[//]: # (```bash)
-
-[//]: # (cast send $APPROVAL_SRV_ADDR --rpc-url $SEPOLIA_RPC --private-key $SEPOLIA_PRIVATE_KEY --value 0.1ether)
-
-[//]: # (```)
 
 ### Step 2 — Approval Listener
 
