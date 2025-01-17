@@ -1,4 +1,4 @@
-# Basics Of Reactive Smart Contracts
+# Reactive Tech
 
 Reactive smart contracts run on a standard EVM and can be written in any EVM-compatible language, although the Application Binary Interfaces (ABIs) are particularly customized for Solidity. Their unique capabilities stem from reactive nodes and a specialized pre-deployed system contract.
 
@@ -15,28 +15,39 @@ Reactive contracts running in the ReactVM subnet have limited capabilities for i
 
 ## Subscription Basics
 
-Reactive contract's static subscriptions are configured by calling the `subscribe()` method of the Reactive Network's system contract upon deployment. This must happen in the `constructor()`, and the reactive contract must adeptly handle reverts. The latter requirement arises because reactive contracts are deployed both to the Reactive Network and to their deployer's private ReactVM, where the system contract is not present. The following code will accomplish this:
+In a reactive contract, subscriptions are established by invoking the `subscribe()` method of the Reactive Network's system contract. This method is typically called in the contract's `constructor()` or dynamically via a callback.
+
+Since deployments occur both on the Reactive Network and in the deployer's private ReactVM, where the system contract is not present, the reactive contract must handle potential reverts. [IReactive](https://github.com/Reactive-Network/reactive-lib/blob/main/src/interfaces/IReactive.sol), [AbstractReactive](https://github.com/Reactive-Network/reactive-lib/blob/main/src/abstract-base/AbstractReactive.sol), and [ISystemContract](https://github.com/Reactive-Network/reactive-lib/blob/main/src/interfaces/ISystemContract.sol) should be implemented. Here's an example of subscription in the constructor, taken from the [Basic Demo reactive contract](https://github.com/Reactive-Network/reactive-smart-contract-demos/blob/main/src/demos/basic/BasicDemoReactiveContract.sol).
 
 ```solidity
-bool private vm;
+// State specific to reactive network instance of the contract
+address private _callback;
 
-constructor() {
-    SubscriptionService service = SubscriptionService(service_address);
-    bytes memory payload = abi.encodeWithSignature(
-        "subscribe(uint256,address,uint256,uint256,uint256,uint256)",
-        CHAIN_ID,
-        CONTRACT_ADDRESS,
-        TOPIC_0,
-        REACTIVE_IGNORE,
-        REACTIVE_IGNORE,
-        REACTIVE_IGNORE
-    );
-    (bool subscription_result,) = address(service).call(payload);
-    if (!subscription_result) {
-        vm = true;
+// State specific to ReactVM instance of the contract
+uint256 public counter;
+
+constructor(
+        address _service,
+        address _contract,
+        uint256 topic_0,
+        address callback
+    ) payable {
+        service = ISystemContract(payable(_service));
+        if (!vm) {
+            service.subscribe(
+                CHAIN_ID,
+                _contract,
+                topic_0,
+                REACTIVE_IGNORE,
+                REACTIVE_IGNORE,
+                REACTIVE_IGNORE
+            );
+        }
+        _callback = callback;
     }
-}
 ```
+
+The Reactive Network uses the subscription system to link various `uint256` fields to specific events. Subscribers can then filter events based on exact matches of these fields.
 
 Reactive contracts can change their subscriptions dynamically by using callbacks to Reactive Network instances (as opposed to ReactVM) of themselves, which can, in turn, call the system contract to effect the appropriate changes to subscriptions.
 
@@ -62,20 +73,41 @@ On the other hand, **YOU CAN'T**:
 
 ## Processing Events
 
-To process incoming events, a reactive smart contract must implement the `IReactive` interface. This involves implementing a single method with the following signature:
+To process incoming events, a reactive contract must implement the `IReactive` interface. This involves implementing the following code:
 
 ```solidity
-function react(
-    uint256 chain_id,
-    address _contract,
-    uint256 topic_0,
-    uint256 topic_1,
-    uint256 topic_2,
-    uint256 topic_3,
-    bytes calldata data,
-    uint256 block_number,
-    uint256 op_code
-) external;
+pragma solidity >=0.8.0;
+
+import './IPayer.sol';
+
+// @title Interface for reactive contracts.
+// @notice Reactive contracts receive notifications about new events matching the criteria of their event subscriptions.
+interface IReactive is IPayer {
+    struct LogRecord {
+        uint256 chain_id;
+        address _contract;
+        uint256 topic_0;
+        uint256 topic_1;
+        uint256 topic_2;
+        uint256 topic_3;
+        bytes data;
+        uint256 block_number;
+        uint256 op_code;
+        uint256 block_hash;
+        uint256 tx_hash;
+        uint256 log_index;
+    }
+
+    event Callback(
+        uint256 indexed chain_id,
+        address indexed _contract,
+        uint64 indexed gas_limit,
+        bytes payload
+    );
+
+    // @notice Entry point for handling new event notifications.
+    function react(LogRecord calldata log) external;
+}
 ```
 
 The Reactive Network will feed events matching the reactive contract's subscriptions by initiating calls to this method.
