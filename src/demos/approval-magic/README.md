@@ -76,12 +76,6 @@ forge create src/demos/approval-magic/ApprovalListener.sol:ApprovalListener --rp
 
 The `Deployed to` address should be assigned to `APPROVAL_RCT_ADDR`.
 
-**Callback Payment**: To ensure a successful callback, `APPROVAL_RCT_ADDR` must have REACT tokens. To fund the contract, run:
-
-```bash
-cast send $APPROVAL_RCT_ADDR --rpc-url $REACTIVE_RPC --private-key $REACTIVE_PRIVATE_KEY --value 0.1ether
-```
-
 ### Step 3 — Client Contract
 
 #### Token Deployment
