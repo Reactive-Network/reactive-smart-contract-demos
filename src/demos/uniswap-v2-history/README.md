@@ -9,9 +9,9 @@ The **Uniswap V2 Exchange Rate History Demo** tracks historical exchange rates f
 
 ## Contracts
 
-- **Origin/Destination Chain Contract:** [UniswapHistoryDemoL1](https://github.com/Reactive-Network/reactive-smart-contract-demos/blob/main/src/demos/uniswap-v2-history/UniswapHistoryDemoL1.sol) handles resynchronization requests and processes responses. It emits `RequestReSync` for new requests and `ReSync` for processed data.
+**Origin/Destination Chain Contract**: [UniswapHistoryDemoL1](https://github.com/Reactive-Network/reactive-smart-contract-demos/blob/main/src/demos/uniswap-v2-history/UniswapHistoryDemoL1.sol) handles resynchronization requests and processes responses. It emits `RequestReSync` for new requests and `ReSync` for processed data.
 
-- **Reactive Contract:** [UniswapHistoryDemoReactive](https://github.com/Reactive-Network/reactive-smart-contract-demos/blob/main/src/demos/uniswap-v2-history/UniswapHistoryDemoReactive.sol) subscribes to Uniswap V2 sync events and processes resynchronization requests. It updates historical reserve data and emits `Sync` events for new data.
+**Reactive Contract**: [UniswapHistoryDemoReactive](https://github.com/Reactive-Network/reactive-smart-contract-demos/blob/main/src/demos/uniswap-v2-history/UniswapHistoryDemoReactive.sol) subscribes to Uniswap V2 `Sync` events via `UNISWAP_V2_SYNC_TOPIC_0` and resynchronization requests via `REQUEST_RESYNC_TOPIC_0` on Ethereum Sepolia. It maintains a history of pair reserves in a local data structure. When a new `Sync` event arrives, the contract appends a record of the updated reserves and emits its own `Sync` event. On detecting a resync request, it retrieves the last known reserves up to the requested block number and emits a `Callback` event containing those reserves. As an extension of `AbstractPausableReactive`, this contract also supports pausing and resuming subscriptions.
 
 ## Further Considerations
 
@@ -30,8 +30,7 @@ Deploy the contracts to Ethereum Sepolia and Reactive Kopli by following these s
 * `SEPOLIA_PRIVATE_KEY` — Ethereum Sepolia private key
 * `REACTIVE_RPC` — RPC URL for Reactive Kopli (https://kopli-rpc.rkt.ink).
 * `REACTIVE_PRIVATE_KEY` — Reactive Kopli private key
-
-[//]: # (* `SEPOLIA_CALLBACK_PROXY_ADDR` — 0x33Bbb7D0a2F1029550B0e91f653c4055DC9F4Dd8)
+* `SEPOLIA_CALLBACK_PROXY_ADDR` — 0x33Bbb7D0a2F1029550B0e91f653c4055DC9F4Dd8_
 
 **Faucet**: To receive REACT tokens, send SepETH to the Reactive faucet at `0x9b9BB25f1A81078C544C829c5EB7822d747Cf434`. An equivalent amount of REACT will be sent to your address.
 
@@ -40,47 +39,15 @@ Deploy the contracts to Ethereum Sepolia and Reactive Kopli by following these s
 Deploy the `UniswapHistoryDemoL1` contract and assign the `Deployed to` address from the response to `UNISWAP_L1_ADDR`.
 
 ```bash
-forge create --rpc-url $SEPOLIA_RPC --private-key $SEPOLIA_PRIVATE_KEY src/demos/uniswap-v2-history/UniswapHistoryDemoL1.sol:UniswapHistoryDemoL1 --constructor-args 0x0000000000000000000000000000000000000000
+forge create --rpc-url $SEPOLIA_RPC --private-key $SEPOLIA_PRIVATE_KEY src/demos/uniswap-v2-history/UniswapHistoryDemoL1.sol:UniswapHistoryDemoL1 --constructor-args $SEPOLIA_CALLBACK_PROXY_ADDR
 ```
-
-[//]: # (#### Callback Payment)
-
-[//]: # ()
-[//]: # (To ensure a successful callback, the callback contract must have an ETH balance. Find more details [here]&#40;https://dev.reactive.network/system-contract#callback-payments&#41;. To fund the contract, run the following command:)
-
-[//]: # ()
-[//]: # (```bash)
-
-[//]: # (cast send $UNISWAP_L1_ADDR --rpc-url $SEPOLIA_RPC --private-key $SEPOLIA_PRIVATE_KEY --value 0.1ether)
-
-[//]: # (```)
-
-[//]: # ()
-[//]: # (To cover the debt of the callback contact, run this command:)
-
-[//]: # ()
-[//]: # (```bash)
-
-[//]: # (cast send --rpc-url $SEPOLIA_RPC --private-key $SEPOLIA_PRIVATE_KEY $UNISWAP_L1_ADDR "coverDebt&#40;&#41;")
-
-[//]: # (```)
-
-[//]: # ()
-[//]: # (Alternatively, you can deposit funds into the [Callback Proxy]&#40;https://dev.reactive.network/origins-and-destinations&#41; contract on Sepolia, using the command below. The EOA address whose private key signs the transaction pays the fee.)
-
-[//]: # ()
-[//]: # (```bash)
-
-[//]: # (cast send --rpc-url $SEPOLIA_RPC --private-key $SEPOLIA_PRIVATE_KEY $SEPOLIA_CALLBACK_PROXY_ADDR "depositTo&#40;address&#41;" $UNISWAP_L1_ADDR --value 0.1ether)
-
-[//]: # (```)
 
 ### Step 2 — Reactive Contract
 
 Deploy the `UniswapHistoryDemoReactive` contract and assign the `Deployed to` address from the response to `UNISWAP_REACTIVE_ADDR`.
 
 ```bash
-forge create --rpc-url $REACTIVE_RPC --private-key $REACTIVE_PRIVATE_KEY src/demos/uniswap-v2-history/UniswapHistoryDemoReactive.sol:UniswapHistoryDemoReactive --constructor-args $UNISWAP_L1_ADDR
+forge create --rpc-url $REACTIVE_RPC --private-key $REACTIVE_PRIVATE_KEY src/demos/uniswap-v2-history/UniswapHistoryDemoReactive.sol:UniswapHistoryDemoReactive --value 0.1ether --constructor-args $UNISWAP_L1_ADDR
 ```
 
 ### Step 3 — Monitor Token Pair Activity

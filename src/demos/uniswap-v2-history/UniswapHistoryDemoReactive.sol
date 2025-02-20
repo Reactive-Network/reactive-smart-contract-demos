@@ -4,7 +4,6 @@ pragma solidity >=0.8.0;
 
 import '../../../lib/reactive-lib/src/interfaces/IReactive.sol';
 import '../../../lib/reactive-lib/src/abstract-base/AbstractPausableReactive.sol';
-import '../../../lib/reactive-lib/src/interfaces/ISubscriptionService.sol';
 
 struct Reserves {
     uint112 reserve0;
@@ -33,7 +32,7 @@ contract UniswapHistoryDemoReactive is IReactive, AbstractPausableReactive {
     address private l1;
     mapping(address => Tick[]) private reserves;
 
-    constructor(address _l1) {
+    constructor(address _l1) payable {
         owner = msg.sender;
         paused = false;
         l1 = _l1;
@@ -72,29 +71,19 @@ contract UniswapHistoryDemoReactive is IReactive, AbstractPausableReactive {
     }
 
     // Methods specific to ReactVM contract instance
-    function react(
-        uint256 chain_id,
-        address _contract,
-        uint256 topic_0,
-        uint256 topic_1,
-        uint256 topic_2,
-        uint256 /* topic_3 */,
-        bytes calldata data,
-        uint256 block_number,
-        uint256 /* op_code */
-    ) external vmOnly {
-        if (topic_0 == UNISWAP_V2_SYNC_TOPIC_0) {
-            Reserves memory sync = abi.decode(data, ( Reserves ));
-            Tick[] storage ticks = reserves[_contract];
-            ticks.push(Tick({ block_number: block_number, reserves: sync }));
-            emit Sync(_contract, block_number, sync.reserve0, sync.reserve1);
+    function react(LogRecord calldata log) external vmOnly {
+        if (log.topic_0 == UNISWAP_V2_SYNC_TOPIC_0) {
+            Reserves memory sync = abi.decode(log.data, ( Reserves ));
+            Tick[] storage ticks = reserves[log._contract];
+            ticks.push(Tick({ block_number: log.block_number, reserves: sync }));
+            emit Sync(log._contract, log.block_number, sync.reserve0, sync.reserve1);
         } else {
-            Tick[] storage ticks = reserves[address(uint160(topic_1))];
+            Tick[] storage ticks = reserves[address(uint160(log.topic_1))];
             uint112 reserve0 = 0;
             uint112 reserve1 = 0;
 
             for (uint ix = 0; ix != ticks.length; ++ix) {
-                if (ticks[ix].block_number > topic_2) {
+                if (ticks[ix].block_number > log.topic_2) {
                     break;
                 }
                 reserve0 = ticks[ix].reserves.reserve0;
@@ -103,13 +92,13 @@ contract UniswapHistoryDemoReactive is IReactive, AbstractPausableReactive {
             bytes memory payload = abi.encodeWithSignature(
                 "resync(address,address,uint256,uint112,uint112)",
                 address(0),
-                address(uint160(topic_1)),
-                topic_2,
+                address(uint160(log.topic_1)),
+                log.topic_2,
                 reserve0,
                 reserve1
             );
 
-            emit Callback(chain_id, l1, CALLBACK_GAS_LIMIT, payload);
+            emit Callback(log.chain_id, l1, CALLBACK_GAS_LIMIT, payload);
         }
     }
 }

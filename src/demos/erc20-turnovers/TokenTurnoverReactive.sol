@@ -4,7 +4,6 @@ pragma solidity >=0.8.0;
 
 import '../../../lib/reactive-lib/src/interfaces/IReactive.sol';
 import '../../../lib/reactive-lib/src/abstract-base/AbstractPausableReactive.sol';
-import '../../../lib/reactive-lib/src/interfaces/ISubscriptionService.sol';
 
 struct Transfer {
     uint256 tokens;
@@ -26,7 +25,7 @@ contract TokenTurnoverReactive is IReactive, AbstractPausableReactive {
     mapping(address => uint256) private turnovers;
     address private l1;
 
-    constructor(address _l1) {
+    constructor(address _l1) payable {
         paused = false;
         owner = msg.sender;
         l1 = _l1;
@@ -65,34 +64,24 @@ contract TokenTurnoverReactive is IReactive, AbstractPausableReactive {
     }
 
     // Methods specific to ReactVM instance of the contract
-    function react(
-        uint256 chain_id,
-        address _contract,
-        uint256 topic_0,
-        uint256 topic_1,
-        uint256 /* topic_2 */,
-        uint256 /* topic_3 */,
-        bytes calldata data,
-        uint256 /* block_number */,
-        uint256 op_code
-    ) external vmOnly {
+    function react(LogRecord calldata log) external vmOnly {
         // Note that we cannot directly check the `paused` variable, because the state of the contract
         // in reactive network is not shared with ReactVM state.
 
-        if (topic_0 == ERC20_TRANSFER_TOPIC_0) {
-            if (op_code == 3) {
-                Transfer memory xfer = abi.decode(data, ( Transfer ));
-                turnovers[_contract] += xfer.tokens;
-                emit Turnover(_contract, xfer.tokens);
+        if (log.topic_0 == ERC20_TRANSFER_TOPIC_0) {
+            if (log.op_code == 3) {
+                Transfer memory xfer = abi.decode(log.data, ( Transfer ));
+                turnovers[log._contract] += xfer.tokens;
+                emit Turnover(log._contract, xfer.tokens);
             }
         } else {
             bytes memory payload = abi.encodeWithSignature(
                 "callback(address,address,uint256)",
                 address(0),
-                address(uint160(topic_1)),
-                turnover(address(uint160(topic_1)))
+                address(uint160(log.topic_1)),
+                turnover(address(uint160(log.topic_1)))
             );
-            emit Callback(chain_id, l1, CALLBACK_GAS_LIMIT, payload);
+            emit Callback(log.chain_id, l1, CALLBACK_GAS_LIMIT, payload);
         }
     }
 

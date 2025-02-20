@@ -9,9 +9,9 @@ The **ERC-721 Ownership Demo** tracks ERC-721 token ownership and synchronizes o
 
 ## Contracts
 
-- **Origin/Destination Chain Contract:** [NftOwnershipL1](https://github.com/Reactive-Network/reactive-smart-contract-demos/blob/main/src/demos/erc721-ownership/NftOwnershipL1.sol) manages ownership requests and responses for ERC-721 tokens, allowing the owner to request ownership data, which is then processed and returned by the reactive contract via callbacks.
+**Origin/Destination Chain Contract**: [NftOwnershipL1](https://github.com/Reactive-Network/reactive-smart-contract-demos/blob/main/src/demos/erc721-ownership/NftOwnershipL1.sol) manages ownership requests and responses for ERC-721 tokens, allowing the owner to request ownership data, which is then processed and returned by the reactive contract via callbacks.
 
-- **Reactive Contract:** [NftOwnershipReactive](https://github.com/Reactive-Network/reactive-smart-contract-demos/blob/main/src/demos/erc721-ownership/NftOwnershipReactive.sol) listens for ERC-721 transfer events and requests from `NftOwnershipL1`. It updates ownership records and responds with callbacks containing current ownership data.
+**Reactive Contract**: [NftOwnershipReactive](https://github.com/Reactive-Network/reactive-smart-contract-demos/blob/main/src/demos/erc721-ownership/NftOwnershipReactive.sol) subscribes to ERC‑721 transfer events via `ERC721_TRANSFER_TOPIC_0` and ownership‑related requests via `L1_RQ_TOPIC_0` from the `NftOwnershipL1` contract on Ethereum Sepolia. When an eligible transfer is recorded, it appends the new owner to the token’s ownership list and emits an `OwnershipTransfer` event. On detecting a request from `NftOwnershipL1`, it responds by emitting a `Callback` event containing the full ownership history for the requested token. As an extension of `AbstractPausableReactive`, this contract also supports pausing and resuming its subscriptions.
 
 ## Further Considerations
 
@@ -30,8 +30,7 @@ Deploy the contracts to Ethereum Sepolia and Reactive Kopli by following these s
 * `SEPOLIA_PRIVATE_KEY` — Ethereum Sepolia private key
 * `REACTIVE_RPC` — RPC URL for Reactive Kopli (https://kopli-rpc.rkt.ink).
 * `REACTIVE_PRIVATE_KEY` — Reactive Kopli private key
-
-[//]: # (* `SEPOLIA_CALLBACK_PROXY_ADDR` — 0x33Bbb7D0a2F1029550B0e91f653c4055DC9F4Dd8)
+* `SEPOLIA_CALLBACK_PROXY_ADDR` — 0x33Bbb7D0a2F1029550B0e91f653c4055DC9F4Dd8
 
 **Faucet**: To receive REACT tokens, send SepETH to the Reactive faucet at `0x9b9BB25f1A81078C544C829c5EB7822d747Cf434`. An equivalent amount of REACT will be sent to your address.
 
@@ -40,7 +39,7 @@ Deploy the contracts to Ethereum Sepolia and Reactive Kopli by following these s
 Deploy the `NftOwnershipL1` contract and assign the `Deployed to` address from the response to `OWNERSHIP_L1_ADDR`.
 
 ```bash
-forge create --rpc-url $SEPOLIA_RPC --private-key $SEPOLIA_PRIVATE_KEY src/demos/erc721-ownership/NftOwnershipL1.sol:NftOwnershipL1 --constructor-args 0x0000000000000000000000000000000000000000
+forge create --rpc-url $SEPOLIA_RPC --private-key $SEPOLIA_PRIVATE_KEY src/demos/erc721-ownership/NftOwnershipL1.sol:NftOwnershipL1 --constructor-args $SEPOLIA_CALLBACK_PROXY_ADDR
 ```
 
 [//]: # (#### Callback Payment)
@@ -55,32 +54,12 @@ forge create --rpc-url $SEPOLIA_RPC --private-key $SEPOLIA_PRIVATE_KEY src/demos
 
 [//]: # (```)
 
-[//]: # ()
-[//]: # (To cover the debt of the callback contact, run this command:)
-
-[//]: # ()
-[//]: # (```bash)
-
-[//]: # (cast send --rpc-url $SEPOLIA_RPC --private-key $SEPOLIA_PRIVATE_KEY $OWNERSHIP_L1_ADDR "coverDebt&#40;&#41;")
-
-[//]: # (```)
-
-[//]: # ()
-[//]: # (Alternatively, you can deposit funds into the [Callback Proxy]&#40;https://dev.reactive.network/origins-and-destinations&#41; contract on Sepolia, using the command below. The EOA address whose private key signs the transaction pays the fee.)
-
-[//]: # ()
-[//]: # (```bash)
-
-[//]: # (cast send --rpc-url $SEPOLIA_RPC --private-key $SEPOLIA_PRIVATE_KEY $SEPOLIA_CALLBACK_PROXY_ADDR "depositTo&#40;address&#41;" $OWNERSHIP_L1_ADDR --value 0.1ether)
-
-[//]: # (```)
-
 ### Step 2 — Reactive Contract
 
 Deploy the `NftOwnershipReactive` contract and assign the `Deployed to` address from the response to `OWNERSHIP_REACTIVE_ADDR`.
 
 ```bash
-forge create --rpc-url $REACTIVE_RPC --private-key $REACTIVE_PRIVATE_KEY src/demos/erc721-ownership/NftOwnershipReactive.sol:NftOwnershipReactive --constructor-args $OWNERSHIP_L1_ADDR
+forge create --rpc-url $REACTIVE_RPC --private-key $REACTIVE_PRIVATE_KEY src/demos/erc721-ownership/NftOwnershipReactive.sol:NftOwnershipReactive --value 0.1ether --constructor-args $OWNERSHIP_L1_ADDR
 ```
 
 ### Step 3 — Monitor Token Ownership
