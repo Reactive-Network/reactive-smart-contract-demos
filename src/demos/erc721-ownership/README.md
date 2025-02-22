@@ -42,18 +42,6 @@ Deploy the `NftOwnershipL1` contract and assign the `Deployed to` address from t
 forge create --rpc-url $SEPOLIA_RPC --private-key $SEPOLIA_PRIVATE_KEY src/demos/erc721-ownership/NftOwnershipL1.sol:NftOwnershipL1 --constructor-args $SEPOLIA_CALLBACK_PROXY_ADDR
 ```
 
-[//]: # (#### Callback Payment)
-
-[//]: # ()
-[//]: # (To ensure a successful callback, the callback contract must have an ETH balance. Find more details [here]&#40;https://dev.reactive.network/system-contract#callback-payments&#41;. To fund the contract, run the following command:)
-
-[//]: # ()
-[//]: # (```bash)
-
-[//]: # (cast send $OWNERSHIP_L1_ADDR --rpc-url $SEPOLIA_RPC --private-key $SEPOLIA_PRIVATE_KEY --value 0.1ether)
-
-[//]: # (```)
-
 ### Step 2 — Reactive Contract
 
 Deploy the `NftOwnershipReactive` contract and assign the `Deployed to` address from the response to `OWNERSHIP_REACTIVE_ADDR`.
