@@ -4,18 +4,18 @@
 
 The **Reactive Network Demo** illustrates a basic use case of the Reactive Network with two key functionalities:
 
-* Low-latency monitoring of logs emitted by contracts on the origin chain.
-* Executing calls from the Reactive Network to contracts on the destination chain.
+* Low-latency monitoring of logs emitted by the origin contract.
+* Executing calls from the Reactive Network to the callback contract.
 
 This setup can be adapted for various scenarios, from simple stop orders to fully decentralized algorithmic trading.
 
 ## Contracts
 
-**Origin Chain Contract**: [BasicDemoL1Contract](https://github.com/Reactive-Network/reactive-smart-contract-demos/blob/main/src/demos/basic/BasicDemoL1Contract.sol) receives Ether and returns it to the sender, emitting a `Received` event with transaction details.
+**Origin Contract**: [BasicDemoL1Contract](https://github.com/Reactive-Network/reactive-smart-contract-demos/blob/main/src/demos/basic/BasicDemoL1Contract.sol) receives Ether and returns it to the sender, emitting a `Received` event with transaction details.
 
 **Reactive Contract**: [BasicDemoReactiveContract](https://github.com/Reactive-Network/reactive-smart-contract-demos/blob/main/src/demos/basic/BasicDemoReactiveContract.sol) demonstrates a reactive subscription model on Ethereum Sepolia. It listens for logs from a specified contract and emits an `Event` for each incoming log while incrementing a local `counter`. If the incoming log’s `topic_3` value is at least `0.01 Ether`, it emits a `Callback` event containing a payload to invoke a `callback` function externally.
 
-**Destination Chain Contract**: [BasicDemoL1Callback](https://github.com/Reactive-Network/reactive-smart-contract-demos/blob/main/src/demos/basic/BasicDemoL1Callback.sol) logs callback details upon receiving a call, capturing the origin, sender, and reactive sender addresses. It could also be a third-party contract.
+**Destination Contract**: [BasicDemoL1Callback](https://github.com/Reactive-Network/reactive-smart-contract-demos/blob/main/src/demos/basic/BasicDemoL1Callback.sol) logs callback details upon receiving a call, capturing the origin, sender, and reactive sender addresses. It could also be a third-party contract.
 
 ## Further Considerations
 
@@ -32,8 +32,6 @@ The demo highlights just a subset of Reactive Network's features. Potential impr
 
 Before proceeding further, configure these environment variables:
 
-* `ORIGIN_RPC` — RPC URL for the origin chain, (see [Chainlist](https://chainlist.org)).
-* `ORIGIN_PRIVATE_KEY` — Private key for signing transactions on the origin chain.
 * `DESTINATION_RPC` — RPC URL for the destination chain, (see [Chainlist](https://chainlist.org)).
 * `DESTINATION_PRIVATE_KEY` — Private key for signing transactions on the destination chain.
 * `REACTIVE_RPC` — RPC URL for the Reactive Network (see [Reactive Docs](https://dev.reactive.network/reactive-mainnet)).
@@ -47,7 +45,7 @@ Before proceeding further, configure these environment variables:
 Deploy the `BasicDemoL1Contract` contract and assign the `Deployed to` address from the response to `ORIGIN_ADDR`.
 
 ```bash
-forge create --rpc-url $ORIGIN_RPC --private-key $ORIGIN_PRIVATE_KEY src/demos/basic/BasicDemoL1Contract.sol:BasicDemoL1Contract
+forge create --rpc-url $DESTINATION_RPC --private-key $DESTINATION_PRIVATE_KEY src/demos/basic/BasicDemoL1Contract.sol:BasicDemoL1Contract
 ```
 
 ### Step 2 — Destination Contract
@@ -71,7 +69,7 @@ forge create --legacy --rpc-url $REACTIVE_RPC --private-key $REACTIVE_PRIVATE_KE
 Test the whole setup by sending some ether to `ORIGIN_ADDR`:
 
 ```bash
-cast send $ORIGIN_ADDR --rpc-url $ORIGIN_RPC --private-key $ORIGIN_PRIVATE_KEY --value 0.1ether
+cast send $ORIGIN_ADDR --rpc-url $DESTINATION_RPC --private-key $DESTINATION_PRIVATE_KEY --value 0.1ether
 ```
 
 Ensure that the value sent is at least 0.1 ether, as this is the minimum required to trigger the process. Meeting this threshold will prompt the Reactive Network to initiate a callback transaction to `CALLBACK_ADDR` like shown [here](https://sepolia.etherscan.io/address/0x26fF307f0f0Ea0C4B5Df410Efe22754324DACE08#events).
