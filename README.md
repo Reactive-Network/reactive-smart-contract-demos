@@ -6,7 +6,7 @@
 
 To set up `foundry` environment, run:
 
-```
+```bash
 curl -L https://foundry.paradigm.xyz | bash
 source ~/.bashrc
 foundryup
@@ -14,7 +14,7 @@ foundryup
 
 Install dependencies:
 
-```
+```bash
 forge install
 ```
 
@@ -22,19 +22,19 @@ forge install
 
 To compile artifacts:
 
-```
+```bash
 forge compile
 ```
 
 To run the test suite:
 
-```
+```bash
 forge test -vv
 ```
 
 To inspect the call tree:
 
-```
+```bash
 forge test -vvvv
 ```
 
