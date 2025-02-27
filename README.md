@@ -68,4 +68,4 @@ The service address for the Reactive Network (see [Reactive Docs](https://dev.re
 
 #### `CALLBACK_PROXY_ADDR`
 
-The address that verifies callback authenticity by checking the sender address and RVM ID in the transaction payload (see [Reactive Docs](https://dev.reactive.network/origins-and-destinations#callback-proxy-address)).
+The address that verifies callback authenticity (see [Reactive Docs](https://dev.reactive.network/origins-and-destinations#callback-proxy-address)).
