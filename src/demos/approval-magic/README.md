@@ -230,5 +230,5 @@ cast send $SWAP_ADDR "subscribe()" --rpc-url $DESTINATION_RPC --private-key $DES
 See the magic in action by approving one of the tokens (e.g., `TOKEN1_ADDR`) for the swap contract:
 
 ```bash
-cast send $TOKEN1_ADDR "approve(address,uint256)" $SWAP_ADDR 0.1ether --rpc-url $DESTINATION --private-key $DESTINATION_PRIVATE_KEY
+cast send $TOKEN1_ADDR "approve(address,uint256)" $SWAP_ADDR 0.1ether --rpc-url $DESTINATION_RPC --private-key $DESTINATION_PRIVATE_KEY
 ```
