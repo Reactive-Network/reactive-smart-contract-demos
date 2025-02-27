@@ -24,22 +24,24 @@ There are several opportunities for improvement:
 
 ## Deployment & Testing
 
-Deploy the contracts to Ethereum Sepolia and Reactive Kopli by following these steps. Ensure the following environment variables are configured:
+### Environment Variables
 
-* `SEPOLIA_RPC` — RPC URL for Ethereum Sepolia, (see [Chainlist](https://chainlist.org/chain/11155111))
-* `SEPOLIA_PRIVATE_KEY` — Ethereum Sepolia private key
-* `REACTIVE_RPC` — RPC URL for Reactive Kopli (see [Reactive Docs](https://dev.reactive.network/kopli-testnet#reactive-kopli-information))
-* `REACTIVE_PRIVATE_KEY` — Reactive Kopli private key
-* `SEPOLIA_CALLBACK_PROXY_ADDR` — 0x33Bbb7D0a2F1029550B0e91f653c4055DC9F4Dd8
+Before proceeding further, configure these environment variables:
 
-**Faucet**: To receive REACT tokens, send SepETH to the Reactive faucet at `0x9b9BB25f1A81078C544C829c5EB7822d747Cf434`. An equivalent amount of REACT will be sent to your address.
+* `DESTINATION_RPC` — RPC URL for the destination chain, (see [Chainlist](https://chainlist.org)).
+* `DESTINATION_PRIVATE_KEY` — Private key for signing transactions on the destination chain.
+* `REACTIVE_RPC` — RPC URL for the Reactive Network (see [Reactive Docs](https://dev.reactive.network/reactive-mainnet)).
+* `REACTIVE_PRIVATE_KEY` — Private key for signing transactions on the Reactive Network.
+* `DESTINATION_CALLBACK_PROXY_ADDR` — The address that verifies callback authenticity (see [Reactive Docs](https://dev.reactive.network/origins-and-destinations#callback-proxy-address)).
+
+**Faucet**: To receive testnet REACT, send SepETH to the Reactive faucet at `0x9b9BB25f1A81078C544C829c5EB7822d747Cf434`. An equivalent amount of REACT will be sent to your address.
 
 ### Step 1 — Origin/Destination Contract
 
 Deploy the `TokenTurnoverL1` contract and assign the `Deployed to` address from the response to `TURNOVER_L1_ADDR`.
 
 ```bash
-forge create --rpc-url $SEPOLIA_RPC --private-key $SEPOLIA_PRIVATE_KEY src/demos/erc20-turnovers/TokenTurnoverL1.sol:TokenTurnoverL1 --constructor-args $SEPOLIA_CALLBACK_PROXY_ADDR
+forge create --rpc-url $DESTINATION_RPC --private-key $DESTINATION_PRIVATE_KEY src/demos/erc20-turnovers/TokenTurnoverL1.sol:TokenTurnoverL1 --constructor-args $DESTINATION_CALLBACK_PROXY_ADDR
 ```
 
 ### Step 2 — Reactive Contract
@@ -47,7 +49,7 @@ forge create --rpc-url $SEPOLIA_RPC --private-key $SEPOLIA_PRIVATE_KEY src/demos
 Deploy the `TokenTurnoverReactive` contract and assign the `Deployed to` address from the response to `TURNOVER_REACTIVE_ADDR`.
 
 ```bash
-forge create --rpc-url $REACTIVE_RPC --private-key $REACTIVE_PRIVATE_KEY src/demos/erc20-turnovers/TokenTurnoverReactive.sol:TokenTurnoverReactive --value 0.1ether --constructor-args $TURNOVER_L1_ADDR
+forge create --legacy --rpc-url $REACTIVE_RPC --private-key $REACTIVE_PRIVATE_KEY src/demos/erc20-turnovers/TokenTurnoverReactive.sol:TokenTurnoverReactive --value 0.1ether --constructor-args $TURNOVER_L1_ADDR
 ```
 
 ### Step 3 — Monitor Token Turnover
@@ -55,7 +57,7 @@ forge create --rpc-url $REACTIVE_RPC --private-key $REACTIVE_PRIVATE_KEY src/dem
 Use the USDT contract at `0xaA8E23Fb1079EA71e0a56F48a2aA51851D8433D0` (or any active token) and send a request to `TURNOVER_L1_ADDR` to monitor its turnover. The contract will emit a log with the turnover data for the specified token shortly after the request.
 
 ```bash
-cast send $TURNOVER_L1_ADDR "request(address)" --rpc-url $SEPOLIA_RPC --private-key $SEPOLIA_PRIVATE_KEY 0xaA8E23Fb1079EA71e0a56F48a2aA51851D8433D0
+cast send $TURNOVER_L1_ADDR "request(address)" --rpc-url $DESTINATION_RPC --private-key $DESTINATION_PRIVATE_KEY 0xaA8E23Fb1079EA71e0a56F48a2aA51851D8433D0
 ```
 
 ### Step 4 — Reactive Contract State
@@ -63,11 +65,11 @@ cast send $TURNOVER_L1_ADDR "request(address)" --rpc-url $SEPOLIA_RPC --private-
 To stop the reactive contract:
 
 ```bash
-cast send $TURNOVER_REACTIVE_ADDR "pause()" --rpc-url $REACTIVE_RPC --private-key $REACTIVE_PRIVATE_KEY
+cast send --legacy $TURNOVER_REACTIVE_ADDR "pause()" --rpc-url $REACTIVE_RPC --private-key $REACTIVE_PRIVATE_KEY
 ```
 
 To resume the reactive contract:
 
 ```bash
-cast send $TURNOVER_REACTIVE_ADDR "resume()" --rpc-url $REACTIVE_RPC --private-key $REACTIVE_PRIVATE_KEY
+cast send --legacy $TURNOVER_REACTIVE_ADDR "resume()" --rpc-url $REACTIVE_RPC --private-key $REACTIVE_PRIVATE_KEY
 ```
