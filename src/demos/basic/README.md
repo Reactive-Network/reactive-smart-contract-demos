@@ -53,7 +53,7 @@ forge create --rpc-url $DESTINATION_RPC --private-key $DESTINATION_PRIVATE_KEY s
 Deploy the `BasicDemoL1Callback` contract and assign the `Deployed to` address from the response to `CALLBACK_ADDR`.
 
 ```bash
-forge create --rpc-url $DESTINATION_RPC --private-key $DESTINATION_PRIVATE_KEY src/demos/basic/BasicDemoL1Callback.sol:BasicDemoL1Callback
+forge create --rpc-url $DESTINATION_RPC --private-key $DESTINATION_PRIVATE_KEY src/demos/basic/BasicDemoL1Callback.sol:BasicDemoL1Callback --value 0.1ether
 ```
 
 ### Step 3 — Reactive Contract

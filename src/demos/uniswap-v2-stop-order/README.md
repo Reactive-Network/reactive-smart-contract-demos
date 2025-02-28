@@ -78,7 +78,7 @@ cast send 0x7E0987E5b3a30e3f2828572Bb659A548460a3003 'createPair(address,address
 Deploy the callback contract on Ethereum Sepolia, using the Uniswap V2 router at `0xC532a74256D3Db42D0Bf7a0400fEFDbad7694008`, linked to the factory contract specified in Step 2. You should also pass the Sepolia callback proxy address. Assign the `Deployed to` address from the response to `CALLBACK_ADDR`.
 
 ```bash
-forge create --rpc-url $DESTINATION_RPC --private-key $DESTINATION_PRIVATE_KEY src/demos/uniswap-v2-stop-order/UniswapDemoStopOrderCallback.sol:UniswapDemoStopOrderCallback --constructor-args $DESTINATION_CALLBACK_PROXY_ADDR 0xC532a74256D3Db42D0Bf7a0400fEFDbad7694008
+forge create --rpc-url $DESTINATION_RPC --private-key $DESTINATION_PRIVATE_KEY src/demos/uniswap-v2-stop-order/UniswapDemoStopOrderCallback.sol:UniswapDemoStopOrderCallback --value 0.1ether --constructor-args $DESTINATION_CALLBACK_PROXY_ADDR 0xC532a74256D3Db42D0Bf7a0400fEFDbad7694008
 ```
 
 ### Step 4 — Add Liquidity to the Pool

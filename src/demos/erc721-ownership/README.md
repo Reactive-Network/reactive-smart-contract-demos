@@ -41,7 +41,7 @@ Before proceeding further, configure these environment variables:
 Deploy the `NftOwnershipL1` contract and assign the `Deployed to` address from the response to `OWNERSHIP_L1_ADDR`.
 
 ```bash
-forge create --rpc-url $DESTINATION --private-key $DESTINATION_PRIVATE_KEY src/demos/erc721-ownership/NftOwnershipL1.sol:NftOwnershipL1 --constructor-args $DESTINATION_CALLBACK_PROXY_ADDR
+forge create --rpc-url $DESTINATION --private-key $DESTINATION_PRIVATE_KEY src/demos/erc721-ownership/NftOwnershipL1.sol:NftOwnershipL1 --value 0.1ether --constructor-args $DESTINATION_CALLBACK_PROXY_ADDR
 ```
 
 ### Step 2 — Reactive Contract

@@ -41,7 +41,7 @@ Before proceeding further, configure these environment variables:
 Deploy the `TokenTurnoverL1` contract and assign the `Deployed to` address from the response to `TURNOVER_L1_ADDR`.
 
 ```bash
-forge create --rpc-url $DESTINATION_RPC --private-key $DESTINATION_PRIVATE_KEY src/demos/erc20-turnovers/TokenTurnoverL1.sol:TokenTurnoverL1 --constructor-args $DESTINATION_CALLBACK_PROXY_ADDR
+forge create --rpc-url $DESTINATION_RPC --private-key $DESTINATION_PRIVATE_KEY src/demos/erc20-turnovers/TokenTurnoverL1.sol:TokenTurnoverL1 --value 0.1ether --constructor-args $DESTINATION_CALLBACK_PROXY_ADDR
 ```
 
 ### Step 2 — Reactive Contract
