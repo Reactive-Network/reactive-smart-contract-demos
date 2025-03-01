@@ -36,7 +36,8 @@ Before proceeding further, configure these environment variables:
 * `DESTINATION_PRIVATE_KEY` — Private key for signing transactions on the destination chain.
 * `REACTIVE_RPC` — RPC URL for the Reactive Network (see [Reactive Docs](https://dev.reactive.network/reactive-mainnet)).
 * `REACTIVE_PRIVATE_KEY` — Private key for signing transactions on the Reactive Network.
-* `SYSTEM_CONTRACT_ADDR` — The service address for the Reactive Network (see [Reactive Docs](https://dev.reactive.network/reactive-mainnet#overview)).
+* `SYSTEM_CONTRACT_ADDR` — The service address on the Reactive Network (see [Reactive Docs](https://dev.reactive.network/reactive-mainnet#overview)).
+* `DESTINATION_CALLBACK_PROXY_ADDR` — The service address on the destination chain (see [Reactive Docs](https://dev.reactive.network/origins-and-destinations#callback-proxy-address)).
 
 **Faucet**: To receive testnet REACT, send SepETH to the Reactive faucet at `0x9b9BB25f1A81078C544C829c5EB7822d747Cf434`. An equivalent amount of REACT will be sent to your address.
 
@@ -54,6 +55,12 @@ Deploy the `BasicDemoL1Callback` contract and assign the `Deployed to` address f
 
 ```bash
 forge create --rpc-url $DESTINATION_RPC --private-key $DESTINATION_PRIVATE_KEY src/demos/basic/BasicDemoL1Callback.sol:BasicDemoL1Callback --value 0.1ether
+```
+
+Send funds to the destination proxy address to enable callback execution. Depositing 0.1 SepETH covers approximately four callbacks.
+
+```bash
+cast send --rpc-url $DESTINATION_RPC --private-key $DESTINATION_PRIVATE_KEY $DESTINATION_CALLBACK_PROXY_ADDR "depositTo(address)" $CALLBACK_ADDR --value 0.1ether
 ```
 
 ### Step 3 — Reactive Contract
