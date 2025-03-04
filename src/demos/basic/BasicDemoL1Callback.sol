@@ -16,7 +16,7 @@ contract BasicDemoL1Callback is AbstractCallback {
     function callback(address sender)
         external
         authorizedSenderOnly
-        rvmIdOnly(msg.sender)
+        rvmIdOnly(sender)
     {
         emit CallbackReceived(
             tx.origin,
