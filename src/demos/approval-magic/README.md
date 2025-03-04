@@ -74,7 +74,7 @@ export APPROVAL_RCT_ADDR=0x2afaFD298b23b62760711756088F75B7409f5967
 Deploy the `ApprovalListener` contract using the same private key from Step 1. This ensures the `ApprovalService` contract can authenticate the RVM ID for callbacks.
 
 ```bash
-forge create src/demos/approval-magic/ApprovalListener.sol:ApprovalListener --legacy --rpc-url $REACTIVE_RPC --private-key $DESTINATION_PRIVATE_KEY --value 0.1ether --constructor-args $APPROVAL_SRV_ADDR
+forge create src/demos/approval-magic/ApprovalListener.sol:ApprovalListener --legacy --rpc-url $REACTIVE_RPC --private-key $DESTINATION_PRIVATE_KEY --value 0.01ether --constructor-args $APPROVAL_SRV_ADDR
 ```
 
 The `Deployed to` address should be assigned to `APPROVAL_RCT_ADDR`.

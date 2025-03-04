@@ -11,10 +11,13 @@ contract BasicDemoL1Callback is AbstractCallback {
         address indexed reactive_sender
     );
 
-    constructor() AbstractCallback(address(0)) payable {
-    }
+    constructor(address _callback_sender) AbstractCallback(_callback_sender) payable {}
 
-    function callback(address sender) external {
+    function callback(address sender)
+        external
+        authorizedSenderOnly
+        rvmIdOnly(msg.sender)
+    {
         emit CallbackReceived(
             tx.origin,
             msg.sender,
