@@ -32,7 +32,6 @@ Before proceeding further, configure these environment variables:
 * `DESTINATION_PRIVATE_KEY` — Private key for signing transactions on the destination chain.
 * `REACTIVE_RPC` — RPC URL for the Reactive Network (see [Reactive Docs](https://dev.reactive.network/reactive-mainnet)).
 * `REACTIVE_PRIVATE_KEY` — Private key for signing transactions on the Reactive Network.
-* `DESTINATION_CALLBACK_PROXY_ADDR` — The address that verifies callback authenticity (see [Reactive Docs](https://dev.reactive.network/origins-and-destinations#callback-proxy-address)).
 * `DESTINATION_CALLBACK_PROXY_ADDR` — The service address on the destination chain (see [Reactive Docs](https://dev.reactive.network/origins-and-destinations#callback-proxy-address)).
 
 **Faucet**: To receive testnet REACT, send SepETH to the Reactive faucet at `0x9b9BB25f1A81078C544C829c5EB7822d747Cf434`. An equivalent amount of REACT will be sent to your address.
