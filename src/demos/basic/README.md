@@ -4,8 +4,8 @@
 
 The **Reactive Network Demo** illustrates a basic use case of the Reactive Network with two key functionalities:
 
-* Low-latency monitoring of logs emitted by the origin contract.
-* Executing calls from the Reactive Network to the callback contract.
+* Low-latency monitoring of logs emitted by a contract on the origin chain.
+* Executing calls from the Reactive Network to a contract on the destination chain.
 
 This setup can be adapted for various scenarios, from simple stop orders to fully decentralized algorithmic trading.
 
@@ -13,18 +13,18 @@ This setup can be adapted for various scenarios, from simple stop orders to full
 
 **Origin Contract**: [BasicDemoL1Contract](https://github.com/Reactive-Network/reactive-smart-contract-demos/blob/main/src/demos/basic/BasicDemoL1Contract.sol) receives Ether and returns it to the sender, emitting a `Received` event with transaction details.
 
-**Reactive Contract**: [BasicDemoReactiveContract](https://github.com/Reactive-Network/reactive-smart-contract-demos/blob/main/src/demos/basic/BasicDemoReactiveContract.sol) demonstrates a reactive subscription model on Ethereum Sepolia. It listens for logs from a specified contract and emits an `Event` for each incoming log while incrementing a local `counter`. If the incoming log’s `topic_3` value is at least `0.01 Ether`, it emits a `Callback` event containing a payload to invoke a `callback` function externally.
+**Reactive Contract**: [BasicDemoReactiveContract](https://github.com/Reactive-Network/reactive-smart-contract-demos/blob/main/src/demos/basic/BasicDemoReactiveContract.sol) demonstrates a reactive subscription model. It subscribes to logs from a specified contract and processes event data in a decentralized manner. The contract subscribes to events from a specified contract on the origin chain. Upon receiving a log, the contract checks if `topic_3` is at least 0.01 Ether. If the condition is met, it emits a `Callback` event containing a payload to invoke an external callback function on the destination chain.
 
-**Destination Contract**: [BasicDemoL1Callback](https://github.com/Reactive-Network/reactive-smart-contract-demos/blob/main/src/demos/basic/BasicDemoL1Callback.sol) logs callback details upon receiving a call, capturing the origin, sender, and reactive sender addresses. It could also be a third-party contract.
+**Destination Contract**: [BasicDemoL1Callback](https://github.com/Reactive-Network/reactive-smart-contract-demos/blob/main/src/demos/basic/BasicDemoL1Callback.sol) serves as the destination contract for handling reactive callbacks. When triggered by a cross-chain event, it logs key transaction details while ensuring only authorized senders can invoke the callback. Upon execution, it emits a `CallbackReceived` event, capturing metadata such as the origin, sender, and reactive sender addresses.
 
 ## Further Considerations
 
-The demo highlights just a subset of Reactive Network's features. Potential improvements include:
+The demo highlights just a fraction of Reactive Network’s capabilities. Future enhancements could include:
 
-- **Enhanced Event Subscriptions**: Subscribing to multiple event origins, including callback logs, to maintain consistency.
-- **Dynamic Subscriptions**: Allowing real-time adjustments to subscriptions based on conditions.
-- **State Management**: Introducing persistent state handling for more complex, context-aware reactions.
-- **Flexible Callbacks**: Supporting arbitrary transaction payloads to increase adaptability.
+- **Expanded Event Subscriptions**: Monitoring multiple event sources, including callback logs.
+- **Dynamic Subscriptions**: Adjusting subscriptions in real-time based on evolving conditions.
+- **State Persistence**: Maintaining contract state for more complex, context-aware reactions.
+- **Versatile Callbacks**: Enabling customizable transaction payloads to improve adaptability.
 
 ## Deployment & Testing
 
@@ -43,7 +43,7 @@ Before proceeding further, configure these environment variables:
 * `SYSTEM_CONTRACT_ADDR` — The service address on the Reactive Network (see [Reactive Docs](https://dev.reactive.network/reactive-mainnet#overview)).
 * `DESTINATION_CALLBACK_PROXY_ADDR` — The service address on the destination chain (see [Reactive Docs](https://dev.reactive.network/origins-and-destinations#callback-proxy-address)).
 
-**Faucet**: To receive testnet REACT, send SepETH to the Reactive faucet contract on Ethereum Sepolia: `0x9b9BB25f1A81078C544C829c5EB7822d747Cf434`. The factor is 1/10 (or 0.1), meaning you get 0.01 REACT for every 0.1 SepETH sent.
+**Faucet**: To receive testnet REACT, send SepETH to the Reactive faucet contract on Ethereum Sepolia: `0x9b9BB25f1A81078C544C829c5EB7822d747Cf434`. The factor is 1/5, meaning you get 5 REACT for 1 SepETH sent.
 
 ### Step 1 — Origin Contract
 
