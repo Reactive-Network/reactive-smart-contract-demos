@@ -42,7 +42,6 @@ Before proceeding further, configure these environment variables:
 * `REACTIVE_PRIVATE_KEY` — Private key for signing transactions on the Reactive Network.
 * `SYSTEM_CONTRACT_ADDR` — The service address on the Reactive Network (see [Reactive Docs](https://dev.reactive.network/reactive-mainnet#overview)).
 * `DESTINATION_CALLBACK_PROXY_ADDR` — The service address on the destination chain (see [Reactive Docs](https://dev.reactive.network/origins-and-destinations#callback-proxy-address)).
-* `CRON_TOPIC` — An event enabling time-based automation at fixed block intervals (see [Reactive Docs](https://dev.reactive.network/reactive-library#cron-functionality)).
 
 **Faucet**: To receive testnet REACT, send SepETH to the Reactive faucet contract on Ethereum Sepolia: `0x9b9BB25f1A81078C544C829c5EB7822d747Cf434`. The factor is 1/5, meaning you get 5 REACT for 1 SepETH sent.
 
@@ -66,13 +65,9 @@ forge create --rpc-url $DESTINATION_RPC --private-key $DESTINATION_PRIVATE_KEY s
 
 Deploy the `BasicDemoReactiveContract` contract, configuring it to listen to `ORIGIN_ADDR` on `ORIGIN_CHAIN_ID` and to send callbacks to `CALLBACK_ADDR` on `DESTINATION_CHAIN_ID`. The `Received` event on the origin contract has a `topic_0` value of `0x8cabf31d2b1b11ba52dbb302817a3c9c83e4b2a5194d35121ab1354d69f6a4cb`, which we are monitoring.
 
-`CRON_TOPIC` is used to configure whether your contract subscribes to a predefined cron-based reactive event (like time-based triggers). Use `0` to skip subscribing to a cron topic or set it to one of the five available cron topics described at [Reactive Docs](https://dev.reactive.network/reactive-library#cron-functionality).
-
 ```bash
-forge create --legacy --rpc-url $REACTIVE_RPC --private-key $REACTIVE_PRIVATE_KEY src/demos/basic/BasicDemoReactiveContract.sol:BasicDemoReactiveContract --value 0.01ether --constructor-args $SYSTEM_CONTRACT_ADDR $ORIGIN_CHAIN_ID $DESTINATION_CHAIN_ID $ORIGIN_ADDR 0x8cabf31d2b1b11ba52dbb302817a3c9c83e4b2a5194d35121ab1354d69f6a4cb $CRON_TOPIC $CALLBACK_ADDR
+forge create --legacy --rpc-url $REACTIVE_RPC --private-key $REACTIVE_PRIVATE_KEY src/demos/basic/BasicDemoReactiveContract.sol:BasicDemoReactiveContract --value 0.01ether --constructor-args $SYSTEM_CONTRACT_ADDR $ORIGIN_CHAIN_ID $DESTINATION_CHAIN_ID $ORIGIN_ADDR 0x8cabf31d2b1b11ba52dbb302817a3c9c83e4b2a5194d35121ab1354d69f6a4cb $CALLBACK_ADDR
 ```
-
-Assign the `Deployed to` address from the response to `REACTIVE_ADDR`. You might need it for pausing and resuming cron subscriptions.
 
 ### Step 4 — Test Reactive Callback
 
@@ -83,17 +78,3 @@ cast send $ORIGIN_ADDR --rpc-url $ORIGIN_RPC --private-key $ORIGIN_PRIVATE_KEY -
 ```
 
 Ensure that the value sent is at least 0.01 ether, as this is the minimum required to trigger the process. Meeting this threshold will prompt the Reactive Network to initiate a callback transaction to `CALLBACK_ADDR` like shown [here](https://sepolia.etherscan.io/address/0x26fF307f0f0Ea0C4B5Df410Efe22754324DACE08#events).
-
-### Step 5 — Cron Pause (Optional)
-
-To pause the cron subscription, run this command:
-
-```bash
-cast send --legacy $REACTIVE_ADDR "pause()" --rpc-url $REACTIVE_RPC --private-key $REACTIVE_PRIVATE_KEY
-```
-
-To resume the cron subscription, run this command:
-
-```bash
-cast send --legacy $REACTIVE_ADDR "resume()" --rpc-url $REACTIVE_RPC --private-key $REACTIVE_PRIVATE_KEY
-```
