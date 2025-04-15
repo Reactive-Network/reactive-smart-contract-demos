@@ -19,7 +19,7 @@ interface IMailbox {
     ) external view returns (uint256 fee);
 }
 
-contract BasicDemoReactiveContract is AbstractReactive, AbstractCallback {
+contract HyperlaneReactive is AbstractReactive, AbstractCallback {
     event Trigger(bytes message);
 
     uint256 public constant TRIGGER_TOPIC_0 = 0x53a2e0b3dcf16cac9f71dfcb6c65d844af89dde99eda1fbb5396c1a39e8826ec;
