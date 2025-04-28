@@ -41,7 +41,7 @@ Before proceeding further, configure these environment variables:
 Deploy the `TokenTurnoverL1` contract and assign the `Deployed to` address from the response to `TURNOVER_L1_ADDR`.
 
 ```bash
-forge create --rpc-url $DESTINATION_RPC --private-key $DESTINATION_PRIVATE_KEY src/demos/erc20-turnovers/TokenTurnoverL1.sol:TokenTurnoverL1 --value 0.01ether --constructor-args $DESTINATION_CALLBACK_PROXY_ADDR
+forge create --broadcast --rpc-url $DESTINATION_RPC --private-key $DESTINATION_PRIVATE_KEY src/demos/erc20-turnovers/TokenTurnoverL1.sol:TokenTurnoverL1 --value 0.01ether --constructor-args $DESTINATION_CALLBACK_PROXY_ADDR
 ```
 
 ### Step 2 — Reactive Contract
@@ -49,7 +49,7 @@ forge create --rpc-url $DESTINATION_RPC --private-key $DESTINATION_PRIVATE_KEY s
 Deploy the `TokenTurnoverReactive` contract and assign the `Deployed to` address from the response to `TURNOVER_REACTIVE_ADDR`.
 
 ```bash
-forge create --legacy --rpc-url $REACTIVE_RPC --private-key $REACTIVE_PRIVATE_KEY src/demos/erc20-turnovers/TokenTurnoverReactive.sol:TokenTurnoverReactive --value 0.01ether --constructor-args $TURNOVER_L1_ADDR
+forge create --legacy --broadcast --rpc-url $REACTIVE_RPC --private-key $REACTIVE_PRIVATE_KEY src/demos/erc20-turnovers/TokenTurnoverReactive.sol:TokenTurnoverReactive --value 0.01ether --constructor-args $TURNOVER_L1_ADDR
 ```
 
 ### Step 3 — Monitor Token Turnover
