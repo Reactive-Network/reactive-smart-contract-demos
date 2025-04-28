@@ -41,7 +41,7 @@ Before proceeding further, configure these environment variables:
 Deploy the `NftOwnershipL1` contract and assign the `Deployed to` address from the response to `OWNERSHIP_L1_ADDR`.
 
 ```bash
-forge create --rpc-url $DESTINATION_RPC --private-key $DESTINATION_PRIVATE_KEY src/demos/erc721-ownership/NftOwnershipL1.sol:NftOwnershipL1 --value 0.01ether --constructor-args $DESTINATION_CALLBACK_PROXY_ADDR
+forge create --broadcast --rpc-url $DESTINATION_RPC --private-key $DESTINATION_PRIVATE_KEY src/demos/erc721-ownership/NftOwnershipL1.sol:NftOwnershipL1 --value 0.01ether --constructor-args $DESTINATION_CALLBACK_PROXY_ADDR
 ```
 
 ### Step 2 — Reactive Contract
@@ -49,7 +49,7 @@ forge create --rpc-url $DESTINATION_RPC --private-key $DESTINATION_PRIVATE_KEY s
 Deploy the `NftOwnershipReactive` contract and assign the `Deployed to` address from the response to `OWNERSHIP_REACTIVE_ADDR`.
 
 ```bash
-forge create --legacy --rpc-url $REACTIVE_RPC --private-key $REACTIVE_PRIVATE_KEY src/demos/erc721-ownership/NftOwnershipReactive.sol:NftOwnershipReactive --value 0.01ether --constructor-args $OWNERSHIP_L1_ADDR
+forge create --legacy --broadcast --rpc-url $REACTIVE_RPC --private-key $REACTIVE_PRIVATE_KEY src/demos/erc721-ownership/NftOwnershipReactive.sol:NftOwnershipReactive --value 0.01ether --constructor-args $OWNERSHIP_L1_ADDR
 ```
 
 ### Step 3 — Monitor Token Ownership
