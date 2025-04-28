@@ -26,7 +26,7 @@ Before proceeding further, configure these environment variables:
 Deploy the `BasicCronContract` contract, providing it with the system contract address and the preferred cron topic.
 
 ```bash
-forge create --legacy --rpc-url $REACTIVE_RPC --private-key $REACTIVE_PRIVATE_KEY src/demos/cron/CronDemo.sol:BasicCronContract --value 0.01ether --constructor-args $SYSTEM_CONTRACT_ADDR $CRON_TOPIC
+forge create --legacy --broadcast --rpc-url $REACTIVE_RPC --private-key $REACTIVE_PRIVATE_KEY src/demos/cron/CronDemo.sol:BasicCronContract --value 0.01ether --constructor-args $SYSTEM_CONTRACT_ADDR $CRON_TOPIC
 ```
 
 ### Step 2 — Cron Pause (Optional)
