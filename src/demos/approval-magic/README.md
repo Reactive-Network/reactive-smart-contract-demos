@@ -58,7 +58,7 @@ To deploy `ApprovalService`, run the following command with the specified constr
 - Extra Gas for Reactive Service: `10`
 
 ```bash
-forge create src/demos/approval-magic/ApprovalService.sol:ApprovalService --rpc-url $DESTINATION_RPC --private-key $DESTINATION_PRIVATE_KEY --constructor-args 100 1 10
+forge create --broadcast src/demos/approval-magic/ApprovalService.sol:ApprovalService --rpc-url $DESTINATION_RPC --private-key $DESTINATION_PRIVATE_KEY --constructor-args 100 1 10
 ```
 
 The `Deployed to` address from the response should be assigned to `APPROVAL_SRV_ADDR`.
@@ -74,7 +74,7 @@ export APPROVAL_RCT_ADDR=0x2afaFD298b23b62760711756088F75B7409f5967
 Deploy the `ApprovalListener` contract using the same private key from Step 1. This ensures the `ApprovalService` contract can authenticate the RVM ID for callbacks.
 
 ```bash
-forge create src/demos/approval-magic/ApprovalListener.sol:ApprovalListener --legacy --rpc-url $REACTIVE_RPC --private-key $DESTINATION_PRIVATE_KEY --value 0.01ether --constructor-args $APPROVAL_SRV_ADDR
+forge create --legacy --broadcast src/demos/approval-magic/ApprovalListener.sol:ApprovalListener --rpc-url $REACTIVE_RPC --private-key $DESTINATION_PRIVATE_KEY --value 0.01ether --constructor-args $APPROVAL_SRV_ADDR
 ```
 
 The `Deployed to` address should be assigned to `APPROVAL_RCT_ADDR`.
@@ -86,7 +86,7 @@ The `Deployed to` address should be assigned to `APPROVAL_RCT_ADDR`.
 Deploy the `ApprovalDemoToken` contract with the specified name and symbol (e.g., `"FTW"`): 
 
 ```bash
-forge create src/demos/approval-magic/ApprovalDemoToken.sol:ApprovalDemoToken --rpc-url $DESTINATION_RPC --private-key $DESTINATION_PRIVATE_KEY --constructor-args "FTW" "FTW"
+forge create --broadcast src/demos/approval-magic/ApprovalDemoToken.sol:ApprovalDemoToken --rpc-url $DESTINATION_RPC --private-key $DESTINATION_PRIVATE_KEY --constructor-args "FTW" "FTW"
 ```
 
 The `Deployed to` address should be assigned to `TOKEN_ADDR`.
@@ -96,7 +96,7 @@ The `Deployed to` address should be assigned to `TOKEN_ADDR`.
 Deploy the `ApprovalEthExch` contract:
 
 ```bash
-forge create src/demos/approval-magic/ApprovalEthExch.sol:ApprovalEthExch --rpc-url $DESTINATION_RPC --private-key $DESTINATION_PRIVATE_KEY --constructor-args $APPROVAL_SRV_ADDR $TOKEN_ADDR
+forge create --broadcast src/demos/approval-magic/ApprovalEthExch.sol:ApprovalEthExch --rpc-url $DESTINATION_RPC --private-key $DESTINATION_PRIVATE_KEY --constructor-args $APPROVAL_SRV_ADDR $TOKEN_ADDR
 ```
 
 The `Deployed to` address should be assigned to `EXCH_ADDR`.
@@ -153,13 +153,13 @@ cast send 0x4f4D678939407Ca230f972F928E2B32641dD330D "request()" --rpc-url $DEST
 Deploy two tokens, each with constructor arguments `"TOKEN_NAME"` and `"TOKEN_SYMBOL"`:
 
 ```bash
-forge create src/demos/approval-magic/ApprovalDemoToken.sol:ApprovalDemoToken --rpc-url $DESTINATION_RPC --private-key $DESTINATION_PRIVATE_KEY --constructor-args "TK1" "TK1"
+forge create --broadcast src/demos/approval-magic/ApprovalDemoToken.sol:ApprovalDemoToken --rpc-url $DESTINATION_RPC --private-key $DESTINATION_PRIVATE_KEY --constructor-args "TK1" "TK1"
 ```
 
 The `Deployed to` address should be assigned to `TOKEN1_ADDR`.
 
 ```bash
-forge create src/demos/approval-magic/ApprovalDemoToken.sol:ApprovalDemoToken --rpc-url $DESTINATION_RPC --private-key $DESTINATION_PRIVATE_KEY --constructor-args "TK2" "TK2"
+forge create --broadcast src/demos/approval-magic/ApprovalDemoToken.sol:ApprovalDemoToken --rpc-url $DESTINATION_RPC --private-key $DESTINATION_PRIVATE_KEY --constructor-args "TK2" "TK2"
 ```
 
 The `Deployed to` address should be assigned to `TOKEN2_ADDR`.
