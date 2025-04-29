@@ -37,8 +37,7 @@ Before proceeding further, configure these environment variables:
 **Faucet**: To receive testnet REACT, send SepETH to the Reactive faucet contract on Ethereum Sepolia: `0x9b9BB25f1A81078C544C829c5EB7822d747Cf434`. The factor is 1/5, meaning you get 5 REACT for 1 SepETH sent.
 
 > ⚠️ **Broadcast Error**  
-> If you see the following message: `error: unexpected argument '--broadcast' found`, it means your Foundry version (or local setup) does not support the `--broadcast` flag for `forge create`.  
-> Simply remove `--broadcast` from your command and re-run it.
+> If you see the following message: `error: unexpected argument '--broadcast' found`, it means your Foundry version (or local setup) does not support the `--broadcast` flag for `forge create`. Simply remove `--broadcast` from your command and re-run it.
 
 ### Step 1 — Test Tokens and Liquidity Pool
 
