@@ -43,7 +43,8 @@ Before proceeding further, configure these environment variables:
 > ⚠️ **Broadcast Error**  
 > If you see the following message: `error: unexpected argument '--broadcast' found`, it means your Foundry version (or local setup) does not support the `--broadcast` flag for `forge create`. Simply remove `--broadcast` from your command and re-run it.
 
-**Note**: Use the same private key for deploying `ApprovalService` and `ApprovalListener`. `ApprovalDemoToken` and `ApprovalEthExch` may use different keys if needed.
+> 📝 **Note**  
+> Use the same private key for deploying `ApprovalService` and `ApprovalListener`. `ApprovalDemoToken` and `ApprovalEthExch` may use different keys if needed.
 
 ## Magic Exchange
 
@@ -124,6 +125,9 @@ cast send $EXCH_ADDR "subscribe()" --rpc-url $DESTINATION_RPC --private-key $DES
 ```
 
 **NOTE**: The subscription process takes approximately 30 seconds, accounting for both destination and Reactive's block intervals, before the service starts processing approvals.
+
+> 📝 **Note**  
+> The subscription process takes approximately 30 seconds, accounting for both destination and Reactive's block intervals, before the service starts processing approvals.
 
 ### Step 5 — Test Approvals
 

@@ -75,7 +75,8 @@ To create a new pair, use the Uniswap V2 Factory contract `0x7E0987E5b3a30e3f282
 cast send 0x7E0987E5b3a30e3f2828572Bb659A548460a3003 'createPair(address,address)' --rpc-url $DESTINATION_RPC --private-key $DESTINATION_PRIVATE_KEY $TOKEN0_ADDR $TOKEN1_ADDR
 ```
 
-**Note**: The token with the smaller hexadecimal address becomes `token0`; the other is `token1`. Compare token contract addresses alphabetically or numerically in hexadecimal format to determine their order.
+> 📝 **Note**  
+> The token with the smaller hexadecimal address becomes `token0`; the other is `token1`. Compare token contract addresses alphabetically or numerically in hexadecimal format to determine their order.
 
 ### Step 3 — Destination Contract
 
