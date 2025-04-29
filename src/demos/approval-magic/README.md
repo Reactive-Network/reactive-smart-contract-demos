@@ -124,8 +124,6 @@ Subscribe the exchange contract to `ApprovalService`:
 cast send $EXCH_ADDR "subscribe()" --rpc-url $DESTINATION_RPC --private-key $DESTINATION_PRIVATE_KEY
 ```
 
-**NOTE**: The subscription process takes approximately 30 seconds, accounting for both destination and Reactive's block intervals, before the service starts processing approvals.
-
 > 📝 **Note**  
 > The subscription process takes approximately 30 seconds, accounting for both destination and Reactive's block intervals, before the service starts processing approvals.
 
