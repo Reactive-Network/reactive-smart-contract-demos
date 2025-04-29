@@ -112,7 +112,7 @@ Deploy the Reactive contract specifying:
 - `CALLBACK_ADDR`: The address from Step 3.
 - `CLIENT_WALLET`: The wallet address initiating the order.
 - `DIRECTION_BOOLEAN`: `true` to sell `token0` and buy `token1`; `false` for the reverse.
-- `EXCHANGE_RATE_DENOMINATOR` and `EXCHANGE_RATE_NUMERATOR`: The exchange rate threshold, represented as integers. For example, a threshold of 1.234 requires DENOMINATOR=1000 and NUMERATOR=1234.
+- `EXCHANGE_RATE_DENOMINATOR` and `EXCHANGE_RATE_NUMERATOR`: The exchange rate threshold, represented as integers. For example, a threshold of 1.234 would require `EXCHANGE_RATE_DENOMINATOR` to be set to `1000` and `EXCHANGE_RATE_NUMERATOR` to `1234`.
 
 ```bash
 forge create --legacy --broadcast --rpc-url $REACTIVE_RPC --private-key $REACTIVE_PRIVATE_KEY src/demos/uniswap-v2-stop-order/UniswapDemoStopOrderReactive.sol:UniswapDemoStopOrderReactive --value 0.01ether --constructor-args $UNISWAP_V2_PAIR_ADDR $CALLBACK_ADDR $CLIENT_WALLET $DIRECTION_BOOLEAN $EXCHANGE_RATE_DENOMINATOR $EXCHANGE_RATE_NUMERATOR
