@@ -34,7 +34,11 @@ Before proceeding further, configure these environment variables:
 * `DESTINATION_CALLBACK_PROXY_ADDR` — The service address on the destination chain (see [Reactive Docs](https://dev.reactive.network/origins-and-destinations#callback-proxy-address)).
 * `CLIENT_WALLET` — Deployer's EOA wallet address
 
-**Faucet**: To receive testnet REACT, send SepETH to the Reactive faucet contract on Ethereum Sepolia: `0x9b9BB25f1A81078C544C829c5EB7822d747Cf434`. The factor is 1/5, meaning you get 5 REACT for 1 SepETH sent.
+> ℹ️ **Reactive Faucet on Sepolia**  
+> To receive testnet REACT, send SepETH to the Reactive faucet contract on Ethereum Sepolia: `0x9b9BB25f1A81078C544C829c5EB7822d747Cf434`. The factor is 1/5, meaning you get 5 REACT for every 1 SepETH sent.
+
+> ⚠️ **Broadcast Error**  
+> If you see the following message: `error: unexpected argument '--broadcast' found`, it means your Foundry version (or local setup) does not support the `--broadcast` flag for `forge create`. Simply remove `--broadcast` from your command and re-run it.
 
 ### Step 1 — Test Tokens and Liquidity Pool
 
@@ -71,7 +75,8 @@ To create a new pair, use the Uniswap V2 Factory contract `0x7E0987E5b3a30e3f282
 cast send 0x7E0987E5b3a30e3f2828572Bb659A548460a3003 'createPair(address,address)' --rpc-url $DESTINATION_RPC --private-key $DESTINATION_PRIVATE_KEY $TOKEN0_ADDR $TOKEN1_ADDR
 ```
 
-**Note**: The token with the smaller hexadecimal address becomes `token0`; the other is `token1`. Compare token contract addresses alphabetically or numerically in hexadecimal format to determine their order.
+> 📝 **Note**  
+> The token with the smaller hexadecimal address becomes `token0`; the other is `token1`. Compare token contract addresses alphabetically or numerically in hexadecimal format to determine their order.
 
 ### Step 3 — Destination Contract
 
@@ -103,11 +108,11 @@ cast send $UNISWAP_V2_PAIR_ADDR 'mint(address)' --rpc-url $DESTINATION_RPC --pri
 
 Deploy the Reactive contract specifying:
 
-`UNISWAP_V2_PAIR_ADDR`: The pair address from Step 2.
-`CALLBACK_ADDR`: The address from Step 3.
-`CLIENT_WALLET`: The wallet address initiating the order.
-`DIRECTION_BOOLEAN`: `true` to sell `token0` and buy `token1`; `false` for the reverse.
-`EXCHANGE_RATE_DENOMINATOR` and `EXCHANGE_RATE_NUMERATOR`: The exchange rate threshold, represented as integers. For example, a threshold of 1.234 requires DENOMINATOR=1000 and NUMERATOR=1234.
+- `UNISWAP_V2_PAIR_ADDR`: The pair address from Step 2.
+- `CALLBACK_ADDR`: The address from Step 3.
+- `CLIENT_WALLET`: The wallet address initiating the order.
+- `DIRECTION_BOOLEAN`: `true` to sell `token0` and buy `token1`; `false` for the reverse.
+- `EXCHANGE_RATE_DENOMINATOR` and `EXCHANGE_RATE_NUMERATOR`: The exchange rate threshold, represented as integers. For example, a threshold of 1.234 would require `EXCHANGE_RATE_DENOMINATOR` to be set to `1000` and `EXCHANGE_RATE_NUMERATOR` to `1234`.
 
 ```bash
 forge create --legacy --broadcast --rpc-url $REACTIVE_RPC --private-key $REACTIVE_PRIVATE_KEY src/demos/uniswap-v2-stop-order/UniswapDemoStopOrderReactive.sol:UniswapDemoStopOrderReactive --value 0.01ether --constructor-args $UNISWAP_V2_PAIR_ADDR $CALLBACK_ADDR $CLIENT_WALLET $DIRECTION_BOOLEAN $EXCHANGE_RATE_DENOMINATOR $EXCHANGE_RATE_NUMERATOR
