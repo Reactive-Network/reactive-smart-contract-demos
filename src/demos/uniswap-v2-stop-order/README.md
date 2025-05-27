@@ -133,7 +133,7 @@ To activate the reactive contract, directly adjust the exchange rate through the
 Perform the adjustment by executing an inefficient swap directly through the pair:
 
 ```bash
-cast send $TOKEN0_ADDR 'transfer(address,uint256)' --rpc-url $DESTINATION_RPC --private-key $DESTINATION_PRIVATE_KEY $UNISWAP_V2_PAIR_ADDR 20000000000000000
+cast send $TOKEN_ADDR 'transfer(address,uint256)' --rpc-url $DESTINATION_RPC --private-key $DESTINATION_PRIVATE_KEY $UNISWAP_V2_PAIR_ADDR 20000000000000000
 ```
 
 Next, execute the swap at an unfavorable rate to create a significant shift in the exchange rate:
