@@ -13,3 +13,6 @@
 [submodule "lib/reactive-lib"]
 	path = lib/reactive-lib
 	url = https://github.com/Reactive-Network/reactive-lib
+[submodule "lib/chainlink"]
+	path = lib/chainlink
+	url = https://github.com/smartcontractkit/chainlink
