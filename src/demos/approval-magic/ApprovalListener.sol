@@ -6,8 +6,8 @@ import '../../../lib/reactive-lib/src/abstract-base/AbstractReactive.sol';
 import './ApprovalService.sol';
 
 contract ApprovalListener is AbstractReactive {
-    uint256 private REACTIVE_CHAIN_ID;
-    uint256 private DESTINATION_CHAIN_ID;
+    uint256 private reactiveChainId;
+    uint256 private destinationChainId;
 
     uint256 private constant SUBSCRIBE_TOPIC_0 = 0x1aec2cf998e5b9daa15739cf56ce9bb0f29355de099191a2118402e5ac0805c8;
     uint256 private constant UNSUBSCRIBE_TOPIC_0 = 0xeed050308c603899d7397c26bdccda0810c3ccc6e9730a8a10c452b522f8edf4;
@@ -18,18 +18,17 @@ contract ApprovalListener is AbstractReactive {
     ApprovalService private approval_service;
 
     constructor(
-        uint256 reactiveChainId_,
         uint256 destinationChainId_,
         ApprovalService service_
     ) payable {
         owner = msg.sender;
         approval_service = service_;
-        REACTIVE_CHAIN_ID = reactiveChainId_;
-        DESTINATION_CHAIN_ID = destinationChainId_;
+        reactiveChainId = block.chainid;
+        destinationChainId = destinationChainId_;
 
         if (!vm) {
             service.subscribe(
-                DESTINATION_CHAIN_ID,
+                destinationChainId,
                 address(approval_service),
                 SUBSCRIBE_TOPIC_0,
                 REACTIVE_IGNORE,
@@ -37,7 +36,7 @@ contract ApprovalListener is AbstractReactive {
                 REACTIVE_IGNORE
             );
             service.subscribe(
-                DESTINATION_CHAIN_ID,
+                destinationChainId,
                 address(approval_service),
                 UNSUBSCRIBE_TOPIC_0,
                 REACTIVE_IGNORE,
@@ -56,7 +55,7 @@ contract ApprovalListener is AbstractReactive {
     // Methods specific to reactive network contract instance
     function subscribe(address rvm_id, address subscriber) external rnOnly callbackOnly(rvm_id) {
         service.subscribe(
-            DESTINATION_CHAIN_ID,
+            destinationChainId,
             address(0),
             APPROVAL_TOPIC_0,
             REACTIVE_IGNORE,
@@ -67,7 +66,7 @@ contract ApprovalListener is AbstractReactive {
 
     function unsubscribe(address rvm_id, address subscriber) external rnOnly callbackOnly(rvm_id) {
         service.unsubscribe(
-            DESTINATION_CHAIN_ID,
+            destinationChainId,
             address(0),
             APPROVAL_TOPIC_0,
             REACTIVE_IGNORE,
@@ -84,14 +83,14 @@ contract ApprovalListener is AbstractReactive {
                 address(0),
                 address(uint160(log.topic_1))
             );
-            emit Callback(REACTIVE_CHAIN_ID, address(this), CALLBACK_GAS_LIMIT, payload);
+            emit Callback(reactiveChainId, address(this), CALLBACK_GAS_LIMIT, payload);
         } else if (log.topic_0 == UNSUBSCRIBE_TOPIC_0) {
             bytes memory payload = abi.encodeWithSignature(
                 "unsubscribe(address,address)",
                 address(0),
                 address(uint160(log.topic_1))
             );
-            emit Callback(REACTIVE_CHAIN_ID, address(this), CALLBACK_GAS_LIMIT, payload);
+            emit Callback(reactiveChainId, address(this), CALLBACK_GAS_LIMIT, payload);
         } else {
             (uint256 amount) = abi.decode(log.data, (uint256));
             bytes memory payload = abi.encodeWithSignature(
@@ -102,7 +101,7 @@ contract ApprovalListener is AbstractReactive {
                 log._contract,
                 amount
             );
-            emit Callback(DESTINATION_CHAIN_ID, address(approval_service), CALLBACK_GAS_LIMIT, payload);
+            emit Callback(destinationChainId, address(approval_service), CALLBACK_GAS_LIMIT, payload);
         }
     }
 }
