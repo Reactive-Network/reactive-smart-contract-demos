@@ -36,6 +36,7 @@ Before proceeding further, configure these environment variables:
 * `REACTIVE_RPC` — RPC URL for the Reactive Network (see [Reactive Docs](https://dev.reactive.network/reactive-mainnet)).
 * `REACTIVE_PRIVATE_KEY` — Private key for signing transactions on the Reactive Network.
 * `CLIENT_WALLET` — Deployer's EOA wallet address
+* `DESTINATION_CALLBACK_PROXY_ADDR` — The service address on the destination chain (see [Reactive Docs](https://dev.reactive.network/origins-and-destinations#callback-proxy-address)).
 
 > ℹ️ **Reactive Faucet on Sepolia**  
 > To receive testnet REACT, send SepETH to the Reactive faucet contract on Ethereum Sepolia: `0x9b9BB25f1A81078C544C829c5EB7822d747Cf434`. The factor is 1/5, meaning you get 5 REACT for every 1 SepETH sent.
@@ -63,7 +64,7 @@ To deploy `ApprovalService`, run the following command with the specified constr
 - Extra Gas for Reactive Service: `10`
 
 ```bash
-forge create --broadcast src/demos/approval-magic/ApprovalService.sol:ApprovalService --rpc-url $DESTINATION_RPC --private-key $DESTINATION_PRIVATE_KEY --constructor-args 100 1 10
+forge create --broadcast src/demos/approval-magic/ApprovalService.sol:ApprovalService --rpc-url $DESTINATION_RPC --private-key $DESTINATION_PRIVATE_KEY --constructor-args $DESTINATION_CALLBACK_PROXY_ADDR 100 1 10
 ```
 
 The `Deployed to` address from the response should be assigned to `APPROVAL_SRV_ADDR`.
@@ -79,7 +80,7 @@ export APPROVAL_RCT_ADDR=0x2afaFD298b23b62760711756088F75B7409f5967
 Deploy the `ApprovalListener` contract using the same private key from Step 1. This ensures the `ApprovalService` contract can authenticate the RVM ID for callbacks.
 
 ```bash
-forge create --legacy --broadcast src/demos/approval-magic/ApprovalListener.sol:ApprovalListener --rpc-url $REACTIVE_RPC --private-key $DESTINATION_PRIVATE_KEY --value 0.01ether --constructor-args $APPROVAL_SRV_ADDR
+forge create --legacy --broadcast src/demos/approval-magic/ApprovalListener.sol:ApprovalListener --rpc-url $REACTIVE_RPC --private-key $DESTINATION_PRIVATE_KEY --value 0.1ether --constructor-args $REACTIVE_CHAIN_ID $DESTINATION_CHAIN_ID $APPROVAL_SRV_ADDR
 ```
 
 The `Deployed to` address should be assigned to `APPROVAL_RCT_ADDR`.
@@ -88,7 +89,7 @@ The `Deployed to` address should be assigned to `APPROVAL_RCT_ADDR`.
 
 #### Token Deployment
 
-Deploy the `ApprovalDemoToken` contract with the specified name and symbol (e.g., `"FTW"`): 
+Deploy the `ApprovalDemoToken` contract with the specified name and symbol (e.g., `"FTW"`):
 
 ```bash
 forge create --broadcast src/demos/approval-magic/ApprovalDemoToken.sol:ApprovalDemoToken --rpc-url $DESTINATION_RPC --private-key $DESTINATION_PRIVATE_KEY --constructor-args "FTW" "FTW"
@@ -214,7 +215,7 @@ export SWAP_ADDR=0xDee41516471b52A662d3A2af70639CEF0A77fFA0
 To deploy the `ApprovalMagicSwap` contract:
 
 ```bash
-forge create src/demos/approval-magic/ApprovalMagicSwap.sol:ApprovalMagicSwap --rpc-url $DESTINATION_RPC --private-key $DESTINATION_PRIVATE_KEY --constructor-args $APPROVAL_SRV_ADDR $TOKEN1_ADDR $TOKEN2_ADDR
+forge create --broadcast src/demos/approval-magic/ApprovalMagicSwap.sol:ApprovalMagicSwap --rpc-url $DESTINATION_RPC --private-key $DESTINATION_PRIVATE_KEY --constructor-args $APPROVAL_SRV_ADDR $TOKEN1_ADDR $TOKEN2_ADDR
 ```
 
 The `Deployed to` address should be assigned to `SWAP_ADDR`.
