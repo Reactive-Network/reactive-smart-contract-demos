@@ -6,18 +6,21 @@ The **Approval Magic Demo** extends reactive and subscription-based concepts to 
 
 ```mermaid
 sequenceDiagram
+    autonumber
     participant Validator
     participant Proxy as CallbackProxy
     participant ApprovalService
     participant EthExch
-    participant DemoToken
+    participant Token as DemoToken
 
-    Validator->>Proxy: callback()
-    Proxy->>ApprovalService: onApproval()
-    ApprovalService->>EthExch: onApproval()
-    EthExch->>DemoToken: transfer()
-    EthExch->>EthExch: send ETH
-    Note right of EthExch: Service fee logic (optional)
+    Validator->>Proxy: 1. callback()
+    Proxy->>ApprovalService: 2. onApproval()
+    ApprovalService->>EthExch: 3. onApproval()
+
+    EthExch->>Token: 4a. transfer() tokens
+    EthExch->>EthExch: 4b. send ETH
+
+    Note right of EthExch: 5. Service fee logic (optional)
 ```
 
 ## Contracts
