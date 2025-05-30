@@ -4,24 +4,12 @@
 
 The **Approval Magic Demo** extends reactive and subscription-based concepts to implement an approval-based token exchange across multiple chains. The provided smart contracts facilitate token transfers and swaps by monitoring token approvals and reacting accordingly. The demo shows how an approval service integrated with the Reactive Network manages and executes cross-chain token exchanges, with each smart contract serving a distinct role in the overall workflow.
 
-```mermaid
-sequenceDiagram
-    autonumber
-    participant Validator
-    participant Proxy as CallbackProxy
-    participant ApprovalService
-    participant EthExch
-    participant Token as DemoToken
+## Magic Exchange Flow
 
-    Validator->>Proxy: 1. callback()
-    Proxy->>ApprovalService: 2. onApproval()
-    ApprovalService->>EthExch: 3. onApproval()
-
-    EthExch->>Token: 4a. transfer() tokens
-    EthExch->>EthExch: 4b. send ETH
-
-    Note right of EthExch: 5. Service fee logic (optional)
-```
+1. **Validator** calls `callback()` on **CallbackProxy**.
+2. **CallbackProxy** forwards the call to `onApproval()` in **ApprovalService**.
+3. **ApprovalService** triggers **ApprovalEthExch** via `onApproval()`.
+4. **ApprovalEthExch** transfers tokens from the user via **ApprovalDemoToken** and pays ETH to a target address.
 
 ## Contracts
 
