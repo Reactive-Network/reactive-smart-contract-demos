@@ -38,13 +38,13 @@ Before proceeding further, configure these environment variables:
 * `CLIENT_WALLET` — Deployer's EOA wallet address
 * `DESTINATION_CALLBACK_PROXY_ADDR` — The service address on the destination chain (see [Reactive Docs](https://dev.reactive.network/origins-and-destinations#callback-proxy-address)).
 
-> ℹ️ **Reactive Faucet on Sepolia**  
+> ℹ️ **Reactive Faucet on Sepolia**
 > To receive testnet REACT, send SepETH to the Reactive faucet contract on Ethereum Sepolia: `0x9b9BB25f1A81078C544C829c5EB7822d747Cf434`. The factor is 1/5, meaning you get 5 REACT for every 1 SepETH sent.
 
-> ⚠️ **Broadcast Error**  
+> ⚠️ **Broadcast Error**
 > If you see the following message: `error: unexpected argument '--broadcast' found`, it means your Foundry version (or local setup) does not support the `--broadcast` flag for `forge create`. Simply remove `--broadcast` from your command and re-run it.
 
-> 📝 **Note**  
+> 📝 **Note**
 > Use the same private key for deploying `ApprovalService` and `ApprovalListener`. `ApprovalDemoToken` and `ApprovalEthExch` may use different keys if needed.
 
 ## Magic Exchange
@@ -125,7 +125,7 @@ Subscribe the exchange contract to `ApprovalService`:
 cast send $EXCH_ADDR "subscribe()" --rpc-url $DESTINATION_RPC --private-key $DESTINATION_PRIVATE_KEY
 ```
 
-> 📝 **Note**  
+> 📝 **Note**
 > The subscription process takes approximately 30 seconds, accounting for both destination and Reactive's block intervals, before the service starts processing approvals.
 
 ### Step 5 — Test Approvals

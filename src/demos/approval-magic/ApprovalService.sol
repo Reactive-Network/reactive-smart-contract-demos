@@ -23,11 +23,11 @@ contract ApprovalService is AbstractCallback {
     mapping(address => bool) private subscribers;
 
     constructor(
-        address callbackSenderAddr_,
+        address callback_sender_addr_,
         uint256 subscription_fee_,
         uint256 gas_coefficient_,
         uint256 extra_gas_
-    ) AbstractCallback(callbackSenderAddr_) payable {
+    ) AbstractCallback(callback_sender_addr_) payable {
         owner = payable(msg.sender);
         subscription_fee = subscription_fee_;
         gas_coefficient = gas_coefficient_;
