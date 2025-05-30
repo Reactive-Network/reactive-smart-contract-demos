@@ -36,14 +36,15 @@ Before proceeding further, configure these environment variables:
 * `REACTIVE_RPC` — RPC URL for the Reactive Network (see [Reactive Docs](https://dev.reactive.network/reactive-mainnet)).
 * `REACTIVE_PRIVATE_KEY` — Private key for signing transactions on the Reactive Network.
 * `CLIENT_WALLET` — Deployer's EOA wallet address
+* `DESTINATION_CALLBACK_PROXY_ADDR` — The service address on the destination chain (see [Reactive Docs](https://dev.reactive.network/origins-and-destinations#callback-proxy-address)).
 
-> ℹ️ **Reactive Faucet on Sepolia**  
+> ℹ️ **Reactive Faucet on Sepolia**
 > To receive testnet REACT, send SepETH to the Reactive faucet contract on Ethereum Sepolia: `0x9b9BB25f1A81078C544C829c5EB7822d747Cf434`. The factor is 1/5, meaning you get 5 REACT for every 1 SepETH sent.
 
-> ⚠️ **Broadcast Error**  
+> ⚠️ **Broadcast Error**
 > If you see the following message: `error: unexpected argument '--broadcast' found`, it means your Foundry version (or local setup) does not support the `--broadcast` flag for `forge create`. Simply remove `--broadcast` from your command and re-run it.
 
-> 📝 **Note**  
+> 📝 **Note**
 > Use the same private key for deploying `ApprovalService` and `ApprovalListener`. `ApprovalDemoToken` and `ApprovalEthExch` may use different keys if needed.
 
 ## Magic Exchange
@@ -53,17 +54,17 @@ Before proceeding further, configure these environment variables:
 Use the pre-deployed `ApprovalService` contract or deploy your own.
 
 ```bash
-export APPROVAL_SRV_ADDR=0x204a2CD5A5c45289B0CD520Bc409888885a32B8d
+export APPROVAL_SRV_ADDR=0xCbdcBC43bEa8bE052907A128F187a53052441530
 ```
 
 To deploy `ApprovalService`, run the following command with the specified constructor arguments:
 
-- Subscription Fee (in Wei): `100`
-- Gas Price Coefficient: `1`
-- Extra Gas for Reactive Service: `10`
+- Subscription Fee: `123wei`
+- Gas Price Coefficient: `2`
+- Extra Gas for Reactive Service: `35000`
 
 ```bash
-forge create --broadcast src/demos/approval-magic/ApprovalService.sol:ApprovalService --rpc-url $DESTINATION_RPC --private-key $DESTINATION_PRIVATE_KEY --constructor-args 100 1 10
+forge create --broadcast --rpc-url $DESTINATION_RPC --private-key $DESTINATION_PRIVATE_KEY src/demos/approval-magic/ApprovalService.sol:ApprovalService --value 0.2ether --constructor-args $DESTINATION_CALLBACK_PROXY_ADDR 123wei 2 35000
 ```
 
 The `Deployed to` address from the response should be assigned to `APPROVAL_SRV_ADDR`.
@@ -73,13 +74,13 @@ The `Deployed to` address from the response should be assigned to `APPROVAL_SRV_
 Use the pre-deployed `ApprovalListener` contract or deploy your own.
 
 ```bash
-export APPROVAL_RCT_ADDR=0x2afaFD298b23b62760711756088F75B7409f5967
+export APPROVAL_RCT_ADDR=0xb71489EEF213E076968cBf2EBa3c51CeBb83d001
 ```
 
 Deploy the `ApprovalListener` contract using the same private key from Step 1. This ensures the `ApprovalService` contract can authenticate the RVM ID for callbacks.
 
 ```bash
-forge create --legacy --broadcast src/demos/approval-magic/ApprovalListener.sol:ApprovalListener --rpc-url $REACTIVE_RPC --private-key $DESTINATION_PRIVATE_KEY --value 0.01ether --constructor-args $APPROVAL_SRV_ADDR
+forge create --legacy --broadcast --rpc-url $REACTIVE_RPC --private-key $DESTINATION_PRIVATE_KEY src/demos/approval-magic/ApprovalListener.sol:ApprovalListener --value 1ether --constructor-args $DESTINATION_CHAIN_ID $APPROVAL_SRV_ADDR
 ```
 
 The `Deployed to` address should be assigned to `APPROVAL_RCT_ADDR`.
@@ -88,10 +89,10 @@ The `Deployed to` address should be assigned to `APPROVAL_RCT_ADDR`.
 
 #### Token Deployment
 
-Deploy the `ApprovalDemoToken` contract with the specified name and symbol (e.g., `"FTW"`): 
+Deploy the `ApprovalDemoToken` contract with the specified name and symbol (e.g., `"FTW"`):
 
 ```bash
-forge create --broadcast src/demos/approval-magic/ApprovalDemoToken.sol:ApprovalDemoToken --rpc-url $DESTINATION_RPC --private-key $DESTINATION_PRIVATE_KEY --constructor-args "FTW" "FTW"
+forge create --broadcast --rpc-url $DESTINATION_RPC --private-key $DESTINATION_PRIVATE_KEY src/demos/approval-magic/ApprovalDemoToken.sol:ApprovalDemoToken --constructor-args "FTW" "FTW"
 ```
 
 The `Deployed to` address should be assigned to `TOKEN_ADDR`.
@@ -101,38 +102,26 @@ The `Deployed to` address should be assigned to `TOKEN_ADDR`.
 Deploy the `ApprovalEthExch` contract:
 
 ```bash
-forge create --broadcast src/demos/approval-magic/ApprovalEthExch.sol:ApprovalEthExch --rpc-url $DESTINATION_RPC --private-key $DESTINATION_PRIVATE_KEY --constructor-args $APPROVAL_SRV_ADDR $TOKEN_ADDR
+forge create --broadcast --rpc-url $DESTINATION_RPC --private-key $DESTINATION_PRIVATE_KEY src/demos/approval-magic/ApprovalEthExch.sol:ApprovalEthExch --value 0.01ether --constructor-args $APPROVAL_SRV_ADDR $TOKEN_ADDR
 ```
 
 The `Deployed to` address should be assigned to `EXCH_ADDR`.
 
-### Step 4 — Fund and Subscribe
-
-#### Fund the Exchange Contract
-
-Transfer `1000` tokens (Service Fee in Wei) to the exchange contract:
-
-```bash
-cast send $EXCH_ADDR --value 1000 --rpc-url $DESTINATION_RPC --private-key $DESTINATION_PRIVATE_KEY
-```
-
-#### Subscribe to Approval Service
+### Step 4 — Subscribe and Approve
 
 Subscribe the exchange contract to `ApprovalService`:
 
 ```bash
-cast send $EXCH_ADDR "subscribe()" --rpc-url $DESTINATION_RPC --private-key $DESTINATION_PRIVATE_KEY
+cast send --rpc-url $DESTINATION_RPC --private-key $DESTINATION_PRIVATE_KEY $EXCH_ADDR "subscribe()" 
 ```
 
-> 📝 **Note**  
+> 📝 **Note**
 > The subscription process takes approximately 30 seconds, accounting for both destination and Reactive's block intervals, before the service starts processing approvals.
 
-### Step 5 — Test Approvals
-
-Approve the transfer of `100` tokens (in Wei) to the exchange contract:
+Approve the transfer of `1000` tokens (in Wei) to the exchange contract:
 
 ```bash
-cast send $TOKEN_ADDR "approve(address,uint256)" $EXCH_ADDR 100 --rpc-url $DESTINATION_RPC --private-key $DESTINATION_PRIVATE_KEY
+cast send --rpc-url $DESTINATION_RPC --private-key $DESTINATION_PRIVATE_KEY $TOKEN_ADDR "approve(address,uint256)" $EXCH_ADDR 1000 
 ```
 
 ## Magic Swap
@@ -142,30 +131,30 @@ cast send $TOKEN_ADDR "approve(address,uint256)" $EXCH_ADDR 100 --rpc-url $DESTI
 Use the pre-deployed tokens or deploy your own.
 
 ```bash
-export TOKEN1_ADDR=0x193cA0ED388b871f4Cb188B60C016fD0826fba37
-export TOKEN2_ADDR=0x4f4D678939407Ca230f972F928E2B32641dD330D
+export TOKEN1_ADDR=0xBa1aD75feE4d0bC41A946466443790da4b14825c
+export TOKEN2_ADDR=0x764396E26e0D9d7A544e8b4E45efA1048364F294
 ```
 
 You can request each token once:
 
 ```bash
-cast send 0x193cA0ED388b871f4Cb188B60C016fD0826fba37 "request()" --rpc-url $DESTINATION_RPC --private-key $DESTINATION_PRIVATE_KEY
+cast send --rpc-url $DESTINATION_RPC --private-key $DESTINATION_PRIVATE_KEY 0xBa1aD75feE4d0bC41A946466443790da4b14825c "request()" 
 ```
 
 ```bash
-cast send 0x4f4D678939407Ca230f972F928E2B32641dD330D "request()" --rpc-url $DESTINATION_RPC --private-key $DESTINATION_PRIVATE_KEY
+cast send --rpc-url $DESTINATION_RPC --private-key $DESTINATION_PRIVATE_KEY 0x764396E26e0D9d7A544e8b4E45efA1048364F294 "request()"
 ```
 
 Deploy two tokens, each with constructor arguments `"TOKEN_NAME"` and `"TOKEN_SYMBOL"`:
 
 ```bash
-forge create --broadcast src/demos/approval-magic/ApprovalDemoToken.sol:ApprovalDemoToken --rpc-url $DESTINATION_RPC --private-key $DESTINATION_PRIVATE_KEY --constructor-args "TK1" "TK1"
+forge create --broadcast --rpc-url $DESTINATION_RPC --private-key $DESTINATION_PRIVATE_KEY src/demos/approval-magic/ApprovalDemoToken.sol:ApprovalDemoToken --constructor-args "TK1" "TK1"
 ```
 
 The `Deployed to` address should be assigned to `TOKEN1_ADDR`.
 
 ```bash
-forge create --broadcast src/demos/approval-magic/ApprovalDemoToken.sol:ApprovalDemoToken --rpc-url $DESTINATION_RPC --private-key $DESTINATION_PRIVATE_KEY --constructor-args "TK2" "TK2"
+forge create --broadcast --rpc-url $DESTINATION_RPC --private-key $DESTINATION_PRIVATE_KEY src/demos/approval-magic/ApprovalDemoToken.sol:ApprovalDemoToken --constructor-args "TK2" "TK2"
 ```
 
 The `Deployed to` address should be assigned to `TOKEN2_ADDR`.
@@ -175,13 +164,13 @@ The `Deployed to` address should be assigned to `TOKEN2_ADDR`.
 If you use pre-deployed tokens from the previous step, export the address of their Uniswap pair:
 
 ```bash
-export UNISWAP_PAIR_ADDR=0xd2Bf9571B410fCb598Bde8fa6A0C40f0A80F56ef
+export UNISWAP_PAIR_ADDR=0x0498833E5632BC525d57D84F4d0f2f063adf678D
 ```
 
 To create a new pair, run the following command with the Uniswap V2 Factory contract `0x7E0987E5b3a30e3f2828572Bb659A548460a3003` and the token addresses deployed in the previous step.
 
 ```bash
-cast send 0x7E0987E5b3a30e3f2828572Bb659A548460a3003 'createPair(address,address)' --rpc-url $DESTINATION_RPC --private-key $DESTINATION_PRIVATE_KEY $TOKEN1_ADDR $TOKEN2_ADDR
+cast send --rpc-url $DESTINATION_RPC --private-key $DESTINATION_PRIVATE_KEY 0x7E0987E5b3a30e3f2828572Bb659A548460a3003 'createPair(address,address)' $TOKEN1_ADDR $TOKEN2_ADDR
 ```
 
 Assign the Uniswap pair address from transaction logs as shown on [Sepolia scan](https://sepolia.etherscan.io/tx/0x4a373bc6ebe815105abf44e6b26e9cdcd561fb9e796196849ae874c7083692a4/advanced#eventlog) to `UNISWAP_PAIR_ADDR`.
@@ -191,16 +180,16 @@ Assign the Uniswap pair address from transaction logs as shown on [Sepolia scan]
 Transfer liquidity into the created pool:
 
 ```bash
-cast send $TOKEN1_ADDR 'transfer(address,uint256)' --rpc-url $DESTINATION_RPC --private-key $DESTINATION_PRIVATE_KEY $UNISWAP_PAIR_ADDR 0.5ether
+cast send --rpc-url $DESTINATION_RPC --private-key $DESTINATION_PRIVATE_KEY $TOKEN1_ADDR 'transfer(address,uint256)' $UNISWAP_PAIR_ADDR 0.5ether
 ```
 ```bash
-cast send $TOKEN2_ADDR 'transfer(address,uint256)' --rpc-url $DESTINATION_RPC --private-key $DESTINATION_PRIVATE_KEY $UNISWAP_PAIR_ADDR 0.5ether
+cast send --rpc-url $DESTINATION_RPC --private-key $DESTINATION_PRIVATE_KEY $TOKEN2_ADDR 'transfer(address,uint256)' $UNISWAP_PAIR_ADDR 0.5ether
 ```
 
 Mint the liquidity pool tokens to your wallet:
 
 ```bash
-cast send $UNISWAP_PAIR_ADDR 'mint(address)' --rpc-url $DESTINATION_RPC --private-key $DESTINATION_PRIVATE_KEY $CLIENT_WALLET
+cast send --rpc-url $DESTINATION_RPC --private-key $DESTINATION_PRIVATE_KEY $UNISWAP_PAIR_ADDR 'mint(address)' $CLIENT_WALLET
 ```
 
 ### Step 4 — Swap Deployment
@@ -208,33 +197,27 @@ cast send $UNISWAP_PAIR_ADDR 'mint(address)' --rpc-url $DESTINATION_RPC --privat
 Use the pre-deployed swap contract or deploy your own.
 
 ```bash
-export SWAP_ADDR=0xDee41516471b52A662d3A2af70639CEF0A77fFA0
+export SWAP_ADDR=0x08295A6650b7388B6941dD7Fe5c03E9EC895DBA9
 ```
 
 To deploy the `ApprovalMagicSwap` contract:
 
 ```bash
-forge create src/demos/approval-magic/ApprovalMagicSwap.sol:ApprovalMagicSwap --rpc-url $DESTINATION_RPC --private-key $DESTINATION_PRIVATE_KEY --constructor-args $APPROVAL_SRV_ADDR $TOKEN1_ADDR $TOKEN2_ADDR
+forge create --broadcast --rpc-url $DESTINATION_RPC --private-key $DESTINATION_PRIVATE_KEY src/demos/approval-magic/ApprovalMagicSwap.sol:ApprovalMagicSwap --value 0.01ether --constructor-args $APPROVAL_SRV_ADDR $TOKEN1_ADDR $TOKEN2_ADDR
 ```
 
 The `Deployed to` address should be assigned to `SWAP_ADDR`.
 
-### Step 5 — Fund and Subscribe
+### Step 5 — Subscribe and Approve
 
-Transfer some funds to the swap contract and subscribe to the service:
-
-```bash
-cast send $SWAP_ADDR --value 100000 --rpc-url $DESTINATION_RPC --private-key $DESTINATION_PRIVATE_KEY
-```
+Subscribe the swap contract to `ApprovalService`:
 
 ```bash
-cast send $SWAP_ADDR "subscribe()" --rpc-url $DESTINATION_RPC --private-key $DESTINATION_PRIVATE_KEY
+cast send --rpc-url $DESTINATION_RPC --private-key $DESTINATION_PRIVATE_KEY $SWAP_ADDR "subscribe()"
 ```
-
-### Step 6 — Test Swap
 
 See the magic in action by approving one of the tokens (e.g., `TOKEN1_ADDR`) for the swap contract:
 
 ```bash
-cast send $TOKEN1_ADDR "approve(address,uint256)" $SWAP_ADDR 0.1ether --rpc-url $DESTINATION_RPC --private-key $DESTINATION_PRIVATE_KEY
+cast send --rpc-url $DESTINATION_RPC --private-key $DESTINATION_PRIVATE_KEY $TOKEN1_ADDR "approve(address,uint256)" $SWAP_ADDR 0.1ether 
 ```

@@ -14,7 +14,7 @@ contract ApprovalEthExch is IApprovalClient {
     constructor(
         ApprovalService service_,
         IERC20 token_
-    ) {
+    ) payable {
         owner = payable(msg.sender);
         service = service_;
         token = token_;

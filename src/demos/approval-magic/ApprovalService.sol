@@ -15,8 +15,6 @@ contract ApprovalService is AbstractCallback {
         address indexed subscriber
     );
 
-    address private constant CALLBACK_SENDER_ADDR = 0x33Bbb7D0a2F1029550B0e91f653c4055DC9F4Dd8;
-
     address payable private owner;
     uint256 public subscription_fee;
     uint256 private gas_coefficient;
@@ -25,10 +23,11 @@ contract ApprovalService is AbstractCallback {
     mapping(address => bool) private subscribers;
 
     constructor(
+        address callback_sender_addr_,
         uint256 subscription_fee_,
         uint256 gas_coefficient_,
         uint256 extra_gas_
-    ) AbstractCallback(CALLBACK_SENDER_ADDR) payable {
+    ) AbstractCallback(callback_sender_addr_) payable {
         owner = payable(msg.sender);
         subscription_fee = subscription_fee_;
         gas_coefficient = gas_coefficient_;
