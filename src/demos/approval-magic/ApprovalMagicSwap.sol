@@ -21,7 +21,7 @@ contract ApprovalMagicSwap is IApprovalClient {
         ApprovalService service_,
         IERC20 token0_,
         IERC20 token1_
-    ) {
+    ) payable {
         owner = payable(msg.sender);
         service = service_;
         token0 = token0_;
