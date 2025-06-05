@@ -4,6 +4,32 @@
 
 The **Approval Magic Demo** extends reactive and subscription-based concepts to implement an approval-based token exchange across multiple chains. The provided smart contracts facilitate token transfers and swaps by monitoring token approvals and reacting accordingly. The demo shows how an approval service integrated with the Reactive Network manages and executes cross-chain token exchanges, with each smart contract serving a distinct role in the overall workflow.
 
+## Magic Exchange Flow
+
+![Exchange](./img/exchange.png)
+
+1. Validator calls `callback()` on `CallbackProxy`.
+2. `CallbackProxy` calls `onApproval()` on `ApprovalService`.
+3. `ApprovalService` calls `onApproval()` on `ApprovalEthExch`, which:
+    - Transfers tokens from the EOA signing the transaction.
+    - Sends ETH to the EOA signing the transaction, equivalent to the token amount.
+4. `ApprovalService` then calls `settle()` on `ApprovalEthExch`, which:
+    - Sends ETH to `ApprovalService` for gas.
+
+## Magic Swap Flow
+
+![Swap](./img/swap.png)
+
+1. Validator calls `callback()` on `CallbackProxy`.
+2. `CallbackProxy` calls `onApproval()` on `ApprovalService`.
+3. `ApprovalService` calls `onApproval()` on `ApprovalMagicSwap`, which:
+   - Transfers approved tokens from the EOA signing the transaction.
+   - Approves Uniswap router.
+   - Swaps the tokens via Uniswap.
+   - Sends the output tokens back to the EOA signing the transaction.
+4. `ApprovalService` then calls `settle()` on `ApprovalMagicSwap`, which:
+   - Sends ETH to `ApprovalService` for gas.
+
 ## Contracts
 
 **Subscription-Based Approval Service**: The [ApprovalService](https://github.com/Reactive-Network/reactive-smart-contract-demos/blob/main/src/demos/approval-magic/ApprovalService.sol) contract is responsible for subscription-based approvals. Users (or contracts) can subscribe by paying a fee, enabling them to receive and process approval callbacks that originate from token approvals. This service tracks subscribers, covers the gas cost of triggered callbacks, and emits `Subscribe`/`Unsubscribe` events. If the subscription conditions aren’t met or a contract fails to pay for its gas usage, the subscriber is automatically unsubscribed.
@@ -39,12 +65,17 @@ Before proceeding further, configure these environment variables:
 * `DESTINATION_CALLBACK_PROXY_ADDR` — The service address on the destination chain (see [Reactive Docs](https://dev.reactive.network/origins-and-destinations#callback-proxy-address)).
 
 > ℹ️ **Reactive Faucet on Sepolia**
+> 
 > To receive testnet REACT, send SepETH to the Reactive faucet contract on Ethereum Sepolia: `0x9b9BB25f1A81078C544C829c5EB7822d747Cf434`. The factor is 1/5, meaning you get 5 REACT for every 1 SepETH sent.
+> 
+> **Important**: Do not send more than 10 SepETH per request, as doing so will cause you to lose the excess amount without receiving any additional REACT. The maximum that should be sent in a single transaction is 10 SepETH, which will yield 50 REACT.
 
 > ⚠️ **Broadcast Error**
+> 
 > If you see the following message: `error: unexpected argument '--broadcast' found`, it means your Foundry version (or local setup) does not support the `--broadcast` flag for `forge create`. Simply remove `--broadcast` from your command and re-run it.
 
 > 📝 **Note**
+> 
 > Use the same private key for deploying `ApprovalService` and `ApprovalListener`. `ApprovalDemoToken` and `ApprovalEthExch` may use different keys if needed.
 
 ## Magic Exchange
@@ -85,9 +116,7 @@ forge create --legacy --broadcast --rpc-url $REACTIVE_RPC --private-key $DESTINA
 
 The `Deployed to` address should be assigned to `APPROVAL_RCT_ADDR`.
 
-### Step 3 — Client Contract
-
-#### Token Deployment
+### Step 3 — Token Contract Deployment
 
 Deploy the `ApprovalDemoToken` contract with the specified name and symbol (e.g., `"FTW"`):
 
@@ -97,7 +126,7 @@ forge create --broadcast --rpc-url $DESTINATION_RPC --private-key $DESTINATION_P
 
 The `Deployed to` address should be assigned to `TOKEN_ADDR`.
 
-#### Client Contract Deployment
+### Step 4 — Exchange Contract Deployment
 
 Deploy the `ApprovalEthExch` contract:
 
@@ -107,7 +136,7 @@ forge create --broadcast --rpc-url $DESTINATION_RPC --private-key $DESTINATION_P
 
 The `Deployed to` address should be assigned to `EXCH_ADDR`.
 
-### Step 4 — Subscribe and Approve
+### Step 5 — Subscribe and Approve
 
 Subscribe the exchange contract to `ApprovalService`:
 
@@ -145,7 +174,7 @@ cast send --rpc-url $DESTINATION_RPC --private-key $DESTINATION_PRIVATE_KEY 0xBa
 cast send --rpc-url $DESTINATION_RPC --private-key $DESTINATION_PRIVATE_KEY 0x764396E26e0D9d7A544e8b4E45efA1048364F294 "request()"
 ```
 
-Deploy two tokens, each with constructor arguments `"TOKEN_NAME"` and `"TOKEN_SYMBOL"`:
+Or deploy two tokens, each with constructor arguments `"TOKEN_NAME"` and `"TOKEN_SYMBOL"`:
 
 ```bash
 forge create --broadcast --rpc-url $DESTINATION_RPC --private-key $DESTINATION_PRIVATE_KEY src/demos/approval-magic/ApprovalDemoToken.sol:ApprovalDemoToken --constructor-args "TK1" "TK1"
@@ -175,7 +204,7 @@ cast send --rpc-url $DESTINATION_RPC --private-key $DESTINATION_PRIVATE_KEY 0x7E
 
 Assign the Uniswap pair address from transaction logs as shown on [Sepolia scan](https://sepolia.etherscan.io/tx/0x4a373bc6ebe815105abf44e6b26e9cdcd561fb9e796196849ae874c7083692a4/advanced#eventlog) to `UNISWAP_PAIR_ADDR`.
 
-### Step 3 — Add liquidity
+### Step 3 — Add Funds and Mint
 
 Transfer liquidity into the created pool:
 
@@ -192,7 +221,7 @@ Mint the liquidity pool tokens to your wallet:
 cast send --rpc-url $DESTINATION_RPC --private-key $DESTINATION_PRIVATE_KEY $UNISWAP_PAIR_ADDR 'mint(address)' $CLIENT_WALLET
 ```
 
-### Step 4 — Swap Deployment
+### Step 4 — Swap Contract Deployment
 
 Use the pre-deployed swap contract or deploy your own.
 
