@@ -25,7 +25,7 @@ The **Approval Magic Demo** extends reactive and subscription-based concepts to 
 3. ApprovalService calls onApproval() on ApprovalMagicSwap, which:
    - Transfers approved tokens (token0 or token1) from the user.
    - Approves Uniswap router.
-   - Swaps the tokens using Uniswap (token0 ⇄ token1).
+   - Swaps the tokens using Uniswap.
    - Sends the output tokens back to the EOA signing the transaction.
 4. `ApprovalService` then calls `settle()` on `ApprovalMagicSwap`, which:
    - Sends ETH to `ApprovalService` for gas.
