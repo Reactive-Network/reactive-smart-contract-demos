@@ -6,10 +6,29 @@ The **Approval Magic Demo** extends reactive and subscription-based concepts to 
 
 ## Magic Exchange Flow
 
-1. **Validator** calls `callback()` on **CallbackProxy**.
-2. **CallbackProxy** forwards the call to `onApproval()` in **ApprovalService**.
-3. **ApprovalService** triggers **ApprovalEthExch** via `onApproval()`.
-4. **ApprovalEthExch** transfers tokens from the user via **ApprovalDemoToken** and pays ETH to a target address.
+![Exchange](./img/exchange.png)
+
+1. Validator calls `callback()` on `CallbackProxy`.
+2. `CallbackProxy` calls `onApproval()` on `ApprovalService`.
+3. `ApprovalService` calls `onApproval()` on `ApprovalEthExch`, which:
+    - Transfers tokens from the EOA signing the transaction.
+    - Sends ETH to the EOA signing the transaction, equivalent to the token amount.
+4. `ApprovalService` then calls `settle()` on `ApprovalEthExch`, which:
+    - Sends ETH to `ApprovalService` for gas.
+
+## Magic Swap Flow
+
+![Swap](./img/swap.png)
+
+1. Validator calls `callback()` on `CallbackProxy`.
+2. `CallbackProxy` calls `onApproval()` on `ApprovalService`.
+3. ApprovalService calls onApproval() on ApprovalMagicSwap, which:
+   - Transfers approved tokens (token0 or token1) from the user.
+   - Approves Uniswap router.
+   - Swaps the tokens using Uniswap (token0 ⇄ token1).
+   - Sends the output tokens back to the EOA signing the transaction.
+4. `ApprovalService` then calls `settle()` on `ApprovalMagicSwap`, which:
+   - Sends ETH to `ApprovalService` for gas.
 
 ## Contracts
 
