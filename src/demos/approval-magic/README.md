@@ -22,10 +22,10 @@ The **Approval Magic Demo** extends reactive and subscription-based concepts to 
 
 1. Validator calls `callback()` on `CallbackProxy`.
 2. `CallbackProxy` calls `onApproval()` on `ApprovalService`.
-3. ApprovalService calls onApproval() on ApprovalMagicSwap, which:
-   - Transfers approved tokens (token0 or token1) from the user.
+3. `ApprovalService` calls `onApproval()` on `ApprovalMagicSwap`, which:
+   - Transfers approved tokens from the EOA signing the transaction.
    - Approves Uniswap router.
-   - Swaps the tokens using Uniswap.
+   - Swaps the tokens via Uniswap.
    - Sends the output tokens back to the EOA signing the transaction.
 4. `ApprovalService` then calls `settle()` on `ApprovalMagicSwap`, which:
    - Sends ETH to `ApprovalService` for gas.
