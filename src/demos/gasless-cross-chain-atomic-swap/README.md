@@ -90,13 +90,13 @@ Deploy ERC-20 tokens on both chains for testing. Each token mints 1000 units to 
 
 **Swap Initiator Chain:**
 ```bash
-forge create --broadcast --rpc-url $SWAP_INITIATOR_CHAIN_RPC --private-key $SWAP_INITIATOR_PRIVATE_KEY src/demos/cross-chain-swap/UniswapDemoToken.sol:UniswapDemoToken --constructor-args "Initiator Token" "ITK"
+forge create --broadcast --rpc-url $SWAP_INITIATOR_CHAIN_RPC --private-key $SWAP_INITIATOR_PRIVATE_KEY src/demos/gasless-cross-chain-atomic-swap/GaslessCrossChainAtomicSwapDemoToken.sol:GaslessCrossChainAtomicSwapDemoToken --constructor-args "Initiator Token" "ITK"
 export INITIATOR_TOKEN=<deployed_address>
 ```
 
 **Swap Closer Chain:**
 ```bash
-forge create --broadcast --rpc-url $SWAP_CLOSER_CHAIN_RPC --private-key $SWAP_CLOSER_PRIVATE_KEY src/demos/cross-chain-swap/UniswapDemoToken.sol:UniswapDemoToken --constructor-args "Closer Token" "CTK"
+forge create --broadcast --rpc-url $SWAP_CLOSER_CHAIN_RPC --private-key $SWAP_CLOSER_PRIVATE_KEY src/demos/gasless-cross-chain-atomic-swap/UniswapDemoToken.sol:UniswapDemoToken --constructor-args "Closer Token" "CTK"
 export CLOSER_TOKEN=<deployed_address>
 ```
 
@@ -106,13 +106,13 @@ Deploy the swap contract on both chains:
 
 **Swap Initiator Chain Contract:**
 ```bash
-forge create --broadcast --rpc-url $SWAP_INITIATOR_CHAIN_RPC --private-key $SWAP_INITIATOR_PRIVATE_KEY src/demos/cross-chain-swap/CrossChainSwapDemoGaslessClaimingCallback.sol:CrossChainSwapDemoGaslessClaimingCallback --value 0.01ether --constructor-args $SWAP_INITIATOR_CALLBACK_PROXY_ADDR
+forge create --broadcast --rpc-url $SWAP_INITIATOR_CHAIN_RPC --private-key $SWAP_INITIATOR_PRIVATE_KEY src/demos/gasless-cross-chain-atomic-swap/GaslessDemoCrossChainAtomicSwapCallback.sol:GaslessDemoCrossChainAtomicSwapCallback --value 0.01ether --constructor-args $SWAP_INITIATOR_CALLBACK_PROXY_ADDR
 export INITIATOR_CONTRACT=<deployed_address>
 ```
 
 **Swap Closer Chain Contract:**
 ```bash
-forge create --broadcast --rpc-url $SWAP_CLOSER_CHAIN_RPC --private-key $SWAP_CLOSER_PRIVATE_KEY src/demos/cross-chain-swap/CrossChainSwapDemoGaslessClaimingCallback.sol:CrossChainSwapDemoGaslessClaimingCallback --value 0.01ether --constructor-args $SWAP_CLOSER_CALLBACK_PROXY_ADDR
+forge create --broadcast --rpc-url $SWAP_CLOSER_CHAIN_RPC --private-key $SWAP_CLOSER_PRIVATE_KEY src/demos/gasless-cross-chain-atomic-swap/GaslessDemoCrossChainAtomicSwapCallback.sol:GaslessDemoCrossChainAtomicSwapCallback --value 0.01ether --constructor-args $SWAP_CLOSER_CALLBACK_PROXY_ADDR
 export CLOSER_CONTRACT=<deployed_address>
 ```
 
@@ -121,7 +121,7 @@ export CLOSER_CONTRACT=<deployed_address>
 Deploy the reactive contract that will orchestrate the cross-chain swap:
 
 ```bash
-forge create --legacy --broadcast --rpc-url $REACTIVE_RPC --private-key $REACTIVE_PRIVATE_KEY src/demos/cross-chain-swap/GaslessAtomicSwapReactive.sol:GaslessAtomicSwapReactive --value 0.01ether --constructor-args 11155111 5318008 $INITIATOR_CONTRACT $CLOSER_CONTRACT
+forge create --legacy --broadcast --rpc-url $REACTIVE_RPC --private-key $REACTIVE_PRIVATE_KEY src/demos/gasless-cross-chain-atomic-swap/GaslessDemoCrossChainAtomicSwapReactive.sol:GaslessDemoCrossChainAtomicSwapReactive --value 0.01ether --constructor-args 11155111 5318008 $INITIATOR_CONTRACT $CLOSER_CONTRACT
 ```
 
 > **Chain IDs**: 11155111 = Ethereum Sepolia, 5318008 = Reactive Kopli. Adjust according to your target chains.
