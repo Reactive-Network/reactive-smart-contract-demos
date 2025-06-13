@@ -96,7 +96,7 @@ export INITIATOR_TOKEN=<deployed_address>
 
 **Swap Closer Chain:**
 ```bash
-forge create --broadcast --rpc-url $SWAP_CLOSER_CHAIN_RPC --private-key $SWAP_CLOSER_PRIVATE_KEY src/demos/gasless-cross-chain-atomic-swap/UniswapDemoToken.sol:UniswapDemoToken --constructor-args "Closer Token" "CTK"
+forge create --broadcast --rpc-url $SWAP_CLOSER_CHAIN_RPC --private-key $SWAP_CLOSER_PRIVATE_KEY src/demos/gasless-cross-chain-atomic-swap/GaslessCrossChainAtomicSwapDemoToken.sol:GaslessCrossChainAtomicSwapDemoToken --constructor-args "Closer Token" "CTK"
 export CLOSER_TOKEN=<deployed_address>
 ```
 
