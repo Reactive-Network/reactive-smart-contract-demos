@@ -42,7 +42,7 @@ contract BasicDemoReactiveContract is IReactive, AbstractReactive {
 
     function react(LogRecord calldata log) external vmOnly {
 
-        if (log.topic_3 >= 0.01 ether) {
+        if (log.topic_3 >= 0.001 ether) {
             bytes memory payload = abi.encodeWithSignature("callback(address)", address(0));
             emit Callback(destinationChainId, callback, GAS_LIMIT, payload);
         }
