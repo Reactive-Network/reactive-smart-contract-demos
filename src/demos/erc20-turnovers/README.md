@@ -49,7 +49,7 @@ Before proceeding further, configure these environment variables:
 Deploy the `TokenTurnoverL1` contract and assign the `Deployed to` address from the response to `TURNOVER_L1_ADDR`.
 
 ```bash
-forge create --broadcast --rpc-url $DESTINATION_RPC --private-key $DESTINATION_PRIVATE_KEY src/demos/erc20-turnovers/TokenTurnoverL1.sol:TokenTurnoverL1 --value 0.01ether --constructor-args $DESTINATION_CALLBACK_PROXY_ADDR
+forge create --broadcast --rpc-url $DESTINATION_RPC --private-key $DESTINATION_PRIVATE_KEY src/demos/erc20-turnovers/TokenTurnoverL1.sol:TokenTurnoverL1 --value 0.02ether --constructor-args $DESTINATION_CALLBACK_PROXY_ADDR
 ```
 
 ### Step 2 — Reactive Contract
@@ -57,7 +57,7 @@ forge create --broadcast --rpc-url $DESTINATION_RPC --private-key $DESTINATION_P
 Deploy the `TokenTurnoverReactive` contract and assign the `Deployed to` address from the response to `TURNOVER_REACTIVE_ADDR`.
 
 ```bash
-forge create --legacy --broadcast --rpc-url $REACTIVE_RPC --private-key $REACTIVE_PRIVATE_KEY src/demos/erc20-turnovers/TokenTurnoverReactive.sol:TokenTurnoverReactive --value 0.01ether --constructor-args $TURNOVER_L1_ADDR
+forge create --broadcast --rpc-url $REACTIVE_RPC --private-key $REACTIVE_PRIVATE_KEY src/demos/erc20-turnovers/TokenTurnoverReactive.sol:TokenTurnoverReactive --value 0.1ether --constructor-args $TURNOVER_L1_ADDR
 ```
 
 ### Step 3 — Monitor Token Turnover
@@ -73,11 +73,11 @@ cast send $TURNOVER_L1_ADDR "request(address)" --rpc-url $DESTINATION_RPC --priv
 To stop the reactive contract:
 
 ```bash
-cast send --legacy $TURNOVER_REACTIVE_ADDR "pause()" --rpc-url $REACTIVE_RPC --private-key $REACTIVE_PRIVATE_KEY
+cast send $TURNOVER_REACTIVE_ADDR "pause()" --rpc-url $REACTIVE_RPC --private-key $REACTIVE_PRIVATE_KEY
 ```
 
 To resume the reactive contract:
 
 ```bash
-cast send --legacy $TURNOVER_REACTIVE_ADDR "resume()" --rpc-url $REACTIVE_RPC --private-key $REACTIVE_PRIVATE_KEY
+cast send $TURNOVER_REACTIVE_ADDR "resume()" --rpc-url $REACTIVE_RPC --private-key $REACTIVE_PRIVATE_KEY
 ```

@@ -49,7 +49,7 @@ Before proceeding further, configure these environment variables:
 Deploy the `UniswapHistoryDemoL1` contract and assign the `Deployed to` address from the response to `UNISWAP_L1_ADDR`.
 
 ```bash
-forge create --broadcast --rpc-url $DESTINATION_RPC --private-key $DESTINATION_PRIVATE_KEY src/demos/uniswap-v2-history/UniswapHistoryDemoL1.sol:UniswapHistoryDemoL1 --value 0.01ether --constructor-args $DESTINATION_CALLBACK_PROXY_ADDR
+forge create --broadcast --rpc-url $DESTINATION_RPC --private-key $DESTINATION_PRIVATE_KEY src/demos/uniswap-v2-history/UniswapHistoryDemoL1.sol:UniswapHistoryDemoL1 --value 0.02ether --constructor-args $DESTINATION_CALLBACK_PROXY_ADDR
 ```
 
 ### Step 2 — Reactive Contract
@@ -57,7 +57,7 @@ forge create --broadcast --rpc-url $DESTINATION_RPC --private-key $DESTINATION_P
 Deploy the `UniswapHistoryDemoReactive` contract and assign the `Deployed to` address from the response to `UNISWAP_REACTIVE_ADDR`.
 
 ```bash
-forge create --legacy --broadcast --rpc-url $REACTIVE_RPC --private-key $REACTIVE_PRIVATE_KEY src/demos/uniswap-v2-history/UniswapHistoryDemoReactive.sol:UniswapHistoryDemoReactive --value 0.01ether --constructor-args $UNISWAP_L1_ADDR
+forge create --broadcast --rpc-url $REACTIVE_RPC --private-key $REACTIVE_PRIVATE_KEY src/demos/uniswap-v2-history/UniswapHistoryDemoReactive.sol:UniswapHistoryDemoReactive --value 0.1ether --constructor-args $UNISWAP_L1_ADDR
 ```
 
 ### Step 3 — Monitor Token Pair Activity
@@ -73,11 +73,11 @@ cast send $UNISWAP_L1_ADDR "request(address,uint256)" --rpc-url $DESTINATION_RPC
 To stop the reactive contract:
 
 ```bash
-cast send --legacy $UNISWAP_REACTIVE_ADDR "pause()" --rpc-url $REACTIVE_RPC --private-key $REACTIVE_PRIVATE_KEY
+cast send $UNISWAP_REACTIVE_ADDR "pause()" --rpc-url $REACTIVE_RPC --private-key $REACTIVE_PRIVATE_KEY
 ```
 
 To resume the reactive contract:
 
 ```bash
-cast send --legacy $UNISWAP_REACTIVE_ADDR "resume()" --rpc-url $REACTIVE_RPC --private-key $REACTIVE_PRIVATE_KEY
+cast send $UNISWAP_REACTIVE_ADDR "resume()" --rpc-url $REACTIVE_RPC --private-key $REACTIVE_PRIVATE_KEY
 ```
