@@ -87,7 +87,7 @@ cast send 0x7E0987E5b3a30e3f2828572Bb659A548460a3003 'createPair(address,address
 Deploy the callback contract on Ethereum Sepolia, using the Uniswap V2 router at `0xC532a74256D3Db42D0Bf7a0400fEFDbad7694008`, linked to the factory contract specified in Step 2. You should also pass the Sepolia callback proxy address. Assign the `Deployed to` address from the response to `CALLBACK_ADDR`.
 
 ```bash
-forge create --broadcast --rpc-url $DESTINATION_RPC --private-key $DESTINATION_PRIVATE_KEY src/demos/uniswap-v2-stop-order/UniswapDemoStopOrderCallback.sol:UniswapDemoStopOrderCallback --value 0.01ether --constructor-args $DESTINATION_CALLBACK_PROXY_ADDR 0xC532a74256D3Db42D0Bf7a0400fEFDbad7694008
+forge create --broadcast --rpc-url $DESTINATION_RPC --private-key $DESTINATION_PRIVATE_KEY src/demos/uniswap-v2-stop-order/UniswapDemoStopOrderCallback.sol:UniswapDemoStopOrderCallback --value 0.02ether --constructor-args $DESTINATION_CALLBACK_PROXY_ADDR 0xC532a74256D3Db42D0Bf7a0400fEFDbad7694008
 ```
 
 ### Step 4 — Add Liquidity to the Pool
@@ -119,7 +119,7 @@ Deploy the Reactive contract specifying:
 - `EXCHANGE_RATE_DENOMINATOR` and `EXCHANGE_RATE_NUMERATOR`: The exchange rate threshold, represented as integers. For example, a threshold of 1.234 would require `EXCHANGE_RATE_DENOMINATOR` to be set to `1000` and `EXCHANGE_RATE_NUMERATOR` to `1234`.
 
 ```bash
-forge create --legacy --broadcast --rpc-url $REACTIVE_RPC --private-key $REACTIVE_PRIVATE_KEY src/demos/uniswap-v2-stop-order/UniswapDemoStopOrderReactive.sol:UniswapDemoStopOrderReactive --value 0.01ether --constructor-args $UNISWAP_V2_PAIR_ADDR $CALLBACK_ADDR $CLIENT_WALLET $DIRECTION_BOOLEAN $EXCHANGE_RATE_DENOMINATOR $EXCHANGE_RATE_NUMERATOR
+forge create --broadcast --rpc-url $REACTIVE_RPC --private-key $REACTIVE_PRIVATE_KEY src/demos/uniswap-v2-stop-order/UniswapDemoStopOrderReactive.sol:UniswapDemoStopOrderReactive --value 0.1ether --constructor-args $UNISWAP_V2_PAIR_ADDR $CALLBACK_ADDR $CLIENT_WALLET $DIRECTION_BOOLEAN $EXCHANGE_RATE_DENOMINATOR $EXCHANGE_RATE_NUMERATOR
 ```
 
 ### Step 6 — Authorize Token Spending
