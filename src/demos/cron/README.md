@@ -27,7 +27,7 @@ Before proceeding further, configure these environment variables:
 Deploy the `BasicCronContract` contract, providing it with the system contract address and the preferred cron topic.
 
 ```bash
-forge create --legacy --broadcast --rpc-url $REACTIVE_RPC --private-key $REACTIVE_PRIVATE_KEY src/demos/cron/CronDemo.sol:BasicCronContract --value 0.01ether --constructor-args $SYSTEM_CONTRACT_ADDR $CRON_TOPIC
+forge create --broadcast --rpc-url $REACTIVE_RPC --private-key $REACTIVE_PRIVATE_KEY src/demos/cron/CronDemo.sol:BasicCronContract --value 0.1ether --constructor-args $SYSTEM_CONTRACT_ADDR $CRON_TOPIC
 ```
 
 ### Step 2 — Cron Pause (Optional)
@@ -35,11 +35,11 @@ forge create --legacy --broadcast --rpc-url $REACTIVE_RPC --private-key $REACTIV
 To pause the cron subscription, run this command:
 
 ```bash
-cast send --legacy $REACTIVE_ADDR "pause()" --rpc-url $REACTIVE_RPC --private-key $REACTIVE_PRIVATE_KEY
+cast send $REACTIVE_ADDR "pause()" --rpc-url $REACTIVE_RPC --private-key $REACTIVE_PRIVATE_KEY
 ```
 
 To resume the cron subscription, run this command:
 
 ```bash
-cast send --legacy $REACTIVE_ADDR "resume()" --rpc-url $REACTIVE_RPC --private-key $REACTIVE_PRIVATE_KEY
+cast send $REACTIVE_ADDR "resume()" --rpc-url $REACTIVE_RPC --private-key $REACTIVE_PRIVATE_KEY
 ```

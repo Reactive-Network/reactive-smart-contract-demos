@@ -1,14 +1,14 @@
 // SPDX-License-Identifier: UNLICENSED
-
 pragma solidity >=0.8.0;
 
 import '../../../lib/reactive-lib/src/interfaces/ISystemContract.sol';
 import '../../../lib/reactive-lib/src/abstract-base/AbstractPausableReactive.sol';
 
 contract BasicCronContract is AbstractPausableReactive {
-
     uint256 public CRON_TOPIC;
     uint64 private constant GAS_LIMIT = 1000000;
+
+    uint256 public lastCronBlock;
 
     constructor(
         address _service,
@@ -44,12 +44,18 @@ contract BasicCronContract is AbstractPausableReactive {
 
     function react(LogRecord calldata log) external vmOnly {
         if (log.topic_0 == CRON_TOPIC) {
+            lastCronBlock = block.number;
             emit Callback(
                 block.chainid,
                 address(this),
                 GAS_LIMIT,
-                abi.encodeWithSignature("callback(address)", address(0)));
+                abi.encodeWithSignature("callback()")
+            );
         }
     }
-}
 
+    // For testing`rnk_call`
+    function getLastCronBlock() external view returns (uint256) {
+        return lastCronBlock;
+    }
+}
