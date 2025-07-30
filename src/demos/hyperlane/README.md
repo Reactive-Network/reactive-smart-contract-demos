@@ -65,7 +65,7 @@ Deploy the reactive contract with the following arguments:
 - `HYPERLANE_ORIGIN_ADDR` — Origin contract address from Step 1
 
 ```bash
-forge create --legacy --broadcast --rpc-url https://mainnet-rpc.rnk.dev/ --private-key $HYPERLANE_PRIVATE_KEY src/demos/hyperlane/HyperlaneReactive.sol:HyperlaneReactive --value 0.2ether --constructor-args 0x3a464f746D23Ab22155710f44dB16dcA53e0775E 8453 $HYPERLANE_ORIGIN_ADDR
+forge create --broadcast --rpc-url https://mainnet-rpc.rnk.dev/ --private-key $HYPERLANE_PRIVATE_KEY src/demos/hyperlane/HyperlaneReactive.sol:HyperlaneReactive --value 0.2ether --constructor-args 0x3a464f746D23Ab22155710f44dB16dcA53e0775E 8453 $HYPERLANE_ORIGIN_ADDR
 ```
 
 ## Step 3 — Send Messages
@@ -80,7 +80,7 @@ You can now test sending messages across chains using the deployed contracts. Th
 Ensure the reactive contract holds enough REACT tokens to cover message dispatch costs from Reactive to Base. Depending on current rates, each message may require 3–5 REACT. For details on topping up the contract balance, [see here](https://dev.reactive.network/economy#direct-transfers).
 
 ```bash
-cast send --legacy --rpc-url https://mainnet-rpc.rnk.dev/ --private-key $HYPERLANE_PRIVATE_KEY $HYPERLANE_REACTIVE_ADDR "send(bytes)" 0xabcdef
+cast send --rpc-url https://mainnet-rpc.rnk.dev/ --private-key $HYPERLANE_PRIVATE_KEY $HYPERLANE_REACTIVE_ADDR "send(bytes)" 0xabcdef
 ```
 
 ### Trigger with Callback (Reactive ➝ Base)
@@ -88,7 +88,7 @@ cast send --legacy --rpc-url https://mainnet-rpc.rnk.dev/ --private-key $HYPERLA
 Calls the `trigger()` function on Reactive, which runs via the dedicated RVM and sends a message via Hyperlane:
 
 ```bash
-cast send --legacy --rpc-url https://mainnet-rpc.rnk.dev/ --private-key $HYPERLANE_PRIVATE_KEY $HYPERLANE_REACTIVE_ADDR "trigger(bytes)" 0xfedcba
+cast send --rpc-url https://mainnet-rpc.rnk.dev/ --private-key $HYPERLANE_PRIVATE_KEY $HYPERLANE_REACTIVE_ADDR "trigger(bytes)" 0xfedcba
 ```
 
 ### Trigger from Base (Base ➝ Reactive)
