@@ -85,7 +85,7 @@ Before proceeding further, configure these environment variables:
 Use the pre-deployed `ApprovalService` contract or deploy your own.
 
 ```bash
-export APPROVAL_SRV_ADDR=0xCbdcBC43bEa8bE052907A128F187a53052441530
+export APPROVAL_SRV_ADDR=0xfc2236a0d3421473676c4c422046fbc4f1afdffe
 ```
 
 To deploy `ApprovalService`, run the following command with the specified constructor arguments:
@@ -95,7 +95,7 @@ To deploy `ApprovalService`, run the following command with the specified constr
 - Extra Gas for Reactive Service: `35000`
 
 ```bash
-forge create --broadcast --rpc-url $DESTINATION_RPC --private-key $DESTINATION_PRIVATE_KEY src/demos/approval-magic/ApprovalService.sol:ApprovalService --value 0.2ether --constructor-args $DESTINATION_CALLBACK_PROXY_ADDR 123wei 2 35000
+forge create --broadcast --rpc-url $DESTINATION_RPC --private-key $DESTINATION_PRIVATE_KEY src/demos/approval-magic/ApprovalService.sol:ApprovalService --value 0.03ether --constructor-args $DESTINATION_CALLBACK_PROXY_ADDR 123wei 2 35000
 ```
 
 The `Deployed to` address from the response should be assigned to `APPROVAL_SRV_ADDR`.
@@ -105,13 +105,13 @@ The `Deployed to` address from the response should be assigned to `APPROVAL_SRV_
 Use the pre-deployed `ApprovalListener` contract or deploy your own.
 
 ```bash
-export APPROVAL_RCT_ADDR=0xb71489EEF213E076968cBf2EBa3c51CeBb83d001
+export APPROVAL_RCT_ADDR=0xc3e185561D2a8b04F0Fcd104A562f460D6cC503c
 ```
 
 Deploy the `ApprovalListener` contract using the same private key from Step 1. This ensures the `ApprovalService` contract can authenticate the RVM ID for callbacks.
 
 ```bash
-forge create --legacy --broadcast --rpc-url $REACTIVE_RPC --private-key $DESTINATION_PRIVATE_KEY src/demos/approval-magic/ApprovalListener.sol:ApprovalListener --value 1ether --constructor-args $DESTINATION_CHAIN_ID $APPROVAL_SRV_ADDR
+forge create --broadcast --rpc-url $REACTIVE_RPC --private-key $DESTINATION_PRIVATE_KEY src/demos/approval-magic/ApprovalListener.sol:ApprovalListener --value 0.1ether --constructor-args $DESTINATION_CHAIN_ID $APPROVAL_SRV_ADDR
 ```
 
 The `Deployed to` address should be assigned to `APPROVAL_RCT_ADDR`.
