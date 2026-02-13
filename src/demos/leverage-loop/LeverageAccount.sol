@@ -6,32 +6,85 @@ import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import "@openzeppelin/contracts/token/ERC20/extensions/IERC20Permit.sol";
 import "../../../lib/reactive-lib/src/abstract-base/AbstractCallback.sol";
 
-interface IMockLendingPool {
-    function supply(address asset, uint256 amount) external;
-    function borrow(address asset, uint256 amount) external;
-    function repay(address asset, uint256 amount) external;
-    function withdraw(address asset, uint256 amount) external;
-    function supplies(
-        address user,
-        address asset
-    ) external view returns (uint256);
-    function borrowings(
-        address user,
-        address asset
-    ) external view returns (uint256);
-    function getUserAccountData(
-        address user
-    ) external view returns (uint256, uint256, uint256);
+/// @title Chainlink Aggregator Interface
+interface AggregatorV3Interface {
+    function decimals() external view returns (uint8);
+    function description() external view returns (string memory);
+    function version() external view returns (uint256);
+
+    function latestRoundData()
+        external
+        view
+        returns (
+            uint80 roundId,
+            int256 answer,
+            uint256 startedAt,
+            uint256 updatedAt,
+            uint80 answeredInRound
+        );
 }
 
-interface IMockRouter {
-    function swapExactTokensForTokens(
-        uint256 amountIn,
-        uint256 amountOutMin,
-        address[] calldata path,
-        address to,
-        uint256 deadline
-    ) external returns (uint256[] memory amounts);
+/// @title Aave V3 Pool Interface (essential functions)
+interface IPool {
+    function supply(
+        address asset,
+        uint256 amount,
+        address onBehalfOf,
+        uint16 referralCode
+    ) external;
+
+    function borrow(
+        address asset,
+        uint256 amount,
+        uint256 interestRateMode,
+        uint16 referralCode,
+        address onBehalfOf
+    ) external;
+
+    function repay(
+        address asset,
+        uint256 amount,
+        uint256 interestRateMode,
+        address onBehalfOf
+    ) external returns (uint256);
+
+    function withdraw(
+        address asset,
+        uint256 amount,
+        address to
+    ) external returns (uint256);
+
+    function getUserAccountData(
+        address user
+    )
+        external
+        view
+        returns (
+            uint256 totalCollateralBase,
+            uint256 totalDebtBase,
+            uint256 availableBorrowsBase,
+            uint256 currentLiquidationThreshold,
+            uint256 ltv,
+            uint256 healthFactor
+        );
+}
+
+/// @title Uniswap V3 SwapRouter Interface
+interface ISwapRouter {
+    struct ExactInputSingleParams {
+        address tokenIn;
+        address tokenOut;
+        uint24 fee;
+        address recipient;
+        uint256 deadline;
+        uint256 amountIn;
+        uint256 amountOutMinimum;
+        uint160 sqrtPriceLimitX96;
+    }
+
+    function exactInputSingle(
+        ExactInputSingleParams calldata params
+    ) external payable returns (uint256 amountOut);
 }
 
 /// @title LeverageAccount - User's leveraged position vault
