@@ -4,6 +4,9 @@ pragma solidity ^0.8.20;
 import "@openzeppelin/contracts/access/Ownable.sol";
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import "@openzeppelin/contracts/token/ERC20/extensions/IERC20Permit.sol";
+import "@openzeppelin/contracts/token/ERC20/extensions/IERC20Metadata.sol";
+import "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
+import "@openzeppelin/contracts/utils/ReentrancyGuard.sol";
 import "../../../lib/reactive-lib/src/abstract-base/AbstractCallback.sol";
 
 /// @title Chainlink Aggregator Interface
@@ -87,180 +90,109 @@ interface ISwapRouter {
     ) external payable returns (uint256 amountOut);
 }
 
-/// @title LeverageAccount - User's leveraged position vault
+/// @title LeverageAccount - User's leveraged position vault with Chainlink & Aave V3
 /// @notice Receives callbacks from Reactive Network to execute leverage loops
-contract LeverageAccount is AbstractCallback, Ownable {
-    IMockLendingPool public lendingPool;
-    IMockRouter public router;
+contract LeverageAccount is AbstractCallback, Ownable, ReentrancyGuard {
+    using SafeERC20 for IERC20;
+
+    // Protocol contracts
+    IPool public aavePool;
+    ISwapRouter public swapRouter;
+    address public callbackProxy;
+
+    // Oracle management
+    mapping(address => address) public assetOracles; // asset => Chainlink aggregator
+    uint256 public constant STALENESS_THRESHOLD = 3600; // 1 hour
+    uint256 public constant PRICE_DECIMALS = 18; // Standardize all prices to 18 decimals
+
+    // Swap configuration
+    uint24 public defaultPoolFee = 3000; // 0.3% pool fee (most liquid)
+    uint256 public slippageTolerance = 200; // 2% (in basis points)
+
+    // Authorization
     address public rscCaller;
 
-    event Deposited(address indexed user, uint256 amount, uint256 currentLTV);
+    // Aave constants
+    uint256 private constant VARIABLE_INTEREST_RATE_MODE = 2;
+    uint16 private constant REFERRAL_CODE = 0;
+
+    // Events - Enhanced with USD values and decimals for RSC
+    event Deposited(
+        address indexed user,
+        address indexed token,
+        uint256 amount,
+        uint256 valueInUSD,
+        uint256 healthFactor,
+        uint8 tokenDecimals
+    );
+
     event LoopStepExecuted(
         uint256 borrowed,
         uint256 newCollateral,
-        uint256 currentLTV,
-        uint256 iterationId
+        uint256 newCollateralValueUSD,
+        uint256 healthFactor,
+        uint256 iterationId,
+        uint8 borrowAssetDecimals
     );
-    event PositionClosed(uint256 debtRepaid, uint256 collateralReturned);
+
+    event PositionClosed(
+        uint256 debtRepaid,
+        uint256 collateralReturned,
+        uint256 finalHealthFactor
+    );
+
+    event OracleUpdated(address indexed asset, address indexed oracle);
+    event SlippageConfigured(uint256 newTolerance);
+    event PoolFeeUpdated(uint24 newFee);
 
     constructor(
-        address _lendingPool,
-        address _router,
+        address _aavePool,
+        address _swapRouter,
         address _callbackProxy,
         address _rscCaller
     ) payable AbstractCallback(_callbackProxy) Ownable(msg.sender) {
-        lendingPool = IMockLendingPool(_lendingPool);
-        router = IMockRouter(_router);
+        require(_aavePool != address(0), "Invalid Aave pool");
+        require(_swapRouter != address(0), "Invalid swap router");
+        require(_callbackProxy != address(0), "Invalid callback proxy");
+        aavePool = IPool(_aavePool);
+        swapRouter = ISwapRouter(_swapRouter);
+        callbackProxy = _callbackProxy;
         rscCaller = _rscCaller;
     }
 
     modifier onlyController(address sender) {
-        require(sender == owner() || sender == rscCaller, "Not authorized");
+        require(
+            msg.sender == owner() ||
+                (msg.sender == callbackProxy && sender == rscCaller),
+            "Not authorized"
+        );
         _;
     }
 
-    function setRSCCaller(address _rscCaller) external onlyOwner {
-        rscCaller = _rscCaller;
-    }
+    /* 
+    /// TO BE IMPLEMENTED IN STAGE 2: Oracle and Price Helpers
+    function setOracle(...)
+    function setOraclesBatch(...)
+    function setSlippageTolerance(...)
+    function setPoolFee(...)
+    function getAssetPrice(...)
+    function getValueInUSD(...)
+    function calculateMinOutput(...)
+    function setRSCCaller(...)
 
-    /// @notice Deposit collateral (requires prior approval)
-    function deposit(address token, uint256 amount) external onlyOwner {
-        IERC20(token).transferFrom(msg.sender, address(this), amount);
-        IERC20(token).approve(address(lendingPool), amount);
-        lendingPool.supply(token, amount);
+    /// TO BE IMPLEMENTED IN STAGE 3: Deposit Logic
+    function deposit(...)
+    function depositWithPermit(...)
 
-        (, , uint256 ltv) = lendingPool.getUserAccountData(address(this));
-        emit Deposited(msg.sender, amount, ltv);
-    }
+    /// TO BE IMPLEMENTED IN STAGE 4: Leverage Logic
+    function executeLeverageStep(...)
 
-    /// @notice Deposit with EIP-2612 permit (no prior approval needed)
-    function depositWithPermit(
-        address token,
-        uint256 amount,
-        uint256 deadline,
-        uint8 v,
-        bytes32 r,
-        bytes32 s
-    ) external onlyOwner {
-        try
-            IERC20Permit(token).permit(
-                msg.sender,
-                address(this),
-                amount,
-                deadline,
-                v,
-                r,
-                s
-            )
-        {} catch {
-            revert("Permit failed");
-        }
-        IERC20(token).transferFrom(msg.sender, address(this), amount);
-        IERC20(token).approve(address(lendingPool), amount);
-        lendingPool.supply(token, amount);
-
-        (, , uint256 ltv) = lendingPool.getUserAccountData(address(this));
-        emit Deposited(msg.sender, amount, ltv);
-    }
-
-    /// @notice Execute one leverage loop step: Borrow -> Swap -> Supply
-    /// @dev Called by Reactive Network via Callback Proxy
-    /// @param sender ReactVM ID (injected by Reactive Network for auth)
-    /// @param borrowAsset Token to borrow (USDT)
-    /// @param collateralAsset Token to buy and supply (WETH)
-    /// @param amountToBorrow Amount to borrow
-    /// @param amountOutMin Minimum swap output (slippage protection)
-    /// @param iterationId Loop iteration counter
-    function executeLeverageStep(
-        address sender,
-        address borrowAsset,
-        address collateralAsset,
-        uint256 amountToBorrow,
-        uint256 amountOutMin,
-        uint256 iterationId
-    ) external onlyController(sender) {
-        // 1. Borrow
-        lendingPool.borrow(borrowAsset, amountToBorrow);
-
-        // 2. Swap borrowed asset to collateral
-        IERC20(borrowAsset).approve(address(router), amountToBorrow);
-        address[] memory path = new address[](2);
-        path[0] = borrowAsset;
-        path[1] = collateralAsset;
-
-        uint256[] memory amounts = router.swapExactTokensForTokens(
-            amountToBorrow,
-            amountOutMin,
-            path,
-            address(this),
-            block.timestamp
-        );
-
-        // 3. Supply received collateral
-        uint256 received = amounts[1];
-        IERC20(collateralAsset).approve(address(lendingPool), received);
-        lendingPool.supply(collateralAsset, received);
-
-        (, , uint256 ltv) = lendingPool.getUserAccountData(address(this));
-        emit LoopStepExecuted(amountToBorrow, received, ltv, iterationId);
-    }
-
-    /// @notice Close position: repay all debt and withdraw collateral
-    /// @dev User must approve debtAsset transfer to cover the debt
-    function fullClosePosition(
-        address collateralAsset,
-        address debtAsset
-    ) external onlyOwner {
-        uint256 debt = lendingPool.borrowings(address(this), debtAsset);
-        uint256 collateral = lendingPool.supplies(
-            address(this),
-            collateralAsset
-        );
-        require(collateral > 0, "No collateral");
-
-        if (debt > 0) {
-            IERC20(debtAsset).transferFrom(msg.sender, address(this), debt);
-            IERC20(debtAsset).approve(address(lendingPool), debt);
-            lendingPool.repay(debtAsset, debt);
-        }
-
-        lendingPool.withdraw(collateralAsset, collateral);
-        IERC20(collateralAsset).transfer(msg.sender, collateral);
-
-        emit PositionClosed(debt, collateral);
-    }
-
-    /// @notice Partial debt repayment
-    function repayPartial(
-        address debtAsset,
-        uint256 amount
-    ) external onlyOwner {
-        IERC20(debtAsset).transferFrom(msg.sender, address(this), amount);
-        IERC20(debtAsset).approve(address(lendingPool), amount);
-        lendingPool.repay(debtAsset, amount);
-    }
-
-    /// @notice Withdraw tokens from contract
-    function withdraw(address token, uint256 amount) external onlyOwner {
-        uint256 balance = IERC20(token).balanceOf(address(this));
-        if (balance >= amount) {
-            IERC20(token).transfer(msg.sender, amount);
-        }
-    }
-
-    /// @notice Withdraw ETH (for callback payment reserves)
-    function withdrawETH(uint256 amount) external onlyOwner {
-        require(address(this).balance >= amount, "Insufficient ETH");
-        (bool ok, ) = payable(msg.sender).call{value: amount}("");
-        require(ok, "ETH transfer failed");
-    }
-
-    /// @notice Get current position status
-    function getStatus()
-        external
-        view
-        returns (uint256 collateral, uint256 debt, uint256 ltv)
-    {
-        return lendingPool.getUserAccountData(address(this));
-    }
+    /// TO BE IMPLEMENTED IN STAGE 5: Closing & Withdrawals
+    function fullClosePosition(...)
+    function repayPartial(...)
+    function withdraw(...)
+    function withdrawETH(...)
+    function getStatus(...)
+    function tryGetAssetPrice(...)
+    */
 }
