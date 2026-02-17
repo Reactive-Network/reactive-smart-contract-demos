@@ -4,24 +4,19 @@
 
 The **Leverage Loop Demo** implements a reactive smart contract that orchestrates an automated leverage looping strategy.
 
-In decentralized finance (DeFi), "looping" is a strategy where a user supplies collateral to a lending protocol, borrows against it, swaps the borrowed asset for more collateral, supplies it again, and repeats the process to maximize their position. This is typically a manual and gas-intensive process involving multiple transactions and constant monitoring of Loan-To-Value (LTV) ratios.
+In decentralized finance (DeFi), "looping" is a strategy where a user supplies collateral to a lending protocol, borrows against it, swaps the borrowed asset for more collateral, supplies it again, and repeats the process to maximize their position. This is typically a manual and gas-intensive process involving multiple transactions and constant monitoring of Health Factors.
 
-This demo automates the entire process using the Reactive Network. A user simply deposits funds into a smart account. The **LoopingRSC** detects this deposit and automatically executes a series of "loops" — borrowing, swapping, and supplying — until a target LTV is reached, all without further user intervention.
+This demo automates the entire process using the Reactive Network. A user simply deposits funds into a smart account. The **LoopingRSC** detects this deposit and automatically executes a series of "loops" — borrowing, swapping, and supplying — until a target Health Factor is reached, all without further user intervention.
 
 This demo extends the principles introduced in the [Reactive Network Demo](https://github.com/Reactive-Network/reactive-smart-contract-demos/tree/main/src/demos/basic), which provides an introduction to building reactive smart contracts.
 
 ## Contracts
 
-**Leverage Account**: [LeverageAccount](https://github.com/Reactive-Network/reactive-smart-contract-demos/blob/main/src/demos/leverage-loop/LeverageAccount.sol) operates as the user's personal vault on the destination chain (e.g., Ethereum Sepolia). It holds the user's collateral and debt positions. It listens for callbacks from the Reactive Network to execute individual leverage steps (borrow -> swap -> supply).
+**Leverage Account**: [LeverageAccount](https://github.com/Reactive-Network/reactive-smart-contract-demos/blob/main/src/demos/leverage-loop/LeverageAccount.sol) operates as the user's personal vault on the destination chain (e.g., Ethereum Sepolia). It holds the user's collateral and debt positions. It listens for callbacks from the Reactive Network to execute individual leverage steps (borrow -> swap -> supply), featuring dynamic slippage protection using real-time oracles.
 
 **Reactive Contract**: [LoopingRSC](https://github.com/Reactive-Network/reactive-smart-contract-demos/blob/main/src/demos/leverage-loop/LoopingRSC.sol) monitors the `LeverageAccount` for `Deposited` and `LoopStepExecuted` events.
-- On `Deposited`: If the LTV is below the target (75%), it initiates the first leverage loop.
-- On `LoopStepExecuted`: It checks if the target LTV is reached or if the maximum iteration count is met. If not, it triggers the next loop.
-
-**Mock Infrastructure**:
-- **[MockToken](https://github.com/Reactive-Network/reactive-smart-contract-demos/blob/main/src/demos/leverage-loop/mock/MockToken.sol)**: Simulates ERC-20 tokens (WETH, USDT).
-- **[MockRouter](https://github.com/Reactive-Network/reactive-smart-contract-demos/blob/main/src/demos/leverage-loop/mock/MockRouter.sol)**: Simulates a DEX for swapping borrowed assets into collateral.
-- **[MockLendingPool](https://github.com/Reactive-Network/reactive-smart-contract-demos/blob/main/src/demos/leverage-loop/mock/MockLendingPool.sol)**: Simulates a lending protocol (like Aave) allowing supply, borrow, repay, and withdraw actions.
+- On `Deposited`: If the Health Factor is above the target (1.5), it initiates the first leverage loop.
+- On `LoopStepExecuted`: It checks if the Health Factor has dropped below the safety threshold (1.2), reached the target (1.5), or if the maximum iteration count (5) is met. If not, it triggers the next loop.
 
 ## Deployment & Testing
 
@@ -47,54 +42,28 @@ Before proceeding, configure these environment variables:
 >
 > If you see the following message: `error: unexpected argument '--broadcast' found`, it means your Foundry version (or local setup) does not support the `--broadcast` flag for `forge create`. Simply remove `--broadcast` from your command and re-run it.
 
-### Step 1 — Deploy Mock Infrastructure
+### Step 1 — Configuration
 
-First, deploy the mock tokens, router, and lending pool on the destination chain (Sepolia).
-
-**1. Deploy WETH and USDT:**
+Export the following addresses for the Aave V3 Market and Uniswap V3 on Sepolia:
 
 ```bash
-forge create --broadcast --rpc-url $DESTINATION_RPC --private-key $DESTINATION_PRIVATE_KEY src/demos/leverage-loop/mock/MockToken.sol:MockToken --constructor-args "Wrapped Ether" "WETH"
-```
-*Export the deployed address as `WETH_ADDR`.*
+# Aave V3 Pool (Sepolia)
+export POOL_ADDR=0x6Ae43d3271ff6888e7Fc43Fd7321a503ff738951
 
-```bash
-forge create --broadcast --rpc-url $DESTINATION_RPC --private-key $DESTINATION_PRIVATE_KEY src/demos/leverage-loop/mock/MockToken.sol:MockToken --constructor-args "Tether USD" "USDT"
-```
-*Export the deployed address as `USDT_ADDR`.*
+# Uniswap V3 SwapRouter (Sepolia)
+export ROUTER_ADDR=0x3bFA4769FB09eefC5a80d6E87c3B9C650f7Ae48E
 
-**2. Deploy Mock Router:**
+# WETH (Aave V3 Supported)
+export WETH_ADDR=0xC558DBdd856501FCd9aaF1E62eae57A9F0629a3c
 
-```bash
-forge create --broadcast --rpc-url $DESTINATION_RPC --private-key $DESTINATION_PRIVATE_KEY src/demos/leverage-loop/mock/MockRouter.sol:MockRouter
-```
-*Export the deployed address as `ROUTER_ADDR`.*
-
-**3. Configure Prices (Oracle):**
-Set WETH price to $3000 and USDT to $1.
-
-```bash
-cast send $ROUTER_ADDR "setPrice(address,uint256)" $WETH_ADDR 3000000000000000000000 --rpc-url $DESTINATION_RPC --private-key $DESTINATION_PRIVATE_KEY
-cast send $ROUTER_ADDR "setPrice(address,uint256)" $USDT_ADDR 1000000000000000000 --rpc-url $DESTINATION_RPC --private-key $DESTINATION_PRIVATE_KEY
-```
-
-**4. Deploy Mock Lending Pool:**
-
-```bash
-forge create --broadcast --rpc-url $DESTINATION_RPC --private-key $DESTINATION_PRIVATE_KEY src/demos/leverage-loop/mock/MockLendingPool.sol:MockLendingPool --constructor-args $ROUTER_ADDR
-```
-*Export the deployed address as `POOL_ADDR`.*
-
-**5. Add Assets to Pool:**
-
-```bash
-cast send $POOL_ADDR "addAsset(address)" $WETH_ADDR --rpc-url $DESTINATION_RPC --private-key $DESTINATION_PRIVATE_KEY
-cast send $POOL_ADDR "addAsset(address)" $USDT_ADDR --rpc-url $DESTINATION_RPC --private-key $DESTINATION_PRIVATE_KEY
+# USDC (Aave V3 Supported, 6 decimals)
+export BORROW_ASSET_ADDR=0x94a9D9AC8a22534E3FaCa9F4e7F2E2cf85d5E4C8
+export BORROW_ASSET_DECIMALS=6
 ```
 
 ### Step 2 — Deploy Leverage Account
 
-Deploy the user's smart account on the destination chain. Initially, we set the `_rscCaller` to `address(0)` or our wallet, and will update it after deploying the Reactive contract.
+Deploy the user's smart account on the destination chain.
 
 ```bash
 forge create --broadcast --rpc-url $DESTINATION_RPC --private-key $DESTINATION_PRIVATE_KEY src/demos/leverage-loop/LeverageAccount.sol:LeverageAccount --constructor-args $POOL_ADDR $ROUTER_ADDR $DESTINATION_CALLBACK_PROXY_ADDR $CLIENT_WALLET
@@ -106,7 +75,7 @@ forge create --broadcast --rpc-url $DESTINATION_RPC --private-key $DESTINATION_P
 Deploy the control logic on the Reactive Network.
 
 ```bash
-forge create --broadcast --rpc-url $REACTIVE_RPC --private-key $REACTIVE_PRIVATE_KEY src/demos/leverage-loop/LoopingRSC.sol:LoopingRSC --constructor-args $SYSTEM_CONTRACT_ADDR $LEV_ACCOUNT_ADDR $WETH_ADDR $USDT_ADDR
+forge create --broadcast --rpc-url $REACTIVE_RPC --private-key $REACTIVE_PRIVATE_KEY src/demos/leverage-loop/LoopingRSC.sol:LoopingRSC --constructor-args $SYSTEM_CONTRACT_ADDR $LEV_ACCOUNT_ADDR $WETH_ADDR $BORROW_ASSET_ADDR $BORROW_ASSET_DECIMALS
 ```
 *Export the deployed address as `RSC_ADDR`.*
 
@@ -121,39 +90,38 @@ Allow the deployed RSC to call `executeLeverageStep` on your Leverage Account.
 cast send $LEV_ACCOUNT_ADDR "setRSCCaller(address)" $RSC_ADDR --rpc-url $DESTINATION_RPC --private-key $DESTINATION_PRIVATE_KEY
 ```
 
-**2. Mint & Approve Test Tokens:**
-Mint some WETH to your wallet to use as initial collateral.
+**2. Set Chainlink Oracles:**
+Configure price feeds so the contract can calculate slippage protection.
 
 ```bash
-cast send $WETH_ADDR "mint(address,uint256)" $CLIENT_WALLET 10000000000000000000 --rpc-url $DESTINATION_RPC --private-key $DESTINATION_PRIVATE_KEY
-cast send $WETH_ADDR "approve(address,uint256)" $LEV_ACCOUNT_ADDR 10000000000000000000 --rpc-url $DESTINATION_RPC --private-key $DESTINATION_PRIVATE_KEY
+# WETH/USD oracle on Sepolia
+cast send $LEV_ACCOUNT_ADDR "setOracle(address,address)" $WETH_ADDR <WETH_USD_ORACLE> --rpc-url $DESTINATION_RPC --private-key $DESTINATION_PRIVATE_KEY
+
+# USDC/USD oracle on Sepolia
+cast send $LEV_ACCOUNT_ADDR "setOracle(address,address)" $BORROW_ASSET_ADDR <USDC_USD_ORACLE> --rpc-url $DESTINATION_RPC --private-key $DESTINATION_PRIVATE_KEY
 ```
 
-**3. Provide Liquidity to Mock Router:**
-The router needs USDT to swap against your borrowed WETH (or vice versa depending on strategy, here we borrow USDT and swap to WETH).
-Mint USDT and send to Router.
+**3. Fund Account:**
+Ensure you have WETH in your wallet (from a faucet or by wrapping SepETH).
 
-```bash
-cast send $USDT_ADDR "mint(address,uint256)" $ROUTER_ADDR 100000000000000000000000 --rpc-url $DESTINATION_RPC --private-key $DESTINATION_PRIVATE_KEY
-```
-*Also mint WETH to Router for the swap:*
-```bash
-cast send $WETH_ADDR "mint(address,uint256)" $ROUTER_ADDR 100000000000000000000 --rpc-url $DESTINATION_RPC --private-key $DESTINATION_PRIVATE_KEY
-```
 
 ### Step 5 — Execute the Loop
 
-Trigger the process by depositing WETH into your Leverage Account.
+Approve WETH spending, then deposit into your Leverage Account.
 
 ```bash
+# Approve the LeverageAccount to pull your WETH
+cast send $WETH_ADDR "approve(address,uint256)" $LEV_ACCOUNT_ADDR 1000000000000000000 --rpc-url $DESTINATION_RPC --private-key $DESTINATION_PRIVATE_KEY
+
+# Deposit WETH to start the leverage loop
 cast send $LEV_ACCOUNT_ADDR "deposit(address,uint256)" $WETH_ADDR 1000000000000000000 --rpc-url $DESTINATION_RPC --private-key $DESTINATION_PRIVATE_KEY
 ```
 
 This action will:
 1.  Emit a `Deposited` event on Sepolia.
 2.  `LoopingRSC` detects the event and emits a `Callback`.
-3.  `LeverageAccount` receives the callback, borrows USDT, swaps it for WETH, and supplies the WETH.
+3.  `LeverageAccount` receives the callback, borrows USDC, swaps it for WETH on Uniswap V3, and supplies the WETH back to Aave.
 4.  A `LoopStepExecuted` event is emitted.
-5.  `LoopingRSC` detects this and repeats the loop until the target LTV is reached (max 3 iterations in this demo).
+5.  `LoopingRSC` detects this and repeats the loop until the target Health Factor is reached (max 5 iterations in this demo).
 
 You can monitor the transaction events on Sepolia Etherscan and the Reactive Explorer.
