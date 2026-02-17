@@ -301,4 +301,271 @@ contract LeverageAccount is AbstractCallback, Ownable, ReentrancyGuard {
     function setRSCCaller(address _rscCaller) external onlyOwner {
         rscCaller = _rscCaller;
     }
+
+    /// @notice Deposit collateral with USD value calculation
+    /// @param token The collateral token (e.g., WETH)
+    /// @param amount The amount to deposit
+    function deposit(address token, uint256 amount) external onlyOwner {
+        // Transfer tokens from user
+        IERC20(token).safeTransferFrom(msg.sender, address(this), amount);
+
+        // Calculate USD value using Chainlink oracle
+        uint256 valueInUSD = getValueInUSD(token, amount);
+        uint8 tokenDecimals = IERC20Metadata(token).decimals();
+
+        // Approve Aave pool (forceApprove handles USDT-like tokens)
+        IERC20(token).forceApprove(address(aavePool), amount);
+
+        // Supply to Aave V3
+        aavePool.supply(token, amount, address(this), REFERRAL_CODE);
+
+        // Get health factor from Aave
+        (, , , , , uint256 healthFactor) = aavePool.getUserAccountData(
+            address(this)
+        );
+
+        emit Deposited(
+            msg.sender,
+            token,
+            amount,
+            valueInUSD,
+            healthFactor,
+            tokenDecimals
+        );
+    }
+
+    /// @notice Deposit with EIP-2612 permit (gasless approval)
+    function depositWithPermit(
+        address token,
+        uint256 amount,
+        uint256 deadline,
+        uint8 v,
+        bytes32 r,
+        bytes32 s
+    ) external onlyOwner {
+        // Execute permit
+        try
+            IERC20Permit(token).permit(
+                msg.sender,
+                address(this),
+                amount,
+                deadline,
+                v,
+                r,
+                s
+            )
+        {} catch {
+            revert("Permit failed");
+        }
+        // Transfer tokens
+        IERC20(token).safeTransferFrom(msg.sender, address(this), amount);
+
+        // Calculate USD value
+        uint256 valueInUSD = getValueInUSD(token, amount);
+        uint8 tokenDecimals = IERC20Metadata(token).decimals();
+
+        // Approve and supply to Aave
+        IERC20(token).forceApprove(address(aavePool), amount);
+        aavePool.supply(token, amount, address(this), REFERRAL_CODE);
+
+        // Get health factor
+        (, , , , , uint256 healthFactor) = aavePool.getUserAccountData(
+            address(this)
+        );
+
+        emit Deposited(
+            msg.sender,
+            token,
+            amount,
+            valueInUSD,
+            healthFactor,
+            tokenDecimals
+        );
+    }
+
+    /// @notice Execute one leverage loop step: Borrow -> Swap -> Supply
+    /// @dev Called by Reactive Network via Callback Proxy
+    /// @dev Slippage protection calculated dynamically using REAL-TIME oracles
+    /// @param sender ReactVM ID (injected by Reactive Network for auth)
+    /// @param borrowAsset Token to borrow (USDC/USDT/DAI)
+    /// @param collateralAsset Token to buy and supply (WETH)
+    /// @param amountToBorrow Amount to borrow (in borrowAsset's native decimals)
+    /// @param iterationId Loop iteration counter
+    function executeLeverageStep(
+        address sender,
+        address borrowAsset,
+        address collateralAsset,
+        uint256 amountToBorrow,
+        uint256 /* amountOutMin */,
+        uint256 iterationId
+    ) external nonReentrant onlyController(sender) {
+        // 1. Borrow from Aave
+        aavePool.borrow(
+            borrowAsset,
+            amountToBorrow,
+            VARIABLE_INTEREST_RATE_MODE,
+            REFERRAL_CODE,
+            address(this)
+        );
+
+        // 2. Calculate minimum output using REAL-TIME oracles
+        uint256 minAmountOut = calculateMinOutput(
+            borrowAsset,
+            collateralAsset,
+            amountToBorrow
+        );
+
+        // 3. Swap using Uniswap V3
+        IERC20(borrowAsset).forceApprove(address(swapRouter), amountToBorrow);
+
+        ISwapRouter.ExactInputSingleParams memory params = ISwapRouter
+            .ExactInputSingleParams({
+                tokenIn: borrowAsset,
+                tokenOut: collateralAsset,
+                fee: defaultPoolFee,
+                recipient: address(this),
+                deadline: block.timestamp + 300,
+                amountIn: amountToBorrow,
+                amountOutMinimum: minAmountOut,
+                sqrtPriceLimitX96: 0 // No price limit
+            });
+
+        uint256 received = swapRouter.exactInputSingle(params);
+
+        // 4. Supply received collateral to Aave
+        IERC20(collateralAsset).forceApprove(address(aavePool), received);
+        aavePool.supply(
+            collateralAsset,
+            received,
+            address(this),
+            REFERRAL_CODE
+        );
+
+        // 5. Calculate USD value of new collateral
+        uint256 newCollateralValueUSD = getValueInUSD(
+            collateralAsset,
+            received
+        );
+
+        // Get borrow asset decimals for RSC (fixes Problem C)
+        uint8 borrowAssetDecimals = IERC20Metadata(borrowAsset).decimals();
+
+        // Get updated health factor from Aave
+        (, , , , , uint256 healthFactor) = aavePool.getUserAccountData(
+            address(this)
+        );
+
+        // Emit enhanced event with decimals info
+        emit LoopStepExecuted(
+            amountToBorrow,
+            received,
+            newCollateralValueUSD,
+            healthFactor,
+            iterationId,
+            borrowAssetDecimals
+        );
+    }
+
+    /// @notice Close position: repay all debt and withdraw collateral
+    /// @param collateralAsset The collateral token (e.g., WETH)
+    /// @param debtAsset The debt token (e.g., USDC)
+    /// @param repayAmount Amount of debt tokens to pull from sender (in token's native decimals)
+    function fullClosePosition(
+        address collateralAsset,
+        address debtAsset,
+        uint256 repayAmount
+    ) external onlyOwner {
+        // Transfer debt tokens from owner
+        IERC20(debtAsset).safeTransferFrom(
+            msg.sender,
+            address(this),
+            repayAmount
+        );
+
+        // Repay all debt (type(uint256).max tells Aave to repay exact outstanding debt)
+        IERC20(debtAsset).forceApprove(address(aavePool), repayAmount);
+        uint256 repaid = aavePool.repay(
+            debtAsset,
+            type(uint256).max,
+            VARIABLE_INTEREST_RATE_MODE,
+            address(this)
+        );
+
+        // Withdraw all collateral to owner
+        uint256 withdrawn = aavePool.withdraw(
+            collateralAsset,
+            type(uint256).max,
+            msg.sender
+        );
+
+        // Refund excess debt tokens to owner
+        uint256 excess = IERC20(debtAsset).balanceOf(address(this));
+        if (excess > 0) {
+            IERC20(debtAsset).safeTransfer(msg.sender, excess);
+        }
+
+        // Get final health factor
+        (, , , , , uint256 healthFactor) = aavePool.getUserAccountData(
+            address(this)
+        );
+
+        emit PositionClosed(repaid, withdrawn, healthFactor);
+    }
+
+    /// @notice Partial debt repayment
+    function repayPartial(
+        address debtAsset,
+        uint256 amount
+    ) external onlyOwner {
+        IERC20(debtAsset).safeTransferFrom(msg.sender, address(this), amount);
+        IERC20(debtAsset).forceApprove(address(aavePool), amount);
+
+        aavePool.repay(
+            debtAsset,
+            amount,
+            VARIABLE_INTEREST_RATE_MODE,
+            address(this)
+        );
+    }
+
+    /// @notice Emergency withdraw tokens from contract
+    function withdraw(address token, uint256 amount) external onlyOwner {
+        uint256 balance = IERC20(token).balanceOf(address(this));
+        require(balance >= amount, "Insufficient balance");
+        IERC20(token).safeTransfer(msg.sender, amount);
+    }
+
+    /// @notice Withdraw ETH (for callback payment reserves)
+    function withdrawETH(uint256 amount) external onlyOwner {
+        require(address(this).balance >= amount, "Insufficient ETH");
+        (bool ok, ) = payable(msg.sender).call{value: amount}("");
+        require(ok, "ETH transfer failed");
+    }
+
+    /// @notice Get current position status from Aave
+    function getStatus()
+        external
+        view
+        returns (
+            uint256 totalCollateralBase,
+            uint256 totalDebtBase,
+            uint256 availableBorrowsBase,
+            uint256 currentLiquidationThreshold,
+            uint256 ltv,
+            uint256 healthFactor
+        )
+    {
+        return aavePool.getUserAccountData(address(this));
+    }
+
+    /// @notice Get asset price with error handling (non-reverting)
+    function tryGetAssetPrice(
+        address asset
+    ) external view returns (bool success, uint256 price) {
+        try this.getAssetPrice(asset) returns (uint256 p) {
+            return (true, p);
+        } catch {
+            return (false, 0);
+        }
+    }
 }
