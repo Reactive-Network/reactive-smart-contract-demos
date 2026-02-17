@@ -169,30 +169,136 @@ contract LeverageAccount is AbstractCallback, Ownable, ReentrancyGuard {
         _;
     }
 
-    /* 
-    /// TO BE IMPLEMENTED IN STAGE 2: Oracle and Price Helpers
-    function setOracle(...)
-    function setOraclesBatch(...)
-    function setSlippageTolerance(...)
-    function setPoolFee(...)
-    function getAssetPrice(...)
-    function getValueInUSD(...)
-    function calculateMinOutput(...)
-    function setRSCCaller(...)
+    /// @notice Set Chainlink oracle for an asset
+    /// @param asset The token address (e.g., WETH, USDC)
+    /// @param oracle The Chainlink aggregator address for asset/USD
+    function setOracle(address asset, address oracle) external onlyOwner {
+        require(asset != address(0) && oracle != address(0), "Invalid address");
+        assetOracles[asset] = oracle;
+        emit OracleUpdated(asset, oracle);
+    }
 
-    /// TO BE IMPLEMENTED IN STAGE 3: Deposit Logic
-    function deposit(...)
-    function depositWithPermit(...)
+    /// @notice Batch set oracles for multiple assets
+    function setOraclesBatch(
+        address[] calldata assets,
+        address[] calldata oracles
+    ) external onlyOwner {
+        require(assets.length == oracles.length, "Length mismatch");
+        for (uint256 i = 0; i < assets.length; i++) {
+            require(
+                assets[i] != address(0) && oracles[i] != address(0),
+                "Invalid address"
+            );
+            assetOracles[assets[i]] = oracles[i];
+            emit OracleUpdated(assets[i], oracles[i]);
+        }
+    }
 
-    /// TO BE IMPLEMENTED IN STAGE 4: Leverage Logic
-    function executeLeverageStep(...)
+    /// @notice Configure slippage tolerance
+    /// @param _slippageBps Slippage in basis points (200 = 2%)
+    function setSlippageTolerance(uint256 _slippageBps) external onlyOwner {
+        require(_slippageBps <= 1000, "Slippage too high"); // Max 10%
+        slippageTolerance = _slippageBps;
+        emit SlippageConfigured(_slippageBps);
+    }
 
-    /// TO BE IMPLEMENTED IN STAGE 5: Closing & Withdrawals
-    function fullClosePosition(...)
-    function repayPartial(...)
-    function withdraw(...)
-    function withdrawETH(...)
-    function getStatus(...)
-    function tryGetAssetPrice(...)
-    */
+    /// @notice Configure Uniswap pool fee tier
+    /// @param _fee Fee tier (500 = 0.05%, 3000 = 0.3%, 10000 = 1%)
+    function setPoolFee(uint24 _fee) external onlyOwner {
+        require(
+            _fee == 500 || _fee == 3000 || _fee == 10000,
+            "Invalid fee tier"
+        );
+        defaultPoolFee = _fee;
+        emit PoolFeeUpdated(_fee);
+    }
+
+    /// @notice Get real-time asset price in USD with 18 decimal precision
+    /// @dev Handles Chainlink's 8-decimal format and performs staleness checks
+    /// @param asset The token address
+    /// @return price The asset price in USD (18 decimals)
+    function getAssetPrice(address asset) public view returns (uint256 price) {
+        address oracle = assetOracles[asset];
+        require(oracle != address(0), "Oracle not set");
+
+        AggregatorV3Interface priceFeed = AggregatorV3Interface(oracle);
+
+        (
+            uint80 roundId,
+            int256 answer,
+            ,
+            uint256 updatedAt,
+            uint80 answeredInRound
+        ) = priceFeed.latestRoundData();
+
+        // Validation checks
+        require(answer > 0, "Invalid price");
+        require(answeredInRound >= roundId, "Stale round data");
+        require(
+            block.timestamp - updatedAt <= STALENESS_THRESHOLD,
+            "Price data stale"
+        );
+
+        // Decimal conversion: Chainlink uses 8 decimals, we standardize to 18
+        uint8 oracleDecimals = priceFeed.decimals();
+
+        if (oracleDecimals < PRICE_DECIMALS) {
+            // Scale up: e.g., 8 decimals -> 18 decimals (multiply by 10^10)
+            price = uint256(answer) * (10 ** (PRICE_DECIMALS - oracleDecimals));
+        } else if (oracleDecimals > PRICE_DECIMALS) {
+            // Scale down: e.g., 20 decimals -> 18 decimals (divide by 10^2)
+            price = uint256(answer) / (10 ** (oracleDecimals - PRICE_DECIMALS));
+        } else {
+            // Already 18 decimals
+            price = uint256(answer);
+        }
+    }
+
+    /// @notice Calculate USD value of a token amount
+    /// @param asset The token address
+    /// @param amount The token amount (in token's native decimals)
+    /// @return valueUSD The USD value (18 decimals)
+    function getValueInUSD(
+        address asset,
+        uint256 amount
+    ) public view returns (uint256 valueUSD) {
+        uint256 price = getAssetPrice(asset); // 18 decimals
+        uint8 tokenDecimals = IERC20Metadata(asset).decimals();
+
+        // Formula: (amount * price) / 10^tokenDecimals
+        // Result is in 18 decimals because price is 18 decimals
+        valueUSD = (amount * price) / (10 ** tokenDecimals);
+    }
+
+    /// @notice Calculate minimum output for a swap with slippage protection
+    /// @dev Uses REAL-TIME oracle prices at execution
+    /// @param tokenIn Input token address
+    /// @param tokenOut Output token address
+    /// @param amountIn Input amount
+    /// @return minAmountOut Minimum acceptable output (with slippage)
+    function calculateMinOutput(
+        address tokenIn,
+        address tokenOut,
+        uint256 amountIn
+    ) public view returns (uint256 minAmountOut) {
+        // Get current prices from Chainlink
+        uint256 priceIn = getAssetPrice(tokenIn); // 18 decimals
+        uint256 priceOut = getAssetPrice(tokenOut); // 18 decimals
+
+        uint8 decimalsIn = IERC20Metadata(tokenIn).decimals();
+        uint8 decimalsOut = IERC20Metadata(tokenOut).decimals();
+
+        // Calculate expected output in tokenOut's native decimals
+        // expectedOut = (amountIn * priceIn / priceOut) * (10^decimalsOut / 10^decimalsIn)
+        uint256 expectedOut = (amountIn * priceIn * (10 ** decimalsOut)) /
+            (priceOut * (10 ** decimalsIn));
+
+        // Apply slippage tolerance
+        minAmountOut = (expectedOut * (10000 - slippageTolerance)) / 10000;
+    }
+
+    /// @notice Update RSC caller address
+    function setRSCCaller(address _rscCaller) external onlyOwner {
+        rscCaller = _rscCaller;
+    }
 }
