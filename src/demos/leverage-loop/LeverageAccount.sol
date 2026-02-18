@@ -102,7 +102,7 @@ contract LeverageAccount is AbstractCallback, Ownable, ReentrancyGuard {
 
     // Oracle management
     mapping(address => address) public assetOracles; // asset => Chainlink aggregator
-    uint256 public constant STALENESS_THRESHOLD = 3600; // 1 hour
+    uint256 public constant STALENESS_THRESHOLD = 86400; // 24 hours (testnet oracles update infrequently)
     uint256 public constant PRICE_DECIMALS = 18; // Standardize all prices to 18 decimals
 
     // Swap configuration

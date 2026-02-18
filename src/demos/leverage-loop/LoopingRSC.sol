@@ -19,7 +19,7 @@ contract LoopingRSC is AbstractPausableReactive {
     uint256 private constant MAX_ITERATIONS = 5;
 
     // Borrow constraints (in USD, 18 decimals)
-    uint256 private constant MIN_BORROW_USD = 10e18; // $10 minimum
+    uint256 private constant MIN_BORROW_USD = 1e17; // $0.1 minimum (low for testnet)
     uint256 private constant MAX_BORROW_USD = 500e18; // $500 cap per iteration
 
     // Conservative leverage factors (basis points)

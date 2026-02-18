@@ -66,7 +66,7 @@ export BORROW_ASSET_DECIMALS=6
 Deploy the user's smart account on the destination chain.
 
 ```bash
-forge create --broadcast --rpc-url $DESTINATION_RPC --private-key $DESTINATION_PRIVATE_KEY src/demos/leverage-loop/LeverageAccount.sol:LeverageAccount --constructor-args $POOL_ADDR $ROUTER_ADDR $DESTINATION_CALLBACK_PROXY_ADDR $CLIENT_WALLET
+forge create --broadcast --value 0.001ether --rpc-url $DESTINATION_RPC --private-key $DESTINATION_PRIVATE_KEY src/demos/leverage-loop/LeverageAccount.sol:LeverageAccount --constructor-args $POOL_ADDR $ROUTER_ADDR $DESTINATION_CALLBACK_PROXY_ADDR $CLIENT_WALLET
 ```
 *Export the deployed address as `LEV_ACCOUNT_ADDR`.*
 
@@ -75,7 +75,7 @@ forge create --broadcast --rpc-url $DESTINATION_RPC --private-key $DESTINATION_P
 Deploy the control logic on the Reactive Network.
 
 ```bash
-forge create --broadcast --rpc-url $REACTIVE_RPC --private-key $REACTIVE_PRIVATE_KEY src/demos/leverage-loop/LoopingRSC.sol:LoopingRSC --constructor-args $SYSTEM_CONTRACT_ADDR $LEV_ACCOUNT_ADDR $WETH_ADDR $BORROW_ASSET_ADDR $BORROW_ASSET_DECIMALS
+forge create --broadcast --value 1ether --rpc-url $REACTIVE_RPC --private-key $REACTIVE_PRIVATE_KEY src/demos/leverage-loop/LoopingRSC.sol:LoopingRSC --constructor-args $SYSTEM_CONTRACT_ADDR $LEV_ACCOUNT_ADDR $WETH_ADDR $BORROW_ASSET_ADDR $BORROW_ASSET_DECIMALS
 ```
 *Export the deployed address as `RSC_ADDR`.*
 
@@ -95,15 +95,20 @@ Configure price feeds so the contract can calculate slippage protection.
 
 ```bash
 # WETH/USD oracle on Sepolia
-cast send $LEV_ACCOUNT_ADDR "setOracle(address,address)" $WETH_ADDR <WETH_USD_ORACLE> --rpc-url $DESTINATION_RPC --private-key $DESTINATION_PRIVATE_KEY
+cast send $LEV_ACCOUNT_ADDR "setOracle(address,address)" $WETH_ADDR $WETH_USD_ORACLE --rpc-url $DESTINATION_RPC --private-key $DESTINATION_PRIVATE_KEY
 
 # USDC/USD oracle on Sepolia
-cast send $LEV_ACCOUNT_ADDR "setOracle(address,address)" $BORROW_ASSET_ADDR <USDC_USD_ORACLE> --rpc-url $DESTINATION_RPC --private-key $DESTINATION_PRIVATE_KEY
+cast send $LEV_ACCOUNT_ADDR "setOracle(address,address)" $BORROW_ASSET_ADDR $USDC_USD_ORACLE --rpc-url $DESTINATION_RPC --private-key $DESTINATION_PRIVATE_KEY
 ```
 
-**3. Fund Account:**
-Ensure you have WETH in your wallet (from a faucet or by wrapping SepETH).
 
+**3. Fund your wallet with WETH:**
+
+Ensure you have WETH in your wallet. You can wrap SepETH into WETH:
+
+```bash
+cast send $WETH_ADDR "deposit()" --value 0.05ether --rpc-url $DESTINATION_RPC --private-key $DESTINATION_PRIVATE_KEY
+```
 
 ### Step 5 — Execute the Loop
 
@@ -111,17 +116,63 @@ Approve WETH spending, then deposit into your Leverage Account.
 
 ```bash
 # Approve the LeverageAccount to pull your WETH
-cast send $WETH_ADDR "approve(address,uint256)" $LEV_ACCOUNT_ADDR 1000000000000000000 --rpc-url $DESTINATION_RPC --private-key $DESTINATION_PRIVATE_KEY
+DEPOSIT_AMOUNT=10000000000000000  # 0.01 WETH
+
+cast send $WETH_ADDR "approve(address,uint256)" $LEV_ACCOUNT_ADDR $DEPOSIT_AMOUNT --rpc-url $DESTINATION_RPC --private-key $DESTINATION_PRIVATE_KEY
 
 # Deposit WETH to start the leverage loop
-cast send $LEV_ACCOUNT_ADDR "deposit(address,uint256)" $WETH_ADDR 1000000000000000000 --rpc-url $DESTINATION_RPC --private-key $DESTINATION_PRIVATE_KEY
+cast send $LEV_ACCOUNT_ADDR "deposit(address,uint256)" $WETH_ADDR $DEPOSIT_AMOUNT --rpc-url $DESTINATION_RPC --private-key $DESTINATION_PRIVATE_KEY
 ```
+
+> **Minimum Deposit Amount**: The `LoopingRSC` enforces a minimum borrow threshold (`MIN_BORROW_USD`). The borrow amount is calculated as a percentage of your deposit's USD value:
+>
+> ```
+> borrowAmountUSD = depositValueUSD * INITIAL_LEVERAGE_FACTOR / 10000
+> ```
+>
+> With the default `INITIAL_LEVERAGE_FACTOR` of 40% and `MIN_BORROW_USD` of `$0.1` (testnet), your deposit must be worth at least **$0.25 USD** for the loop to start. If the computed borrow falls below this threshold, the RSC emits a `LoopStopped("Borrow amount below minimum")` event and no callback is sent.
+>
+> For **mainnet**, you should increase `MIN_BORROW_USD` to a practical value (e.g., `10e18` for $10) to avoid dust-sized borrows that waste gas.
+>
+> **Example calculation** (at ETH ~ $2,600):
+> | Deposit | USD Value | Borrow (40%) | Passes Min? |
+> |---------|-----------|-------------|-------------|
+> | 0.001 WETH | ~$2.60 | ~$1.04 | Yes (testnet) |
+> | 0.01 WETH | ~$26 | ~$10.40 | Yes |
+> | 0.05 WETH | ~$130 | ~$52 | Yes |
 
 This action will:
 1.  Emit a `Deposited` event on Sepolia.
-2.  `LoopingRSC` detects the event and emits a `Callback`.
-3.  `LeverageAccount` receives the callback, borrows USDC, swaps it for WETH on Uniswap V3, and supplies the WETH back to Aave.
-4.  A `LoopStepExecuted` event is emitted.
-5.  `LoopingRSC` detects this and repeats the loop until the target Health Factor is reached (max 5 iterations in this demo).
+2.  `LoopingRSC` on the Reactive Network detects the event and calculates a safe borrow amount.
+3.  If the borrow amount passes the minimum threshold, it emits a `Callback`.
+4.  `LeverageAccount` receives the callback, borrows USDC, swaps it for WETH on Uniswap V3, and supplies the WETH back to Aave.
+5.  A `LoopStepExecuted` event is emitted.
+6.  `LoopingRSC` detects this and repeats the loop until the target Health Factor (1.5) is reached or max iterations (5) are hit.
 
 You can monitor the transaction events on Sepolia Etherscan and the Reactive Explorer.
+
+### Troubleshooting
+
+**`FailedInnerCall()` (selector `0x1425ea42`) on deposit:**
+This OpenZeppelin error means an internal call failed. Common causes:
+- You haven't approved the `LeverageAccount` to spend your WETH (run the `approve` step first).
+- Your wallet doesn't hold enough WETH. Verify with:
+  ```bash
+  cast call $WETH_ADDR "balanceOf(address)(uint256)" $CLIENT_WALLET --rpc-url $DESTINATION_RPC
+  ```
+- You're using the wrong WETH address. Aave V3 on Sepolia uses `0xC558DBdd856501FCd9aaF1E62eae57A9F0629a3c`, **not** the canonical Sepolia WETH (`0x7b79995e5f793A07Bc00c21412e50Ecae098E7f9`).
+
+**`LoopStopped("Borrow amount below minimum")` on Reactive Network:**
+Your deposit is too small. Increase the deposit amount or lower `MIN_BORROW_USD` in `LoopingRSC.sol` for testing.
+
+**RSC detects the event but no callback arrives on Sepolia:**
+The RSC contract needs native REACT tokens to pay for callbacks. Fund it:
+```bash
+cast send $RSC_ADDR --value 0.1ether --rpc-url $REACTIVE_RPC --private-key $REACTIVE_PRIVATE_KEY
+```
+
+**Decoding revert data:**
+Use `cast` to identify unknown error selectors:
+```bash
+cast 4byte 0x1425ea42  # Returns: FailedInnerCall()
+```
