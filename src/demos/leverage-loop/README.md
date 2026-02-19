@@ -107,7 +107,7 @@ cast send $LEV_ACCOUNT_ADDR "setOracle(address,address)" $BORROW_ASSET_ADDR $USD
 Ensure you have WETH in your wallet. You can wrap SepETH into WETH:
 
 ```bash
-cast send $WETH_ADDR "deposit()" --value 0.05ether --rpc-url $DESTINATION_RPC --private-key $DESTINATION_PRIVATE_KEY
+cast send $WETH_ADDR "deposit()" --value 0.01ether --rpc-url $DESTINATION_RPC --private-key $DESTINATION_PRIVATE_KEY
 ```
 
 ### Step 5 — Execute the Loop
