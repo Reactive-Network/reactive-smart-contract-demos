@@ -8,6 +8,7 @@ import "@openzeppelin/contracts/token/ERC20/extensions/IERC20Metadata.sol";
 import "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 import "@openzeppelin/contracts/utils/ReentrancyGuard.sol";
 import "../../../lib/reactive-lib/src/abstract-base/AbstractCallback.sol";
+import "./RescuableBase.sol";
 
 /// @title Aave V3 Oracle Interface
 interface IAaveOracle {
@@ -79,7 +80,12 @@ interface ISwapRouter {
 
 /// @title LeverageAccount - User's leveraged position vault with Aave V3 Oracle
 /// @notice Receives callbacks from Reactive Network to execute leverage loops
-contract LeverageAccount is AbstractCallback, Ownable, ReentrancyGuard {
+contract LeverageAccount is
+    AbstractCallback,
+    Ownable,
+    ReentrancyGuard,
+    RescuableBase
+{
     using SafeERC20 for IERC20;
 
     // Protocol contracts
@@ -435,18 +441,30 @@ contract LeverageAccount is AbstractCallback, Ownable, ReentrancyGuard {
         );
     }
 
-    /// @notice Emergency withdraw tokens from contract
-    function withdraw(address token, uint256 amount) external onlyOwner {
-        uint256 balance = IERC20(token).balanceOf(address(this));
-        require(balance >= amount, "Insufficient balance");
-        IERC20(token).safeTransfer(msg.sender, amount);
+    /// @notice Returns the owner address as the rescue recipient
+    function _rescueRecipient() internal view override returns (address) {
+        return owner();
     }
 
-    /// @notice Withdraw ETH (for callback payment reserves)
-    function withdrawETH(uint256 amount) external onlyOwner {
-        require(address(this).balance >= amount, "Insufficient ETH");
-        (bool ok, ) = payable(msg.sender).call{value: amount}("");
-        require(ok, "ETH transfer failed");
+    function rescueETH(uint256 amount) external override onlyOwner {
+        require(amount > 0, "Amount must be greater than 0");
+        _rescueETH(amount);
+    }
+
+    function rescueAllETH() external override onlyOwner {
+        _rescueETH(0);
+    }
+
+    function rescueERC20(
+        address token,
+        uint256 amount
+    ) external override onlyOwner {
+        require(amount > 0, "Amount must be greater than 0");
+        _rescueERC20(token, amount);
+    }
+
+    function rescueAllERC20(address token) external override onlyOwner {
+        _rescueERC20(token, 0);
     }
 
     /// @notice Get current position status from Aave
