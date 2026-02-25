@@ -18,7 +18,7 @@ This demo demonstrates time-based automation using Reactive Network's built-in c
 
 ### Hyperlane Demo
 
-This demo connects Base Mainnet and Reactive Mainnet using the Hyperlane protocol for two-way cross-chain messaging without relying on centralized off-chain relayers or Reactive's default callback proxy. It uses two contracts: `HyperlaneOrigin.sol`, deployed on Base, which emits trigger events and receives incoming messages via a trusted Hyperlane mailbox; and `HyperlaneReactive.sol`, deployed on Reactive, which listens for those events and can send messages back through Hyperlane. Messages flow in both directions, either automatically in response to events or triggered manually by the contract owner. This shows how Reactive Network can integrate with external messaging protocols for flexible cross-chain communication.
+This demo connects Base Mainnet and Reactive Mainnet using the [Hyperlane](https://www.hyperlane.xyz/) protocol for two-way cross-chain messaging without relying on centralized off-chain relayers or Reactive's default callback proxy. It uses two contracts: `HyperlaneOrigin.sol`, deployed on Base, which emits trigger events and receives incoming messages via a trusted Hyperlane mailbox; and `HyperlaneReactive.sol`, deployed on Reactive, which listens for those events and can send messages back through Hyperlane. Messages flow in both directions, either automatically in response to events or triggered manually by the contract owner. This shows how Reactive Network can integrate with external messaging protocols for flexible cross-chain communication.
 
 ### Uniswap V2 Stop Order Demo
 
@@ -68,7 +68,7 @@ forge test -vvvv
 
 ### Additional Documentation & Demos
 
-The `src/demos` directory contains all available demos each with their own `README.md` files.
+Each demo in `src/demos` has its own `README.md` with detailed deployment steps.
 
 ### Environment Variable Configuration
 
@@ -84,15 +84,15 @@ Private key for signing transactions on the origin/destination chain.
 
 #### `REACTIVE_RPC`
 
-RPC URL for the Reactive Network (see [Reactive Docs](https://dev.reactive.network/reactive-mainnet)).
+RPC URL for Reactive Network (see [Reactive Docs](https://dev.reactive.network/reactive-mainnet)).
 
 #### `REACTIVE_PRIVATE_KEY`
 
-Private key for signing transactions on the Reactive Network.
+Private key for signing transactions on Reactive Network.
 
 #### `SYSTEM_CONTRACT_ADDR`
 
-The service address for the Reactive Network (see [Reactive Docs](https://dev.reactive.network/reactive-mainnet#overview)).
+The service address for Reactive Network (see [Reactive Docs](https://dev.reactive.network/reactive-mainnet#overview)).
 
 #### `CALLBACK_PROXY_ADDR`
 
