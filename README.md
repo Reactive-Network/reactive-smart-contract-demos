@@ -4,7 +4,7 @@
 
 This repository contains a collection of demo projects for [Reactive Network](https://reactive.network) — a blockchain that lets smart contracts automatically react to events happening on other blockchains.
 
-Each demo in the `src/demos` directory walks through a specific use case with its own README, contracts, and deployment instructions. Examples range from simple cross-chain messaging to automated DeFi operations like stop orders on Uniswap. All contracts are written in Solidity and the project uses the [Foundry](https://www.getfoundry.sh/) development framework.
+Each demo in the [src/demos](https://github.com/Reactive-Network/reactive-smart-contract-demos/tree/main/src/demos) directory walks through a specific use case with its own README, contracts, and deployment instructions. Examples range from simple cross-chain messaging to automated DeFi operations like stop orders on Uniswap. All contracts are written in Solidity and the project uses the [Foundry](https://www.getfoundry.sh/) development framework.
 
 ## Demos
 
