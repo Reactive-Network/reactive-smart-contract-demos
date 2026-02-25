@@ -26,7 +26,7 @@ Each demo in the [src/demos](https://github.com/Reactive-Network/reactive-smart-
 
 ### Approval Magic Demo
 
-[Approval Magic Demo](https://github.com/Reactive-Network/reactive-smart-contract-demos/tree/main/src/demos/approval-magic) shows how Reactive Contracts can automate token approvals and trigger cross-chain exchanges without manual intervention. It uses a subscription-based model where users register with an `ApprovalService.sol` contract, and an `ApprovalListener.sol` Reactive contract watches for ERC-20 approval events on-chain. When an approval is detected, the system can automatically initiate a token swap or exchange on behalf of the user. This demonstrates how event-centric automation can simplify multi-step DeFi workflows that would normally require users to submit several transactions by hand.
+[Approval Magic Demo](https://github.com/Reactive-Network/reactive-smart-contract-demos/tree/main/src/demos/approval-magic) shows how Reactive Contracts can automate token approvals and trigger cross-chain exchanges without manual intervention. It uses a subscription-based model where users register with an `ApprovalService.sol` contract, and an `ApprovalListener.sol` Reactive contract watches for ERC-20 approval events on-chain. When an approval is detected, the system can automatically initiate a token swap or exchange on behalf of the user. This demonstrates how event-driven automation can simplify multi-step DeFi workflows that would normally require users to submit several transactions by hand.
 
 ## Deployment Instructions
 
