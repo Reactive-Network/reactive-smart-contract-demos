@@ -52,7 +52,7 @@ Before proceeding, configure the following environment variables:
 Deploy `AutomatedPredictionMarket` on Ethereum Sepolia, passing the Sepolia callback proxy address. Assign the `Deployed to` address to `CALLBACK_ADDR`.
 
 ```bash
-forge create --broadcast --rpc-url $DESTINATION_RPC --private-key $DESTINATION_PRIVATE_KEY src/demos/automated-prediction-market/AutomatedPredictionMarketCallback.sol:AutomatedPredictionMarket --value 1ether --constructor-args $DESTINATION_CALLBACK_PROXY_ADDR
+forge create --broadcast --rpc-url $DESTINATION_RPC --private-key $DESTINATION_PRIVATE_KEY src/demos/automated-prediction-market/AutomatedPredictionMarketCallback.sol:AutomatedPredictionMarketCallback --value 1ether --constructor-args $DESTINATION_CALLBACK_PROXY_ADDR
 ```
 
 ### Step 2 — Deploy the Reactive Contract

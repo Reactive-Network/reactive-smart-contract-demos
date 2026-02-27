@@ -26,7 +26,7 @@ error CannotReferSelf();
  * @notice Manages prediction market creation, share purchases, resolution, and winnings distribution
  * @dev Deployed on Ethereum Sepolia; winnings distribution is triggered by the Reactive contract
  */
-contract AutomatedPredictionMarket is AbstractCallback {
+contract AutomatedPredictionMarketCallback is AbstractCallback {
     struct Prediction {
         string description;
         uint256 endTime;
