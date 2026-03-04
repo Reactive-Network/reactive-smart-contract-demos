@@ -2,9 +2,17 @@
 
 ## Overview
 
-This repository contains a collection of demo projects for [Reactive Network](https://reactive.network) — a blockchain that lets smart contracts automatically react to events happening on other blockchains.
+This repository contains a collection of demo projects for Reactive Network — a blockchain designed for event-driven, cross-chain smart contract automation.
 
-Each demo in the [src/demos](https://github.com/Reactive-Network/reactive-smart-contract-demos/tree/main/src/demos) directory walks through a specific use case with its own README, contracts, and deployment instructions. Examples range from simple cross-chain messaging to automated DeFi operations like stop orders on Uniswap. All contracts are written in Solidity and the project uses the [Foundry](https://www.getfoundry.sh/) development framework.
+Each demo in the [src/demos](https://github.com/Reactive-Network/reactive-smart-contract-demos/tree/main/src/demos) directory focuses on a specific automation pattern, with its own README, contracts, and deployment steps. The examples cover:
+
+* Core cross-chain event → callback flows
+* Time-based execution using CRON events
+* Cross-chain messaging integrations
+* DeFi automation such as stop-loss / take-profit orders on Uniswap V2
+* Automated liquidation protection on Aave
+
+All contracts are written in Solidity, and the repository uses the Foundry development framework for building, testing, and deployment. Together, these demos show how Reactive Contracts can replace manual monitoring and off-chain bots with deterministic, event-centric on-chain logic.
 
 ## Demos
 
@@ -23,6 +31,14 @@ Each demo in the [src/demos](https://github.com/Reactive-Network/reactive-smart-
 ### Uniswap V2 Stop Order Demo
 
 [Uniswap V2 Stop Order Demo](https://github.com/Reactive-Network/reactive-smart-contract-demos/tree/main/src/demos/uniswap-v2-stop-order) implements automated stop orders on Uniswap V2 liquidity pools. A Reactive contract monitors exchange rate changes on a Uniswap V2 pair by subscribing to its on-chain sync events. When the rate crosses a user-defined threshold, the Reactive contract triggers a callback to a destination chain contract (`UniswapDemoStopOrderCallback.sol`) that executes the swap. This is a practical DeFi use case: stop-loss and take-profit orders that work automatically, without requiring the user to watch the market or run a bot.
+
+### Uniswap V2 Stop-Loss & Take-Profit Orders Demo
+
+[Uniswap V2 Stop-Loss & Take-Profit Orders Demo](https://github.com/Reactive-Network/reactive-smart-contract-demos/tree/main/src/demos/uniswap-v2-stop-take-profit-order) shows how to automate both stop-loss and take-profit strategies using Reactive Contracts. A personal Reactive Contract subscribes to `Sync` events from a Uniswap V2 pair and monitors reserve changes. When a user-defined price threshold is crossed, the Reactive Contract emits a callback that triggers the swap on the destination chain. Each user deploys their own contracts, ensuring isolated order management and full control over execution. This demo demonstrates event-driven trade automation without relying on off-chain bots.
+
+### Aave Liquidation Protection Demo
+
+[Aave Liquidation Protection Demo](https://github.com/Reactive-Network/reactive-smart-contract-demos/tree/main/src/demos/aave-liquidation-protection) shows how to automate position protection on Aave using Reactive Contracts. A personal Reactive Contract subscribes to periodic CRON events and triggers health checks for a user’s lending position. When the user’s health factor drops below a defined threshold, the system executes protection measures on the destination chain — depositing additional collateral, repaying debt, or both. The callback contract calculates the required amount and performs the interaction with Aave. This demo demonstrates time-based, event-driven liquidation protection without manual monitoring or external bots, with each user deploying their own isolated protection setup.
 
 ### Approval Magic Demo
 
