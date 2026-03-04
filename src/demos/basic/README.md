@@ -4,8 +4,8 @@
 
 The **Reactive Network Demo** illustrates a basic use case of the Reactive Network with two key functionalities:
 
-* Low-latency monitoring of logs emitted by a contract on the origin chain.
-* Executing calls from the Reactive Network to a contract on the destination chain.
+- Low-latency monitoring of logs emitted by a contract on the origin chain.
+- Executing calls from the Reactive Network to a contract on the destination chain.
 
 This setup can be adapted for various scenarios, from simple stop orders to fully decentralized algorithmic trading.
 
@@ -32,16 +32,18 @@ The demo highlights just a fraction of Reactive Network’s capabilities. Future
 
 Before proceeding further, configure these environment variables:
 
-* `ORIGIN_RPC` — RPC URL for the origin chain, (see [Chainlist](https://chainlist.org)).
-* `ORIGIN_CHAIN_ID` — ID of the origin blockchain (see [Reactive Docs](https://dev.reactive.network/origins-and-destinations#mainnet-chains)).
-* `ORIGIN_PRIVATE_KEY` — Private key for signing transactions on the origin chain.
-* `DESTINATION_RPC` — RPC URL for the destination chain, (see [Chainlist](https://chainlist.org)).
-* `DESTINATION_CHAIN_ID` — ID of the destination blockchain (see [Reactive Docs](https://dev.reactive.network/origins-and-destinations#mainnet-chains)).
-* `DESTINATION_PRIVATE_KEY` — Private key for signing transactions on the destination chain.
-* `REACTIVE_RPC` — RPC URL for the Reactive Network (see [Reactive Docs](https://dev.reactive.network/reactive-mainnet)).
-* `REACTIVE_PRIVATE_KEY` — Private key for signing transactions on the Reactive Network.
-* `SYSTEM_CONTRACT_ADDR` — The service address on the Reactive Network (see [Reactive Docs](https://dev.reactive.network/reactive-mainnet#overview)).
-* `DESTINATION_CALLBACK_PROXY_ADDR` — The service address on the destination chain (see [Reactive Docs](https://dev.reactive.network/origins-and-destinations#callback-proxy-address)).
+- `ORIGIN_RPC` — RPC URL for the origin chain, (see [Chainlist](https://chainlist.org)).
+- `ORIGIN_CHAIN_ID` — ID of the origin blockchain (see [Reactive Docs](https://dev.reactive.network/origins-and-destinations#mainnet-chains)).
+- `ORIGIN_PRIVATE_KEY` — Private key for signing transactions on the origin chain.
+- `DESTINATION_RPC` — RPC URL for the destination chain, (see [Chainlist](https://chainlist.org)).
+- `DESTINATION_CHAIN_ID` — ID of the destination blockchain (see [Reactive Docs](https://dev.reactive.network/origins-and-destinations#mainnet-chains)).
+- `DESTINATION_PRIVATE_KEY` — Private key for signing transactions on the destination chain.
+- `REACTIVE_RPC` — RPC URL for the Reactive Network (see [Reactive Docs](https://dev.reactive.network/reactive-mainnet)).
+- `REACTIVE_PRIVATE_KEY` — Private key for signing transactions on the Reactive Network.
+- `SYSTEM_CONTRACT_ADDR` — The service address on the Reactive Network (see [Reactive Docs](https://dev.reactive.network/reactive-mainnet#overview)).
+- `DESTINATION_CALLBACK_PROXY_ADDR` — The service address on the destination chain (see [Reactive Docs](https://dev.reactive.network/origins-and-destinations#callback-proxy-address)).
+- `ORIGIN_ADDR` — The deployed origin contract address on the origin chain.
+- `CALLBACK_ADDR` — The deployed destination contract address on the destination chain.
 
 > ℹ️ **Reactive Faucet on Sepolia**
 >
@@ -50,7 +52,7 @@ Before proceeding further, configure these environment variables:
 > **Important**: Do not send more than 5 SepETH per request, as doing so will cause you to lose the excess amount without receiving any additional REACT. The maximum that should be sent in a single transaction is 5 SepETH, which will yield 500 REACT.
 
 > ⚠️ **Broadcast Error**
-> 
+>
 > If you see the following message: `error: unexpected argument '--broadcast' found`, it means your Foundry version (or local setup) does not support the `--broadcast` flag for `forge create`. Simply remove `--broadcast` from your command and re-run it.
 
 ### Step 1 — Origin Contract
