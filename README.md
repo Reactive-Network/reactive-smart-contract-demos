@@ -1,4 +1,4 @@
-# Reactive Smart Contract Demos
+# Reactive Contract Demos
 
 ## Overview
 
