@@ -52,9 +52,4 @@ contract BasicCronContract is AbstractPausableReactive {
             );
         }
     }
-
-    // For testing`rnk_call`
-    function getLastCronBlock() external view returns (uint256) {
-        return lastCronBlock;
-    }
 }
