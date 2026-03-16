@@ -13,7 +13,6 @@ contract BasicCronContract is AbstractPausableReactive {
     constructor(
         uint256 _cronTopic
     ) payable {
-        service = ISystemContract(payable(service));
         CRON_TOPIC = _cronTopic;
 
         if (!vm) {
