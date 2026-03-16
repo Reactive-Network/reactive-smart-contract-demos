@@ -11,10 +11,9 @@ contract BasicCronContract is AbstractPausableReactive {
     uint256 public lastCronBlock;
 
     constructor(
-        address _service,
         uint256 _cronTopic
     ) payable {
-        service = ISystemContract(payable(_service));
+        service = ISystemContract(payable(service));
         CRON_TOPIC = _cronTopic;
 
         if (!vm) {

@@ -16,7 +16,6 @@ On each CRON event, the contract emits a `Callback`, instructing the Reactive sy
 
 Before proceeding further, configure these environment variables:
 
-* `SYSTEM_CONTRACT_ADDR` — The service address on the Reactive Network (see [Reactive Docs](https://dev.reactive.network/reactive-mainnet#overview)).
 * `CRON_TOPIC` — An event enabling time-based automation at fixed block intervals (see [Reactive Docs](https://dev.reactive.network/reactive-library#cron-functionality)).
 
 > ⚠️ **Broadcast Error**  
@@ -27,7 +26,7 @@ Before proceeding further, configure these environment variables:
 Deploy the `BasicCronContract` contract, providing it with the system contract address and the preferred cron topic.
 
 ```bash
-forge create --broadcast --rpc-url $REACTIVE_RPC --private-key $REACTIVE_PRIVATE_KEY src/demos/cron/CronDemo.sol:BasicCronContract --value 0.1ether --constructor-args $SYSTEM_CONTRACT_ADDR $CRON_TOPIC
+forge create --broadcast --rpc-url $REACTIVE_RPC --private-key $REACTIVE_PRIVATE_KEY src/demos/cron/CronDemo.sol:BasicCronContract --value 0.1ether --constructor-args $CRON_TOPIC
 ```
 
 ### Step 2 — Cron Pause (Optional)
