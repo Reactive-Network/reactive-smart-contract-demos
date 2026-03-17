@@ -15,14 +15,12 @@ contract BasicDemoReactiveContract is IReactive, AbstractReactive {
     address private callback;
 
     constructor(
-        address _service,
         uint256 _originChainId,
         uint256 _destinationChainId,
         address _contract,
         uint256 _topic_0,
         address _callback
     ) payable {
-        service = ISystemContract(payable(_service));
 
         originChainId = _originChainId;
         destinationChainId = _destinationChainId;

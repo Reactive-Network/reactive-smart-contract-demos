@@ -11,10 +11,8 @@ contract BasicCronContract is AbstractPausableReactive {
     uint256 public lastCronBlock;
 
     constructor(
-        address _service,
         uint256 _cronTopic
     ) payable {
-        service = ISystemContract(payable(_service));
         CRON_TOPIC = _cronTopic;
 
         if (!vm) {
@@ -52,10 +50,5 @@ contract BasicCronContract is AbstractPausableReactive {
                 abi.encodeWithSignature("callback()")
             );
         }
-    }
-
-    // For testing`rnk_call`
-    function getLastCronBlock() external view returns (uint256) {
-        return lastCronBlock;
     }
 }
