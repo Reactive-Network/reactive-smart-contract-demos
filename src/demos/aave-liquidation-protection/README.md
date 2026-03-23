@@ -83,6 +83,8 @@ Deploy the callback contract on Ethereum Sepolia, using the Aave V3 protocol add
 forge create --broadcast --rpc-url $DESTINATION_RPC --private-key $DESTINATION_PRIVATE_KEY src/demos/aave-liquidation-protection/AaveProtectionDemoCallback.sol:AaveProtectionDemoCallback --value 0.02ether --constructor-args $OWNER_WALLET $DESTINATION_CALLBACK_PROXY_ADDR $AAVE_LENDING_POOL $AAVE_PROTOCOL_DATA_PROVIDER $AAVE_ADDRESSES_PROVIDER
 ```
 
+Blockchain Explorer: [Callback Contract Deployment](https://sepolia.etherscan.io/tx/0xd9bbba62aa2591710e0b8f5067a97bdd4c4fedae4ac095f5b6c6ed2fb73135f6) | [Contract Address](https://sepolia.etherscan.io/address/0xF9A6d0f16ce892F7438773cdE2d43B4c0e732A7e)
+
 ### Step 3 — Supply Collateral and Borrow on Aave
 
 Before setting up protection, you need to have an active Aave position. Supply collateral and borrow assets:
@@ -101,6 +103,8 @@ Then supply the collateral to Aave:
 cast send $AAVE_LENDING_POOL 'supply(address,uint256,address,uint16)' --rpc-url $DESTINATION_RPC --private-key $DESTINATION_PRIVATE_KEY $COLLATERAL_ASSET 50000000000000000000 $OWNER_WALLET 0
 ```
 
+Blockchain Explorer: [Approve LINK](https://sepolia.etherscan.io/tx/0x795e683134ea041fbe6accb8932dc4154bda98ed2eda817f3b26aed804e26ea2) | [Supply 50 LINK](https://sepolia.etherscan.io/tx/0xb290b3d2dc78f6bd4351be9f68f5c5e95c98bc3ac6509350dafe19f30670dd8f)
+
 **Borrow Assets:**
 
 Borrow against your collateral (use mode 2 for variable rate):
@@ -108,6 +112,8 @@ Borrow against your collateral (use mode 2 for variable rate):
 ```bash
 cast send $AAVE_LENDING_POOL 'borrow(address,uint256,uint256,uint16,address)' --rpc-url $DESTINATION_RPC --private-key $DESTINATION_PRIVATE_KEY $DEBT_ASSET 10000000000000000000 2 0 $OWNER_WALLET
 ```
+
+Blockchain Explorer: [Borrow 100 EURS](https://sepolia.etherscan.io/tx/0x7f76e00331a7e1afd3168047052fef36274abad0f139a9d3a183e301da1304aa)
 
 ### Step 4 — Reactive Contract
 
@@ -120,6 +126,8 @@ Deploy the Reactive contract specifying:
 ```bash
 forge create --broadcast --rpc-url $REACTIVE_RPC --private-key $REACTIVE_PRIVATE_KEY src/demos/aave-liquidation-protection/AaveProtectionDemoReactive.sol:AaveProtectionDemoReactive --value 0.5ether --constructor-args $OWNER_WALLET $CALLBACK_ADDR $CRON_TOPIC
 ```
+
+Blockchain Explorer: [Reactive Contract Deployment](https://lasna.reactscan.net/tx/0x6b550eb9cfc992c2b9f8b05cbe2337cf350d322117be67688964e7ae240e44d7) | [Contract Address](https://lasna.reactscan.net/address/0x49abe186a9b24f73e34ccae3d179299440c352ac/contract/0x48d7a91DA7d542F1E1262DA4F9AC920003D77a59)
 
 > 📝 **Note**  
 > The CRON topic determines how frequently the reactive contract checks your position. Common intervals:
@@ -148,6 +156,8 @@ Example with specific values (Protection Type = Both, Threshold = 1.5, Target = 
 cast send $CALLBACK_ADDR 'createProtectionConfig(uint8,uint256,uint256,address,address,bool)' --rpc-url $DESTINATION_RPC --private-key $DESTINATION_PRIVATE_KEY 2 1500000000000000000 2000000000000000000 $COLLATERAL_ASSET $DEBT_ASSET true
 ```
 
+Blockchain Explorer: [Create Protection Config](https://sepolia.etherscan.io/tx/0xaaa5f694cb6bdfe4245e3586c108f5742b7e2bd5e37746b98227b109cec7d88a)
+
 ### Step 6 — Approve Protection Assets
 
 Authorize the callback contract to spend your collateral and debt assets for protection execution:
@@ -164,7 +174,9 @@ cast send $COLLATERAL_ASSET 'approve(address,uint256)' --rpc-url $DESTINATION_RP
 cast send $DEBT_ASSET 'approve(address,uint256)' --rpc-url $DESTINATION_RPC --private-key $DESTINATION_PRIVATE_KEY $CALLBACK_ADDR 1000000000000000000000
 ```
 
-> 📝 **Note**  
+Blockchain Explorer: [Approve LINK (collateral)](https://sepolia.etherscan.io/tx/0xca12a1831442a5c1f1b1fb7f121e365d13d540cef030536b3f13010bbdd42628) | [Approve EURS (debt)](https://sepolia.etherscan.io/tx/0x7ad93016d0132952b285027f13d0c3d264b5569af8f025c5664b518454c43c56)
+
+> 📝 **Note**
 > These approvals allow the callback contract to pull funds from your wallet when protection is triggered. Ensure you maintain sufficient balance of the required assets in your wallet.
 
 ### Step 7 — Monitor Protection

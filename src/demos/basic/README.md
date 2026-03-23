@@ -60,6 +60,8 @@ Deploy the `BasicDemoL1Contract` contract and assign the `Deployed to` address f
 forge create --broadcast --rpc-url $ORIGIN_RPC --private-key $ORIGIN_PRIVATE_KEY src/demos/basic/BasicDemoL1Contract.sol:BasicDemoL1Contract
 ```
 
+Blockchain Explorer: [BasicDemoL1Contract Deployment](https://sepolia.etherscan.io/tx/0x14ae6d36240645af1c5e642ebc8fa308a907d787442272d149124d64827bd686) | [Contract Address](https://sepolia.etherscan.io/address/0xDb6fF08Bf6C3691437436E26A51B9BDeBA9d1007)
+
 ### Step 2 — Destination Contract
 
 Deploy the `BasicDemoL1Callback` contract and assign the `Deployed to` address from the response to `CALLBACK_ADDR`.
@@ -67,6 +69,8 @@ Deploy the `BasicDemoL1Callback` contract and assign the `Deployed to` address f
 ```bash
 forge create --broadcast --rpc-url $DESTINATION_RPC --private-key $DESTINATION_PRIVATE_KEY src/demos/basic/BasicDemoL1Callback.sol:BasicDemoL1Callback --value 0.02ether --constructor-args $DESTINATION_CALLBACK_PROXY_ADDR
 ```
+
+Blockchain Explorer: [BasicDemoL1Callback Deployment](https://lasna.reactscan.net/tx/0xabe317d70fd1d06019684650364a7639886da80a58b20d81949562d4f51dd4c5) | [Contract Address](https://lasna.reactscan.net/address/0x49abe186a9b24f73e34ccae3d179299440c352ac/contract/0x709e939B7335BB4Eb119d0732B72Df54B0ce50F6)
 
 ### Step 3 — Reactive Contract
 
@@ -76,6 +80,8 @@ Deploy the `BasicDemoReactiveContract` contract, configuring it to listen to `OR
 forge create --broadcast --rpc-url $REACTIVE_RPC --private-key $REACTIVE_PRIVATE_KEY src/demos/basic/BasicDemoReactiveContract.sol:BasicDemoReactiveContract --value 0.1ether --constructor-args $ORIGIN_CHAIN_ID $DESTINATION_CHAIN_ID $ORIGIN_ADDR 0x8cabf31d2b1b11ba52dbb302817a3c9c83e4b2a5194d35121ab1354d69f6a4cb $CALLBACK_ADDR
 ```
 
+Blockchain Explorer: [BasicDemoReactiveContract Deployment](https://lasna.reactscan.net/tx/0x3c598cf553c0a7ddc81562f6064a10c0b99e721eda46bf2f9da9c3333ff9d6f5) | [Contract Address](https://lasna.reactscan.net/address/0x49abe186a9b24f73e34ccae3d179299440c352ac/contract/0xdd7B4C3154eD2116500E8Fc4d87B49BEF31157ff)
+
 ### Step 4 — Test Reactive Callback
 
 Test the whole setup by sending some ether to `ORIGIN_ADDR`:
@@ -83,5 +89,7 @@ Test the whole setup by sending some ether to `ORIGIN_ADDR`:
 ```bash
 cast send $ORIGIN_ADDR --rpc-url $ORIGIN_RPC --private-key $ORIGIN_PRIVATE_KEY --value 0.001ether
 ```
+
+Blockchain Explorer: [Test Callback Transaction](https://sepolia.etherscan.io/tx/0xbd495f332629ae1366d138ed29f8168dbda028560707b3cd0662d294c63b1bd9)
 
 Ensure that the value sent is at least 0.001 ether, as this is the minimum required to trigger the process. Meeting this threshold will prompt the Reactive Network to initiate a callback transaction to `CALLBACK_ADDR` like shown [here](https://sepolia.etherscan.io/address/0x26fF307f0f0Ea0C4B5Df410Efe22754324DACE08#events).
