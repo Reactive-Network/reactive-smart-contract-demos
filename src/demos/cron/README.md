@@ -29,6 +29,8 @@ Deploy the `BasicCronContract` contract, providing it with the system contract a
 forge create --broadcast --rpc-url $REACTIVE_RPC --private-key $REACTIVE_PRIVATE_KEY src/demos/cron/CronDemo.sol:BasicCronContract --value 0.1ether --constructor-args $CRON_TOPIC
 ```
 
+Blockchain Explorer: [BasicCronContract Deployment](https://lasna.reactscan.net/tx/0xd8b538e7b07e8e84283f17acf98a33aaf3256197be7552950544cd70ba5d1635) | [Contract Address](https://lasna.reactscan.net/address/0x49abe186a9b24f73e34ccae3d179299440c352ac/contract/0xE48Cbbf75dC9AB9313914536B2FE342382251fE5)
+
 ### Step 2 — Cron Pause (Optional)
 
 To pause the cron subscription, run this command:

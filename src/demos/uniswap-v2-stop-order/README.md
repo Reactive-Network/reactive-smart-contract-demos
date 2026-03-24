@@ -59,11 +59,15 @@ To deploy ERC-20 tokens (if needed), provide a token name and symbol as construc
 forge create --broadcast --rpc-url $DESTINATION_RPC --private-key $DESTINATION_PRIVATE_KEY src/demos/uniswap-v2-stop-order/UniswapDemoToken.sol:UniswapDemoToken --constructor-args TK1 TK1
 ```
 
+Blockchain Explorer: [TK1 Deployment](https://sepolia.etherscan.io/tx/0xef27c7b46688d2334b2d2ce148c4a3c552d5cb5313c764718357ee4c571bb2b2) | [Contract Address](https://sepolia.etherscan.io/address/0x5b1947BFb4e9C37f09bA4F4223Cd22Ae6447D7E8)
+
 Repeat the command for the second token, using a different name and symbol:
 
 ```bash
 forge create --broadcast --rpc-url $DESTINATION_RPC --private-key $DESTINATION_PRIVATE_KEY src/demos/uniswap-v2-stop-order/UniswapDemoToken.sol:UniswapDemoToken --constructor-args TK2 TK2
 ```
+
+Blockchain Explorer: [TK2 Deployment](https://sepolia.etherscan.io/tx/0xec4237c7cab3a85173a9f036a80382f88dd22cdfc8f66fa71dd652db83376c64) | [Contract Address](https://sepolia.etherscan.io/address/0xa5f6495F3bcb1fC768D9aAe0b3E14bFc9dC31522)
 
 ### Step 2 — Uniswap V2 Pair
 
@@ -79,6 +83,8 @@ To create a new pair, use the Uniswap V2 Factory contract `0x7E0987E5b3a30e3f282
 cast send 0x7E0987E5b3a30e3f2828572Bb659A548460a3003 'createPair(address,address)' --rpc-url $DESTINATION_RPC --private-key $DESTINATION_PRIVATE_KEY $TOKEN0_ADDR $TOKEN1_ADDR
 ```
 
+Blockchain Explorer: [Create Pair Transaction](https://sepolia.etherscan.io/tx/0xf2f49c842586a49bbc722a9933fc9ea5f06ff81eea2b650a1452934cf1ac5edd)
+
 > 📝 **Note**  
 > The token with the smaller hexadecimal address becomes `token0`; the other is `token1`. Compare token contract addresses alphabetically or numerically in hexadecimal format to determine their order.
 
@@ -89,6 +95,8 @@ Deploy the callback contract on Ethereum Sepolia, using the Uniswap V2 router at
 ```bash
 forge create --broadcast --rpc-url $DESTINATION_RPC --private-key $DESTINATION_PRIVATE_KEY src/demos/uniswap-v2-stop-order/UniswapDemoStopOrderCallback.sol:UniswapDemoStopOrderCallback --value 0.02ether --constructor-args $DESTINATION_CALLBACK_PROXY_ADDR 0xC532a74256D3Db42D0Bf7a0400fEFDbad7694008
 ```
+
+Blockchain Explorer: [Callback Contract Deployment](https://sepolia.etherscan.io/tx/0x13b1d4326c2c083d3902a304378325eb037418f5c3c3471fc373545fbc0edcd0) | [Contract Address](https://sepolia.etherscan.io/address/0xc97A212dadD28Cb72aC01F57D5758838804BeF79)
 
 ### Step 4 — Add Liquidity to the Pool
 
@@ -108,6 +116,8 @@ Mint the liquidity pool tokens to your wallet:
 cast send $UNISWAP_V2_PAIR_ADDR 'mint(address)' --rpc-url $DESTINATION_RPC --private-key $DESTINATION_PRIVATE_KEY $CLIENT_WALLET
 ```
 
+Blockchain Explorer: [Transfer TK1 to Pair](https://sepolia.etherscan.io/tx/0xb6964e28e11c6aa5c2b1a67ea371ddb8907ed53ba1b0f3506e2de5b4a8473505) | [Transfer TK2 to Pair](https://sepolia.etherscan.io/tx/0xd84ac4f620420e6c0802763e56f73c33cb2422546344ab0d94709e4c4fac5bc7) | [Mint LP Tokens](https://sepolia.etherscan.io/tx/0xd32d6914a067d3a298ab9c0299a96698a8430936179abc60d1722895f77a732c)
+
 ### Step 5 — Reactive Contract
 
 Deploy the Reactive contract specifying:
@@ -122,6 +132,8 @@ Deploy the Reactive contract specifying:
 forge create --broadcast --rpc-url $REACTIVE_RPC --private-key $REACTIVE_PRIVATE_KEY src/demos/uniswap-v2-stop-order/UniswapDemoStopOrderReactive.sol:UniswapDemoStopOrderReactive --value 0.1ether --constructor-args $UNISWAP_V2_PAIR_ADDR $CALLBACK_ADDR $CLIENT_WALLET $DIRECTION_BOOLEAN $EXCHANGE_RATE_DENOMINATOR $EXCHANGE_RATE_NUMERATOR
 ```
 
+Blockchain Explorer: [Reactive Contract Deployment](https://lasna.reactscan.net/tx/0xd68467c70b85724bc9944550fae42ab746d91b1468bedb926445fd7e0cc2bf77) | [Contract Address](https://lasna.reactscan.net/address/0x49abe186a9b24f73e34ccae3d179299440c352ac/contract/0x60a71BFaB5451E975ea385d55114eE24F748D4B4)
+
 ### Step 6 — Authorize Token Spending
 
 Authorize the destination chain contract to spend your tokens. The last parameter specifies the amount to approve. For tokens with 18 decimals, the example below authorizes the callback contract to spend one token:
@@ -129,6 +141,8 @@ Authorize the destination chain contract to spend your tokens. The last paramete
 ```bash
 cast send $TOKEN_ADDR 'approve(address,uint256)' --rpc-url $DESTINATION_RPC --private-key $DESTINATION_PRIVATE_KEY $CALLBACK_ADDR 1000000000000000000
 ```
+
+Blockchain Explorer: [Approve TK1 Transaction](https://sepolia.etherscan.io/tx/0xe37515e914a5c734415b15a5c82c5a6623d2d7a402c0c617555b0500221b7ea2)
 
 ### Step 7 — Adjust the Exchange Rate
 
@@ -146,4 +160,6 @@ Next, execute the swap at an unfavorable rate to create a significant shift in t
 cast send $UNISWAP_V2_PAIR_ADDR 'swap(uint,uint,address,bytes calldata)' --rpc-url $DESTINATION_RPC --private-key $DESTINATION_PRIVATE_KEY 0 5000000000000000 $CLIENT_WALLET "0x"
 ```
 
-The stop order will then be triggered and visible on [Sepolia scan](https://sepolia.etherscan.io/). The callback can be viewed on the destination contract's event log, as shown [here](https://sepolia.etherscan.io/address/0xA8AE573e5227555255AAb217a86f3E9fE1Fc6631#events).
+Blockchain Explorer: [Transfer TK1 to Pair](https://sepolia.etherscan.io/tx/0x2784b1e27b9af28d5cd70d7ee9088a8a9eb7764ebd1c66e413c8900a5187dcd8) | [Swap Transaction](https://sepolia.etherscan.io/tx/0x60cce4d3a1d68e544d1a95a7b525da08f065c4e9588e52d838298a296e05e872)
+
+The stop order will then be triggered and visible on [Sepolia scan](https://sepolia.etherscan.io/). The callback can be viewed on the destination contract's event log, as shown [here](https://sepolia.etherscan.io/address/0xc97A212dadD28Cb72aC01F57D5758838804BeF79#events).
