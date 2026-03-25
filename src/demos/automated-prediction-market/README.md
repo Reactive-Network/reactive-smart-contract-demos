@@ -10,9 +10,9 @@ When a prediction is resolved on the destination chain, Reactive detects the eve
 
 ## Contracts
 
-**Prediction Market Contract**: [AutomatedPredictionMarket](./AutomatedPredictionMarket.sol) manages the full lifecycle of a prediction market on a chosen chain, including market creation, share purchases, participant tracking, and resolution through a multisig voting process. Once consensus is reached, the contract finalizes the outcome and emits a `PredictionResolved` event. Winnings are not distributed immediately; instead, they are processed in batches via the `distributeWinnings` function, which can only be called by an authorized sender.
+**Prediction Market Contract**: [AutomatedPredictionMarket](https://github.com/Reactive-Network/reactive-smart-contract-demos/blob/update-prediction-market-demo/src/demos/automated-prediction-market/AutomatedPredictionMarketCallback.sol) manages the full lifecycle of a prediction market on a chosen chain, including market creation, share purchases, participant tracking, and resolution through a multisig voting process. Once consensus is reached, the contract finalizes the outcome and emits a `PredictionResolved` event. Winnings are not distributed immediately; instead, they are processed in batches via the `distributeWinnings` function, which can only be called by an authorized sender.
 
-**Reactive Contract**: [AutomatedPredictionReactive](./AutomatedPredictionReactive.sol) runs on Reactive and listens for `PredictionResolved` events emitted by the prediction market on the destination chain. When such an event is detected, it extracts the relevant data and triggers a callback to the Prediction Market contract, invoking `distributeWinnings`.
+**Reactive Contract**: [AutomatedPredictionReactive](https://github.com/Reactive-Network/reactive-smart-contract-demos/blob/update-prediction-market-demo/src/demos/automated-prediction-market/AutomatedPredictionReactive.sol) runs on Reactive and listens for `PredictionResolved` events emitted by the prediction market on the destination chain. When such an event is detected, it extracts the relevant data and triggers a callback to the Prediction Market contract, invoking `distributeWinnings`.
 
 This creates an automated flow where resolution on one chain directly initiates payouts, without requiring any off-chain services or manual execution.
 
