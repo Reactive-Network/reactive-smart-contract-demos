@@ -134,42 +134,41 @@ cast send $CALLBACK_ADDR "voteOnResolution(uint256,uint256,bool)" --rpc-url $DES
 
 When the `PredictionResolved` event is emitted, the Reactive contract's `react` function fires automatically and emits a `Callback` to call `distributeWinnings` on the destination chain.
 
-### Step 8 — Verify Distribution
+### Step 8 — Prediction State
 
-Monitor the callback contract on [SEPOLIA ETHERSCAN](https://sepolia.etherscan.io/) for `RewardsClaimed` and `WinningsDistributed` events to confirm that payouts have been executed.
-
-You can also query how far distribution has progressed:
+Check the prediction state:
 
 ```bash
-cast call $CALLBACK_ADDR "predictions(uint256)" --rpc-url $DESTINATION_RPC 0
+cast call $CALLBACK_ADDR "predictions(uint256)(string,uint256,uint256,bool,uint256,uint256,uint256,uint256,uint256)" 0 --rpc-url $DESTINATION_RPC
 ```
 
-## Demo Flow
+Example response:
 
-User votes on resolution
-        ↓
-requiredSignatures reached → _finalizeResolution()
-        ↓
-PredictionResolved emitted on Sepolia
-        ↓
-Reactive contract react() fires on Reactive Network
-        ↓
-Callback emitted → distributeWinnings() called on Sepolia
-        ↓
-RewardsClaimed events emitted for each winning participant
-
+```json
+"Will ETH price touch ,600 in the next 15 mins?"    // description
+1774418976                                          // endTime (timestamp when prediction ends)
+5700000000000000                                    // totalShares (internal share accounting)
+true                                                // isResolved (whether prediction is finalized)
+0                                                   // outcome (winning option index: 0 = first option)
+1774418676                                          // bettingEndTime (timestamp when betting closed)
+1774419276                                          // resolutionEndTime (deadline for resolution proposals)
+3                                                   // participants.length (number of participants)
+5700000000000000                                    // totalBetAmount (total ETH in the pool)
+```
 
 ## Managing the Market
 
-**Set a referral (before purchasing shares):**
+### Set a Referral
+
+Set a referrer address before purchasing shares. Referral rewards are paid from the platform fee.
 
 ```bash
-cast send $CALLBACK_ADDR "setReferral(address)" \
-  --rpc-url $DESTINATION_RPC --private-key $VOTER1_PRIVATE_KEY \
-  $REFERRER_ADDRESS
+cast send $CALLBACK_ADDR "setReferral(address)" --rpc-url $DESTINATION_RPC --private-key $VOTER1_PRIVATE_KEY $REFERRER_ADDRESS
 ```
 
-**Check if an address is a multisig holder:**
+### Check Multisig Membership
+
+Verify whether an address is part of the multisig group responsible for voting on resolutions.
 
 ```bash
 cast call $CALLBACK_ADDR "isMultiSigWallet(address)" --rpc-url $DESTINATION_RPC $MULTISIG_ADDRESS1
