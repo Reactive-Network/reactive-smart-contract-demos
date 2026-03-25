@@ -144,17 +144,8 @@ You can also query how far distribution has progressed:
 cast call $CALLBACK_ADDR "predictions(uint256)" --rpc-url $DESTINATION_RPC 0
 ```
 
-## Architecture
+## Demo Flow
 
-The system consists of two contracts working in tandem:
-
-1. **Callback Contract (on Ethereum Sepolia):** Holds all market logic — creation, betting, voting, resolution, and batch distribution. The `distributeWinnings` function is the entry point for the Reactive callback.
-
-2. **Reactive Contract (on Reactive Network):** Monitors `PredictionResolved` events and autonomously triggers `distributeWinnings` via a cross-chain callback.
-
-**Event Flow:**
-
-```
 User votes on resolution
         ↓
 requiredSignatures reached → _finalizeResolution()
@@ -166,7 +157,7 @@ Reactive contract react() fires on Reactive Network
 Callback emitted → distributeWinnings() called on Sepolia
         ↓
 RewardsClaimed events emitted for each winning participant
-```
+
 
 ## Managing the Market
 
@@ -181,6 +172,5 @@ cast send $CALLBACK_ADDR "setReferral(address)" \
 **Check if an address is a multisig holder:**
 
 ```bash
-cast call $CALLBACK_ADDR "isMultiSigWallet(address)" \
-  --rpc-url $DESTINATION_RPC $MULTISIG_ADDRESS1
+cast call $CALLBACK_ADDR "isMultiSigWallet(address)" --rpc-url $DESTINATION_RPC $MULTISIG_ADDRESS1
 ```
