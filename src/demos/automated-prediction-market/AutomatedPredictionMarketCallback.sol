@@ -310,7 +310,7 @@ contract AutomatedPredictionMarketCallback is AbstractCallback {
 
         bool outcome = selectedResolution.forStake > selectedResolution.againstStake;
         prediction.isResolved = true;
-        prediction.outcome = outcome ? 0 : 1;
+        prediction.outcome = outcome ? 1 : 0;
         selectedResolution.isResolved = true;
 
         // Distribute proposer stakes
