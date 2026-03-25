@@ -147,7 +147,7 @@ cast call $CALLBACK_ADDR "predictions(uint256)(string,uint256,uint256,bool,uint2
 Example response:
 
 ```json
-"Will ETH price touch ,600 in the next 15 mins?"    // description
+"Will ETH price touch 2600 in the next 15 mins?"    // description
 1774418976                                          // endTime (timestamp when prediction ends)
 5700000000000000                                    // totalShares (internal share accounting)
 true                                                // isResolved (whether prediction is finalized)
