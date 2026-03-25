@@ -85,7 +85,7 @@ Create a new prediction market by defining the question, duration, available out
 * Resolution proposals are allowed for **5 minutes (300 seconds)** after the market ends
 
 ```bash
-cast send $CALLBACK_ADDR "createPrediction(string,uint256,uint256[],uint256,uint256)" --rpc-url $DESTINATION_RPC --private-key $DESTINATION_PRIVATE_KEY "Will ETH price touch $2,600 in the next 15 mins?" 900 [1,2] 600 300
+cast send $CALLBACK_ADDR "createPrediction(string,uint256,uint256[],uint256,uint256)" --rpc-url $DESTINATION_RPC --private-key $DESTINATION_PRIVATE_KEY "Will ETH price touch \$2,600 in the next 15 mins?" 900 [1,2] 600 300
 ```
 
 This creates prediction ID `0`.
@@ -125,7 +125,8 @@ cast send $CALLBACK_ADDR "proposeResolution(uint256,bool)" --rpc-url $DESTINATIO
 Multisig holders vote on a proposed resolution. Once the required number of approvals is reached, the prediction is finalized and a `PredictionResolved` event is emitted. In this example:
 
 * Prediction ID is `0`
-* `true` is passed to support the proposal
+* Resolution index is `0`
+* `true` to support the proposal
 
 ```bash
 cast send $CALLBACK_ADDR "voteOnResolution(uint256,uint256,bool)" --rpc-url $DESTINATION_RPC --private-key $MULTISIG1_PRIVATE_KEY 0 0 true
@@ -141,10 +142,6 @@ You can also query how far distribution has progressed:
 
 ```bash
 cast call $CALLBACK_ADDR "predictions(uint256)" --rpc-url $DESTINATION_RPC 0
-```
-
-```bash
-cast abi-decode "(string,uint256,uint256[],uint256[],uint256,bool,uint256,uint256,uint256,address[],uint256,uint256)" $HEX_OUTPUT
 ```
 
 ## Architecture
