@@ -4,6 +4,8 @@
 
 The **Automated Prediction Market** demo implements a prediction market with automated payouts. Users create a question (e.g. “Will ETH be above $3k next month?”), participants buy shares in different outcomes, and once the result is finalized, winnings are distributed automatically. No manual intervention is required to trigger payouts.
 
+![Prediction Market](./img/prediction.png)
+
 When a prediction is resolved on the destination chain, Reactive detects the event and triggers the distribution process, sending rewards to all winning participants.
 
 ## Contracts
