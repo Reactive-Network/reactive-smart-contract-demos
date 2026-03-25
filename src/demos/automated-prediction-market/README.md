@@ -111,7 +111,7 @@ cast send $CALLBACK_ADDR "purchaseShares(uint256,uint256)" --rpc-url $DESTINATIO
 cast send $CALLBACK_ADDR "purchaseShares(uint256,uint256)" --rpc-url $DESTINATION_RPC --private-key $VOTER3_PRIVATE_KEY 0 0 --value 3000000000000000
 ```
 
-### Step 6 — Propose a Resolution
+### Step 6 — Propose a Resolution (Optional)
 
 Once the prediction period has ended, any participant can stake ETH to propose an outcome. In this example:
 
