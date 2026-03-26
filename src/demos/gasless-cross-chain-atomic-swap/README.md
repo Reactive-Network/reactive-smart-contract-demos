@@ -78,6 +78,8 @@ forge create --broadcast --rpc-url $REACTIVE_RPC --private-key $REACTIVE_PRIVATE
 
 ### Step 4 — Distribute Test Tokens
 
+> ℹ️ **User 1 and User 2 must have different private keys. You can't swap tokens with identical keys.**
+
 Transfer tokens to each user's wallet. User 1 transfers 50 tokens on the initiator chain:
 
 ```bash
@@ -103,8 +105,6 @@ cast send $CLOSER_TOKEN 'approve(address,uint256)' --rpc-url $SWAP_CLOSER_RPC --
 ```
 
 ### Step 6a — User 1 InitiatesSwap
-
-> ℹ️ **User 1 and User 2 must have different private keys. You can't swap tokens with identical keys.**
 
 User 1 initiates the swap, specifying: 
 
