@@ -2,25 +2,19 @@
 
 ## Overview
 
-The **Aave Liquidation Protection Demo** implements a reactive smart contract that monitors user positions on Aave protocol through periodic CRON events. When a user's health factor drops below a predefined threshold, the contract automatically executes protection measures by either depositing additional collateral or repaying debt to prevent liquidation. This demo extends the principles introduced in the [Reactive Network Demo](https://github.com/Reactive-Network/reactive-smart-contract-demos/tree/main/src/demos/basic), which provides an introduction to building reactive smart contracts that respond to real-time events.
+The **Aave Liquidation Protection Demo** keeps your Aave position from getting liquidated. A Reactive contract watches your health factor on a CRON schedule and reacts the moment it dips below your threshold, topping up collateral, repaying debt, or both — before liquidators can act.
+
+![Event Flow](./img/flow.png)
+
+![Protection Types](./img/types.png)
 
 ## Contracts
 
-**Reactive Contract**: [AaveProtectionDemoReactive](https://github.com/Reactive-Network/reactive-smart-contract-demos/blob/main/src/demos/aave-liquidation-protection/AaveProtectionDemoReactive.sol) subscribes to CRON events on the Reactive Network and protection lifecycle events from the callback contract on Ethereum Sepolia. It continuously monitors protection configurations and triggers periodic health checks. When the CRON event fires, it calls the callback contract to check and protect all active configurations. The contract tracks protection status through events emitted by the callback contract, including `ProtectionConfigured`, `ProtectionExecuted`, `ProtectionCancelled`, `ProtectionPaused`, `ProtectionResumed`, and `ProtectionCycleCompleted`. This contract demonstrates a simple reactive approach to automated liquidation protection on Aave.
+**Callback Contract**: [AaveProtectionDemoCallback](https://github.com/Reactive-Network/reactive-smart-contract-demos/blob/main/src/demos/aave-liquidation-protection/AaveProtectionDemoCallback.sol) runs the protection logic on the destination chain. When triggered via CRON, it queries your health factor from Aave, calculates the exact amount needed to reach your target, and executes the right action (collateral deposit, debt repayment, or both) through Aave's lending pool. It then emits events the Reactive contract picks up to stay in sync. Each user deploys their own callback contract, keeping full control over their funds.
 
-**Origin/Destination Chain Contract**: [AaveProtectionDemoCallback](https://github.com/Reactive-Network/reactive-smart-contract-demos/blob/main/src/demos/aave-liquidation-protection/AaveProtectionDemoCallback.sol) processes liquidation protection requests. When the Reactive Network triggers the callback via CRON, the contract checks all active protection configurations, queries the user's health factor from Aave, and executes protection measures if needed. The contract supports three protection types: collateral deposit, debt repayment, or both. It calculates the exact amount needed to reach the target health factor and executes the appropriate action through Aave's lending pool. After execution, the contract emits events that the reactive contract monitors to track protection status. The personal callback contract provides complete control and privacy for individual users.
+**Reactive Contract**: [AaveProtectionDemoReactive](https://github.com/Reactive-Network/reactive-smart-contract-demos/blob/main/src/demos/aave-liquidation-protection/AaveProtectionDemoReactive.sol) listens for CRON events on Reactive Network and lifecycle events from the callback contract on the destinatinon chain. Each time the CRON fires, it calls the callback contract to check and protect all active configurations. It tracks protection status through events emitted by the callback contract: `ProtectionConfigured`, `ProtectionExecuted`, `ProtectionCancelled`, `ProtectionPaused`, `ProtectionResumed`, and `ProtectionCycleCompleted`.
 
-**Rescuable Base Contract**: [RescuableBase](https://github.com/Reactive-Network/reactive-smart-contract-demos/blob/main/src/demos/aave-liquidation-protection/RescuableBase.sol) is an abstract contract providing rescue functionality for ETH and ERC20 tokens. It allows the owner to recover any stuck funds from the callback contract, with built-in safety checks and event emissions for transparency.
-
-## Further Considerations
-
-The demo showcases essential liquidation protection functionality but can be improved with:
-
-- **Multiple User Support:** Extending to support multiple users with a single contract deployment.
-- **Advanced Health Factor Calculations:** Implementing more sophisticated health factor prediction models.
-- **Gas Optimization:** Optimizing gas usage for protection execution and batch operations.
-- **Emergency Stop Mechanisms:** Adding circuit breakers for emergency situations.
-- **Dynamic Protection Strategies:** Supporting time-based or market condition-based protection adjustments.
+**Rescuable Base Contract**: [RescuableBase](https://github.com/Reactive-Network/reactive-smart-contract-demos/blob/main/src/demos/aave-liquidation-protection/RescuableBase.sol) lets the owner recover stuck ETH or ERC20 tokens from the callback contract, with safety checks and event emissions for transparency.
 
 ## Deployment & Testing
 
@@ -56,9 +50,9 @@ Visit the [Aave V3 Testnet Faucet](https://staging.aave.com/faucet/) and request
 
 **Supported Assets on Aave V3 Sepolia:**
 
-| Symbol | Address |
-|--------|---------|
-| **DAI** | `0xFF34B3d4Aee8ddCd6F9AfffB6Fe49bD371b8a357` |
+| Symbol   | Address                                      |
+|----------|----------------------------------------------|
+| **DAI**  | `0xFF34B3d4Aee8ddCd6F9AfffB6Fe49bD371b8a357` |
 | **LINK** | `0xf8Fb3713D459D7C1018BD0A49D19b4C44290EBE5` |
 | **USDC** | `0x94a9D9AC8a22534E3FaCa9F4e7F2E2cf85d5E4C8` |
 | **WBTC** | `0x29f2D40B0605204364af54EC677bD022da425d03` |
@@ -66,7 +60,7 @@ Visit the [Aave V3 Testnet Faucet](https://staging.aave.com/faucet/) and request
 | **USDT** | `0xaA8E23Fb1079EA71e0a56f48a2aA51851D8433D0` |
 | **AAVE** | `0x88541670E55cC00bEefd87EB59EDd1b7C511AC9A` |
 | **EURS** | `0x6d906e526a4e2Ca02097BA9d0caA3c382f52278E` |
-| **GHO** | `0xc4bF5CbDaBE595361438F8c6a187bDC330539c60` |
+| **GHO**  | `0xc4bF5CbDaBE595361438F8c6a187bDC330539c60` |
 
 Example usage:
 
@@ -248,38 +242,3 @@ cast send $CALLBACK_ADDR 'rescueAllETH()' --rpc-url $DESTINATION_RPC --private-k
 ```bash
 cast send $CALLBACK_ADDR 'rescueAllERC20(address)' $TOKEN_ADDRESS --rpc-url $DESTINATION_RPC --private-key $DESTINATION_PRIVATE_KEY
 ```
-
-## Architecture
-
-The Aave Liquidation Protection system consists of two main components:
-
-1. **Reactive Contract (on Reactive Network)**: Monitors CRON events and protection lifecycle events, triggering callbacks when needed.
-
-2. **Callback Contract (on Ethereum Sepolia)**: Contains the business logic for checking health factors, calculating protection amounts, and executing Aave interactions.
-
-**Event Flow:**
-
-```
-CRON Event → Reactive Contract → Callback on Sepolia → Check Health Factor
-                                                      ↓
-                                                  If below threshold
-                                                      ↓
-                                          Calculate Protection Amount
-                                                      ↓
-                                          Execute Aave Transaction
-                                                      ↓
-                                          Emit ProtectionExecuted Event
-                                                      ↓
-                                          Reactive Contract Updates Status
-```
-
-## Protection Types
-
-### Collateral Deposit (Type 0)
-Deposits additional collateral to increase health factor. Best when you have available collateral assets and want to maintain your debt position.
-
-### Debt Repayment (Type 1)
-Repays part of your debt to increase health factor. Best when you want to reduce your debt exposure.
-
-### Both (Type 2)
-Attempts both methods based on preference. Provides maximum flexibility by trying the preferred method first and falling back to the alternative if needed.
