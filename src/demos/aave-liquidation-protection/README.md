@@ -114,67 +114,61 @@ forge create --broadcast --rpc-url $REACTIVE_RPC --private-key $REACTIVE_PRIVATE
 
 ### Step 5 — Create Protection Configuration
 
-Create a protection configuration on the callback contract. You'll need to specify:
+Set up a protection config on the callback contract with these parameters:
 
-- `PROTECTION_TYPE`: Protection type (0 = Collateral Deposit, 1 = Debt Repayment, 2 = Both)
-- `HEALTH_FACTOR_THRESHOLD`: Health factor below which protection triggers (e.g., 1.5e18 for 1.5)
-- `TARGET_HEALTH_FACTOR`: Target health factor to achieve after protection (e.g., 2.0e18 for 2.0)
-- `PREFER_DEBT_REPAYMENT`: If using type 2 (Both), whether to prefer debt repayment (true/false)
+- `PROTECTION_TYPE`: `0` = Collateral Deposit, `1` = Debt Repayment, `2` = Both.
+- `HEALTH_FACTOR_THRESHOLD`: Health factor that triggers protection (e.g., 1500000000000000000 for 1.5).
+- `TARGET_HEALTH_FACTOR`: Health factor to restore after protection (e.g., 2000000000000000000 for 2.0).
+- `PREFER_DEBT_REPAYMENT`: When using type 2, whether to try debt repayment first (`true`/`false`).
 
 ```bash
 cast send $CALLBACK_ADDR 'createProtectionConfig(uint8,uint256,uint256,address,address,bool)' --rpc-url $DESTINATION_RPC --private-key $DESTINATION_PRIVATE_KEY $PROTECTION_TYPE $HEALTH_FACTOR_THRESHOLD $TARGET_HEALTH_FACTOR $COLLATERAL_ASSET $DEBT_ASSET $PREFER_DEBT_REPAYMENT
 ```
 
-Example with specific values (Protection Type = Both, Threshold = 1.5, Target = 2.0, Prefer Debt Repayment = true):
+Example with threshold = `1.5`, target = `2.0`, type = `Both`, prefer debt repayment:
 
 ```bash
 cast send $CALLBACK_ADDR 'createProtectionConfig(uint8,uint256,uint256,address,address,bool)' --rpc-url $DESTINATION_RPC --private-key $DESTINATION_PRIVATE_KEY 2 1500000000000000000 2000000000000000000 $COLLATERAL_ASSET $DEBT_ASSET true
 ```
 
-### Step 6 — Approve Protection Assets
+### Step 6a — Approve Collateral Asset
 
-Authorize the callback contract to spend your collateral and debt assets for protection execution:
-
-**Approve Collateral Asset:**
+Allow the callback contract to spend your collateral when protection triggers:
 
 ```bash
 cast send $COLLATERAL_ASSET 'approve(address,uint256)' --rpc-url $DESTINATION_RPC --private-key $DESTINATION_PRIVATE_KEY $CALLBACK_ADDR 1000000000000000000000
 ```
 
-**Approve Debt Asset:**
+### Step 6b — Approve Debt Asset
+
+Allow the callback contract to spend your debt tokens when protection triggers:
 
 ```bash
 cast send $DEBT_ASSET 'approve(address,uint256)' --rpc-url $DESTINATION_RPC --private-key $DESTINATION_PRIVATE_KEY $CALLBACK_ADDR 1000000000000000000000
 ```
 
 > 📝 **Note**  
-> These approvals allow the callback contract to pull funds from your wallet when protection is triggered. Ensure you maintain sufficient balance of the required assets in your wallet.
+> Keep enough balance of both assets in your wallet as the callback contract pulls funds on demand.
 
 ### Step 7 — Monitor Protection
 
-The reactive contract will now automatically monitor your Aave position based on the CRON schedule. When your health factor drops below the threshold, it will:
+The Reactive contract now watches your Aave position on the CRON schedule. When your health factor drops below the threshold, it triggers the callback contract, which calculates the required amount and executes the protection, and then emits events the Reactive contract picks up.
 
-1. Trigger the callback contract via the Reactive Network
-2. The callback contract checks your health factor on Aave
-3. If below threshold, it calculates the required protection amount
-4. Executes either collateral deposit or debt repayment (or both)
-5. Emits events that the reactive contract monitors
+If tesing on Ethereum Sepolia, track protection execution on [Etherscan](https://sepolia.etherscan.io/) by watching the callback contract's events.
 
-You can view the protection execution on [Sepolia scan](https://sepolia.etherscan.io/) by monitoring the callback contract's events.
-
-**Check Current Health Factor:**
+#### Check Current Health Factor
 
 ```bash
 cast call $CALLBACK_ADDR 'getCurrentHealthFactor()' --rpc-url $DESTINATION_RPC
 ```
 
-**View Active Configurations:**
+#### View Active Configurations
 
 ```bash
 cast call $CALLBACK_ADDR 'getActiveConfigs()' --rpc-url $DESTINATION_RPC
 ```
 
-**View Protection Configuration:**
+#### View Protection Configuration
 
 ```bash
 cast call $CALLBACK_ADDR 'protectionConfigs(uint256)' $CONFIG_ID --rpc-url $DESTINATION_RPC
@@ -182,19 +176,17 @@ cast call $CALLBACK_ADDR 'protectionConfigs(uint256)' $CONFIG_ID --rpc-url $DEST
 
 ### Step 8 — Test Protection Trigger (Optional)
 
-To manually test the protection mechanism, you can increase your borrowed amount to lower your health factor:
+To simulate a health factor drop, borrow more against your collateral:
 
 ```bash
 cast send $AAVE_LENDING_POOL 'borrow(address,uint256,uint256,uint16,address)' --rpc-url $DESTINATION_RPC --private-key $DESTINATION_PRIVATE_KEY $DEBT_ASSET 5000000000000000000 2 0 $OWNER_WALLET
 ```
 
-Monitor your health factor and watch for the protection to trigger automatically when it drops below your configured threshold.
+Monitor your health factor. Once it drops below your threshold, protection triggers automatically.
 
 ## Management Functions
 
 ### Pause Protection
-
-Temporarily pause a protection configuration:
 
 ```bash
 cast send $CALLBACK_ADDR 'pauseProtectionConfig(uint256)' $CONFIG_ID --rpc-url $DESTINATION_RPC --private-key $DESTINATION_PRIVATE_KEY
@@ -202,15 +194,13 @@ cast send $CALLBACK_ADDR 'pauseProtectionConfig(uint256)' $CONFIG_ID --rpc-url $
 
 ### Resume Protection
 
-Resume a paused protection configuration:
-
 ```bash
 cast send $CALLBACK_ADDR 'resumeProtectionConfig(uint256)' $CONFIG_ID --rpc-url $DESTINATION_RPC --private-key $DESTINATION_PRIVATE_KEY
 ```
 
 ### Cancel Protection
 
-Permanently cancel a protection configuration:
+**Permanent — can't be undone.**
 
 ```bash
 cast send $CALLBACK_ADDR 'cancelProtectionConfig(uint256)' $CONFIG_ID --rpc-url $DESTINATION_RPC --private-key $DESTINATION_PRIVATE_KEY
@@ -218,15 +208,11 @@ cast send $CALLBACK_ADDR 'cancelProtectionConfig(uint256)' $CONFIG_ID --rpc-url 
 
 ### Rescue Funds
 
-If funds get stuck in the callback contract, you can rescue them:
-
-**Rescue ETH:**
+Recover stuck `ETH` or `ERC-20` tokens from the callback contract:
 
 ```bash
 cast send $CALLBACK_ADDR 'rescueAllETH()' --rpc-url $DESTINATION_RPC --private-key $DESTINATION_PRIVATE_KEY
 ```
-
-**Rescue ERC20 Tokens:**
 
 ```bash
 cast send $CALLBACK_ADDR 'rescueAllERC20(address)' $TOKEN_ADDRESS --rpc-url $DESTINATION_RPC --private-key $DESTINATION_PRIVATE_KEY
