@@ -22,15 +22,15 @@ The **Aave Liquidation Protection Demo** keeps your Aave position from getting l
 
 Before proceeding further, configure these environment variables:
 
-* `DESTINATION_RPC` — RPC URL for the destination chain (Ethereum Sepolia), (see [Chainlist](https://chainlist.org)).
+* `DESTINATION_RPC` — RPC URL for the destination chain, (see [Chainlist](https://chainlist.org)).
 * `DESTINATION_PRIVATE_KEY` — Private key for signing transactions on the destination chain.
 * `REACTIVE_RPC` — RPC URL for the Reactive Network (see [Reactive Docs](https://dev.reactive.network/reactive-mainnet)).
 * `REACTIVE_PRIVATE_KEY` — Private key for signing transactions on the Reactive Network.
 * `DESTINATION_CALLBACK_PROXY_ADDR` — The service address on the destination chain (see [Reactive Docs](https://dev.reactive.network/origins-and-destinations#callback-proxy-address)).
-* `OWNER_WALLET` — The wallet address that will own and manage the protection system.
-* `AAVE_LENDING_POOL` — Aave V3 Lending Pool address on Sepolia: `0x6Ae43d3271ff6888e7Fc43Fd7321a503ff738951`
-* `AAVE_PROTOCOL_DATA_PROVIDER` — Aave V3 Protocol Data Provider on Sepolia: `0x3e9708d80f7B3e43118013075F7e95CE3AB31F31`
-* `AAVE_ADDRESSES_PROVIDER` — Aave V3 Pool Addresses Provider on Sepolia: `0x012bAC54348C0E635dCAc9D5FB99f06F24136C9A`
+* `OWNER_WALLET` — EOA wallet address that will manage the protection system.
+* `AAVE_LENDING_POOL` — Aave V3 Lending Pool address (`0x6Ae43d3271ff6888e7Fc43Fd7321a503ff738951` on Ethereum Sepolia)
+* `AAVE_PROTOCOL_DATA_PROVIDER` — Aave V3 Protocol Data Provider (`0x3e9708d80f7B3e43118013075F7e95CE3AB31F31` on Ethereum Sepolia)
+* `AAVE_ADDRESSES_PROVIDER` — Aave V3 Pool Addresses Provider (`0x012bAC54348C0E635dCAc9D5FB99f06F24136C9A` on Ethereum Sepolia)
 
 > ℹ️ **Reactive Faucet on Sepolia**
 >
@@ -44,11 +44,9 @@ Before proceeding further, configure these environment variables:
 
 ### Step 1 — Aave Test Tokens
 
-To test live, you'll need testnet tokens supported by Aave V3 on Sepolia. Use the Aave faucet to obtain test tokens:
+Grab testnet tokens from the [Aave V3 Testnet Faucet](https://staging.aave.com/faucet/). You'll need these to create an Aave position.
 
-Visit the [Aave V3 Testnet Faucet](https://staging.aave.com/faucet/) and request test tokens.
-
-**Supported Assets on Aave V3 Sepolia:**
+**Supported Assets on Aave V3 Ethereum Sepolia:**
 
 | Symbol   | Address                                      |
 |----------|----------------------------------------------|
@@ -62,42 +60,38 @@ Visit the [Aave V3 Testnet Faucet](https://staging.aave.com/faucet/) and request
 | **EURS** | `0x6d906e526a4e2Ca02097BA9d0caA3c382f52278E` |
 | **GHO**  | `0xc4bF5CbDaBE595361438F8c6a187bDC330539c60` |
 
-Example usage:
+Save the tokens as `COLLATERAL_ASSET` and `DEBT_ASSET` like so:
 
 ```bash
 export COLLATERAL_ASSET=0x94a9D9AC8a22534E3FaCa9F4e7F2E2cf85d5E4C8  # USDC on Sepolia
 export DEBT_ASSET=0xFF34B3d4Aee8ddCd6F9AFFFB6Fe49bD371b8a357      # DAI on Sepolia
 ```
 
-### Step 2 — Destination Contract
+### Step 2 — Callback Contract
 
-Deploy the callback contract on Ethereum Sepolia, using the Aave V3 protocol addresses. You should also pass the Sepolia callback proxy address and the owner wallet address. Assign the `Deployed to` address from the response to `CALLBACK_ADDR`.
+Deploy the callback contract on the destination chain. Pass the owner wallet, the relevant callback proxy address, and the Aave V3 protocol addresses. Save the `Deployed to` address as `CALLBACK_ADDR`.
 
 ```bash
 forge create --broadcast --rpc-url $DESTINATION_RPC --private-key $DESTINATION_PRIVATE_KEY src/demos/aave-liquidation-protection/AaveProtectionDemoCallback.sol:AaveProtectionDemoCallback --value 0.02ether --constructor-args $OWNER_WALLET $DESTINATION_CALLBACK_PROXY_ADDR $AAVE_LENDING_POOL $AAVE_PROTOCOL_DATA_PROVIDER $AAVE_ADDRESSES_PROVIDER
 ```
 
-### Step 3 — Supply Collateral and Borrow on Aave
+### Step 3a — Supply Collateral
 
-Before setting up protection, you need to have an active Aave position. Supply collateral and borrow assets:
-
-**Supply Collateral:**
-
-First, approve the Aave lending pool to spend your collateral:
+You need an active Aave position before setting up protection. First, approve the Aave lending pool to spend your collateral:
 
 ```bash
 cast send $COLLATERAL_ASSET 'approve(address,uint256)' --rpc-url $DESTINATION_RPC --private-key $DESTINATION_PRIVATE_KEY $AAVE_LENDING_POOL 100000000000000000000
 ```
 
-Then supply the collateral to Aave:
+Then supply it:
 
 ```bash
 cast send $AAVE_LENDING_POOL 'supply(address,uint256,address,uint16)' --rpc-url $DESTINATION_RPC --private-key $DESTINATION_PRIVATE_KEY $COLLATERAL_ASSET 50000000000000000000 $OWNER_WALLET 0
 ```
 
-**Borrow Assets:**
+### Step 3b — Borrow Assets
 
-Borrow against your collateral (use mode 2 for variable rate):
+Borrow against your collateral (mode `2` = variable rate):
 
 ```bash
 cast send $AAVE_LENDING_POOL 'borrow(address,uint256,uint256,uint16,address)' --rpc-url $DESTINATION_RPC --private-key $DESTINATION_PRIVATE_KEY $DEBT_ASSET 10000000000000000000 2 0 $OWNER_WALLET
@@ -105,23 +99,18 @@ cast send $AAVE_LENDING_POOL 'borrow(address,uint256,uint256,uint16,address)' --
 
 ### Step 4 — Reactive Contract
 
-Deploy the Reactive contract specifying:
+Deploy the Reactive contract with the following constructor arguments:
 
-- `OWNER_WALLET`: The wallet address that owns and manages the protection system.
-- `CALLBACK_ADDR`: The address from Step 2.
-- `CRON_TOPIC`: The CRON topic ID for periodic monitoring (e.g., `0x04463f7c1651e6b9774d7f85c85bb94654e3c46ca79b0c16fb16d4183307b687` for 1-minute intervals).
+- `OWNER_WALLET`: Wallet address that owns the protection system.
+- `CALLBACK_ADDR`: Address from Step 2.
+- `CRON_TOPIC`: CRON topic ID for periodic monitoring (e.g., `0x04463f7c1651e6b9774d7f85c85bb94654e3c46ca79b0c16fb16d4183307b687` for 1-minute intervals).
 
 ```bash
 forge create --broadcast --rpc-url $REACTIVE_RPC --private-key $REACTIVE_PRIVATE_KEY src/demos/aave-liquidation-protection/AaveProtectionDemoReactive.sol:AaveProtectionDemoReactive --value 0.5ether --constructor-args $OWNER_WALLET $CALLBACK_ADDR $CRON_TOPIC
 ```
 
 > 📝 **Note**  
-> The CRON topic determines how frequently the reactive contract checks your position. Common intervals:
-> - 1 minute: Use the system CRON_1 topic
-> - 5 minutes: Use the system CRON_5 topic
-> - 15 minutes: Use the system CRON_15 topic
-> 
-> Check the [Reactive Network Documentation](https://dev.reactive.network) for available CRON topics.
+> The CRON topic controls how often the Reactive contract checks your position. Check the [Reactive Docs](https://dev.reactive.network/reactive-library#cron-functionality) for available CRON topics and intervals.
 
 ### Step 5 — Create Protection Configuration
 
