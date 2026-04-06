@@ -77,13 +77,13 @@ forge create --broadcast --rpc-url $DESTINATION_RPC --private-key $DESTINATION_P
 
 ### Step 3a — Supply Collateral
 
-You need an active Aave position before setting up protection. First, approve the Aave lending pool to spend your collateral:
+You need an active Aave position before setting up protection. First, approve the Aave lending pool to spend your collateral (100 tokens):
 
 ```bash
 cast send $COLLATERAL_ASSET 'approve(address,uint256)' --rpc-url $DESTINATION_RPC --private-key $DESTINATION_PRIVATE_KEY $AAVE_LENDING_POOL 100000000000000000000
 ```
 
-Then supply it:
+Then supply it with 50 tokens and `0` for no referral (a required no-op):
 
 ```bash
 cast send $AAVE_LENDING_POOL 'supply(address,uint256,address,uint16)' --rpc-url $DESTINATION_RPC --private-key $DESTINATION_PRIVATE_KEY $COLLATERAL_ASSET 50000000000000000000 $OWNER_WALLET 0
@@ -91,7 +91,13 @@ cast send $AAVE_LENDING_POOL 'supply(address,uint256,address,uint16)' --rpc-url 
 
 ### Step 3b — Borrow Assets
 
-Borrow against your collateral (mode `2` = variable rate):
+Borrow against your collateral specifying:
+
+- asset to borrow
+- 10 tokens
+- `2` as a variable interest rate
+- `0` no referral
+- borrow on behalf of this address
 
 ```bash
 cast send $AAVE_LENDING_POOL 'borrow(address,uint256,uint256,uint16,address)' --rpc-url $DESTINATION_RPC --private-key $DESTINATION_PRIVATE_KEY $DEBT_ASSET 10000000000000000000 2 0 $OWNER_WALLET
@@ -133,7 +139,7 @@ cast send $CALLBACK_ADDR 'createProtectionConfig(uint8,uint256,uint256,address,a
 
 ### Step 6a — Approve Collateral Asset
 
-Allow the callback contract to spend your collateral when protection triggers:
+Allow the callback contract to spend your collateral when protection triggers (1000 tokens):
 
 ```bash
 cast send $COLLATERAL_ASSET 'approve(address,uint256)' --rpc-url $DESTINATION_RPC --private-key $DESTINATION_PRIVATE_KEY $CALLBACK_ADDR 1000000000000000000000
@@ -141,7 +147,7 @@ cast send $COLLATERAL_ASSET 'approve(address,uint256)' --rpc-url $DESTINATION_RP
 
 ### Step 6b — Approve Debt Asset
 
-Allow the callback contract to spend your debt tokens when protection triggers:
+Allow the callback contract to spend your debt tokens when protection triggers (1000 tokens):
 
 ```bash
 cast send $DEBT_ASSET 'approve(address,uint256)' --rpc-url $DESTINATION_RPC --private-key $DESTINATION_PRIVATE_KEY $CALLBACK_ADDR 1000000000000000000000
@@ -176,7 +182,13 @@ cast call $CALLBACK_ADDR 'protectionConfigs(uint256)' $CONFIG_ID --rpc-url $DEST
 
 ### Step 8 — Test Protection Trigger (Optional)
 
-To simulate a health factor drop, borrow more against your collateral:
+To simulate a health factor drop, borrow more against your collateral specifying:
+
+- asset to borrow
+- 5 tokens
+- `2` as a variable interest rate
+- `0` for no referral code
+- borrow on behalf of this address
 
 ```bash
 cast send $AAVE_LENDING_POOL 'borrow(address,uint256,uint256,uint16,address)' --rpc-url $DESTINATION_RPC --private-key $DESTINATION_PRIVATE_KEY $DEBT_ASSET 5000000000000000000 2 0 $OWNER_WALLET
