@@ -5,10 +5,10 @@ import "../../../lib/reactive-lib/src/interfaces/IReactive.sol";
 import "../../../lib/reactive-lib/src/abstract-base/AbstractPausableReactive.sol";
 import "../../../lib/reactive-lib/src/interfaces/ISystemContract.sol";
 
-/// @title LoopingRSC - Reactive Smart Contract for automated leverage looping
+/// @title LoopingRC - Reactive Smart Contract for automated leverage looping
 /// @notice Listens to Deposited/LoopStepExecuted events and triggers leverage steps based on Health Factor
 /// @dev Fixed: No hardcoded prices, dynamic decimal handling, no slippage calculation
-contract LoopingRSC is AbstractPausableReactive {
+contract LoopingRC is AbstractPausableReactive {
     // Chain & gas config
     uint256 private constant SEPOLIA_CHAIN_ID = 11155111;
     uint64 private constant CALLBACK_GAS_LIMIT = 2000000;
