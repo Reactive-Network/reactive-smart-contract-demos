@@ -103,7 +103,7 @@ contract LeverageAccount is
     uint256 public slippageTolerance = 2500; // 25% (in basis points, high for testnet)
 
     // Authorization
-    address public rscCaller;
+    address public rcCaller;
 
     // Aave constants
     uint256 private constant VARIABLE_INTEREST_RATE_MODE = 2;
@@ -142,7 +142,7 @@ contract LeverageAccount is
         address _swapRouter,
         address _aaveOracle,
         address _callbackProxy,
-        address _rscCaller
+        address _rcCaller
     ) payable AbstractCallback(_callbackProxy) Ownable(msg.sender) {
         require(_aavePool != address(0), "Invalid Aave pool");
         require(_swapRouter != address(0), "Invalid swap router");
@@ -152,13 +152,13 @@ contract LeverageAccount is
         swapRouter = ISwapRouter(_swapRouter);
         aaveOracle = IAaveOracle(_aaveOracle);
         callbackProxy = _callbackProxy;
-        rscCaller = _rscCaller;
+        rcCaller = _rcCaller;
     }
 
     modifier onlyController(address sender) {
         require(
             msg.sender == owner() ||
-                (msg.sender == callbackProxy && sender == rscCaller),
+                (msg.sender == callbackProxy && sender == rcCaller),
             "Not authorized"
         );
         _;
@@ -228,9 +228,9 @@ contract LeverageAccount is
         minAmountOut = (expectedOut * (10000 - slippageTolerance)) / 10000;
     }
 
-    /// @notice Update RSC caller address
-    function setRSCCaller(address _rscCaller) external onlyOwner {
-        rscCaller = _rscCaller;
+    /// @notice Update RC caller address
+    function setRCCaller(address _rcCaller) external onlyOwner {
+        rcCaller = _rcCaller;
     }
 
     /// @notice Update Aave oracle address

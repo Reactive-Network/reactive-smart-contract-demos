@@ -59,8 +59,8 @@ Before proceeding further, configure these environment variables:
 
 * `DESTINATION_RPC` — RPC URL for the destination chain, (see [Chainlist](https://chainlist.org)).
 * `DESTINATION_PRIVATE_KEY` — Private key for signing transactions on the destination chain.
-* `REACTIVE_RPC` — RPC URL for the Reactive Network (see [Reactive Docs](https://dev.reactive.network/reactive-mainnet)).
-* `REACTIVE_PRIVATE_KEY` — Private key for signing transactions on the Reactive Network.
+* `REACTIVE_RPC` — RPC URL for Reactive Network (see [Reactive Docs](https://dev.reactive.network/reactive-mainnet)).
+* `REACTIVE_PRIVATE_KEY` — Private key for signing transactions on Reactive Network.
 * `CLIENT_WALLET` — Deployer's EOA wallet address
 * `DESTINATION_CALLBACK_PROXY_ADDR` — The service address on the destination chain (see [Reactive Docs](https://dev.reactive.network/origins-and-destinations#callback-proxy-address)).
 
