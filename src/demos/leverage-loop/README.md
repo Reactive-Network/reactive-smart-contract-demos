@@ -6,6 +6,8 @@ The **Leverage Loop Demo** automates a common DeFi strategy: looping. You supply
 
 This demo handles it end-to-end with Reactive. Deposit funds into a smart account, and `LoopingRC.sol` detects it and runs the loop automatically (borrow, swap, supply, repeat) until your target health factor is reached.
 
+![Leverage Loop](./img/loop.png)
+
 ## Contracts
 
 **Leverage Account**: [LeverageAccount](https://github.com/Reactive-Network/reactive-smart-contract-demos/blob/main/src/demos/leverage-loop/LeverageAccount.sol) is the user's personal vault on the destination chain (e.g., Ethereum Sepolia). It holds collateral and debt positions, and executes individual leverage steps (borrow, swap, supply) when triggered by Reactive. Uses real-time oracles for dynamic slippage protection.
