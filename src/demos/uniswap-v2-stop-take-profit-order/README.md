@@ -145,6 +145,28 @@ cast send $CALLBACK_ADDR 'createStopOrder(address,bool,uint256,uint256,uint256,u
 
 This creates a stop-loss order to sell 1 token0 when the price drops to 0.8 (8000/10000).
 
+> 💡 **Tip — Using a pre-existing or non-1:1 pair**
+>
+> The threshold `8000` above works only because the pool from Step 3 was initialized with equal amounts of both tokens (10 : 10), giving a coefficient-scaled price of exactly `10000`. The contract computes the current price as `(reserve1 × coefficient) / reserve0`, so `8000` represents an 80% drop from that baseline.
+>
+> If you are using a pair that was not initialized at a 1:1 ratio — or one that has already had trades through it — the current scaled price will be different and `8000` will be meaningless. To set a correct threshold, first read the live reserves:
+>
+> ```bash
+> cast call $UNISWAP_V2_PAIR_ADDR 'getReserves()' --rpc-url $DESTINATION_RPC
+> ```
+>
+> Then derive your threshold off-chain before submitting the transaction:
+>
+> ```
+> # When selling token0 with COEFFICIENT=10000:
+> CURRENT_SCALED_PRICE = (reserve1 * 10000) / reserve0
+>
+> # Stop-loss at 20% below current price:
+> STOP_THRESHOLD = CURRENT_SCALED_PRICE * 80 / 100
+> ```
+>
+> Pass `STOP_THRESHOLD` as the fifth argument instead of the hardcoded `8000`. Using an arbitrary number without knowing the current price will cause the order to trigger immediately or never at all.
+
 ### Step 8 — Create a Take-Profit Order
 
 Similarly, create a take-profit order that will sell when the price rises above a threshold:
@@ -154,6 +176,22 @@ cast send $CALLBACK_ADDR 'createStopOrder(address,bool,uint256,uint256,uint256,u
 ```
 
 This creates a take-profit order to sell 1 token0 when the price rises to 1.2 (12000/10000).
+
+> 💡 **Tip — Using a pre-existing or non-1:1 pair**
+>
+> The threshold `12000` above assumes the same 1:1 pool from Step 3 (scaled price = `10000`). It fires when the price rises to `12000`, which is 120% of the baseline.
+>
+> For any other pair, query `getReserves()` first (as shown in Step 7) and compute the correct take-profit threshold:
+>
+> ```
+> # When selling token0 with COEFFICIENT=10000:
+> CURRENT_SCALED_PRICE    = (reserve1 * 10000) / reserve0
+>
+> # Take-profit at 20% above current price:
+> TAKE_PROFIT_THRESHOLD   = CURRENT_SCALED_PRICE * 120 / 100
+> ```
+>
+> Pass `TAKE_PROFIT_THRESHOLD` as the fifth argument. This ensures the order fires at the price level you actually intend, not at a value that has no relation to the current market rate.
 
 ### Step 9 — Trigger Order Execution
 
@@ -199,3 +237,4 @@ View active orders:
 ```bash
 cast call $CALLBACK_ADDR 'getActiveOrders()' --rpc-url $DESTINATION_RPC
 ```
+
