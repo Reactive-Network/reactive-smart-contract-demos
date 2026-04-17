@@ -22,31 +22,29 @@ The setup is intentionally minimal. The same pattern applies to more complex sce
 
 ### Environment Variables
 
-Before proceeding further, configure these environment variables:
+Before deploying, set the following environment variables:
 
 * `ORIGIN_RPC` — RPC URL for the origin chain, (see [Chainlist](https://chainlist.org)).
-* `ORIGIN_CHAIN_ID` — ID of the origin blockchain (see [Reactive Docs](https://dev.reactive.network/origins-and-destinations#mainnet-chains)).
+* `ORIGIN_CHAIN_ID` — ID of the origin chain (see [Reactive Docs](https://dev.reactive.network/origins-and-destinations#mainnet-chains)).
 * `ORIGIN_PRIVATE_KEY` — Private key for signing transactions on the origin chain.
 * `DESTINATION_RPC` — RPC URL for the destination chain, (see [Chainlist](https://chainlist.org)).
-* `DESTINATION_CHAIN_ID` — ID of the destination blockchain (see [Reactive Docs](https://dev.reactive.network/origins-and-destinations#mainnet-chains)).
+* `DESTINATION_CHAIN_ID` — ID of the destination chain (see [Reactive Docs](https://dev.reactive.network/origins-and-destinations#mainnet-chains)).
 * `DESTINATION_PRIVATE_KEY` — Private key for signing transactions on the destination chain.
-* `REACTIVE_RPC` — RPC URL for the Reactive Network (see [Reactive Docs](https://dev.reactive.network/reactive-mainnet)).
-* `REACTIVE_PRIVATE_KEY` — Private key for signing transactions on the Reactive Network.
-* `DESTINATION_CALLBACK_PROXY_ADDR` — The service address on the destination chain (see [Reactive Docs](https://dev.reactive.network/origins-and-destinations#callback-proxy-address)).
+* `REACTIVE_RPC` — RPC URL for Reactive Network (see [Reactive Docs](https://dev.reactive.network/reactive-mainnet)).
+* `REACTIVE_PRIVATE_KEY` — Private key for signing transactions on Reactive Network.
+* `DESTINATION_CALLBACK_PROXY_ADDR` — The callback proxy address on the destination chain (see [Reactive Docs](https://dev.reactive.network/origins-and-destinations#callback-proxy-address)).
 
-> ℹ️ **Reactive Faucet on Ethereum Sepolia**
+> ℹ️ **Reactive faucet on Ethereum Sepolia**
 >
-> To receive testnet REACT, send SepETH to the Reactive faucet contract on Ethereum Sepolia: `0x9b9BB25f1A81078C544C829c5EB7822d747Cf434`. The factor is 1/100, meaning you get 100 REACT for every 1 SepETH sent.
->
-> **Important**: Do not send more than 5 SepETH per request, as doing so will cause you to lose the excess amount without receiving any additional REACT. The maximum that should be sent in a single transaction is 5 SepETH, which will yield 500 REACT.
+> To receive testnet REACT, send SepETH to the Reactive faucet on Ethereum Sepolia: `0x9b9BB25f1A81078C544C829c5EB7822d747Cf434`. The exchange rate is 100 REACT per 1 SepETH. Do not send more than 5 SepETH in a single transaction as any excess is lost.
 
 > ⚠️ **Broadcast Error**
 > 
-> If you see the following message: `error: unexpected argument '--broadcast' found`, it means your Foundry version (or local setup) does not support the `--broadcast` flag for `forge create`. Simply remove `--broadcast` from your command and re-run it.
+> If you see `error: unexpected argument '--broadcast' found`, your Foundry version does not support the `--broadcast` flag for `forge create`. Remove it from the command and re-run.
 
 ### Step 1 — Origin Contract
 
-Deploy the `BasicDemoL1Contract` contract and assign the `Deployed to` address from the response to `ORIGIN_ADDR`.
+Deploy `BasicDemoL1Contract` and save the `Deployed to` address as `ORIGIN_ADDR`.
 
 ```bash
 forge create --broadcast --rpc-url $ORIGIN_RPC --private-key $ORIGIN_PRIVATE_KEY src/demos/basic/BasicDemoL1Contract.sol:BasicDemoL1Contract
@@ -54,7 +52,7 @@ forge create --broadcast --rpc-url $ORIGIN_RPC --private-key $ORIGIN_PRIVATE_KEY
 
 ### Step 2 — Destination Contract
 
-Deploy the `BasicDemoL1Callback` contract and assign the `Deployed to` address from the response to `CALLBACK_ADDR`.
+Deploy `BasicDemoL1Callback` and save the `Deployed to` address as `CALLBACK_ADDR`. This contract requires a small ETH deposit and takes the [callback proxy address](https://dev.reactive.network/origins-and-destinations#callback-proxy-address) as a constructor argument.
 
 ```bash
 forge create --broadcast --rpc-url $DESTINATION_RPC --private-key $DESTINATION_PRIVATE_KEY src/demos/basic/BasicDemoL1Callback.sol:BasicDemoL1Callback --value 0.02ether --constructor-args $DESTINATION_CALLBACK_PROXY_ADDR
@@ -62,18 +60,20 @@ forge create --broadcast --rpc-url $DESTINATION_RPC --private-key $DESTINATION_P
 
 ### Step 3 — Reactive Contract
 
-Deploy the `BasicDemoReactiveContract` contract, configuring it to listen to `ORIGIN_ADDR` on `ORIGIN_CHAIN_ID` and to send callbacks to `CALLBACK_ADDR` on `DESTINATION_CHAIN_ID`. The `Received` event on the origin contract has a `topic_0` value of `0x8cabf31d2b1b11ba52dbb302817a3c9c83e4b2a5194d35121ab1354d69f6a4cb`, which we are monitoring.
+Deploy `BasicDemoReactiveContract`, pointing it at the origin contract (`ORIGIN_ADDR`) on `ORIGIN_CHAIN_ID` and the destination contract (`CALLBACK_ADDR`) on `DESTINATION_CHAIN_ID`.
+
+The topic_0 value `0x8cabf31d2b1b11ba52dbb302817a3c9c83e4b2a5194d35121ab1354d69f6a4cb` corresponds to the `Received` event signature that the Reactive contract subscribes to.
 
 ```bash
 forge create --broadcast --rpc-url $REACTIVE_RPC --private-key $REACTIVE_PRIVATE_KEY src/demos/basic/BasicDemoReactiveContract.sol:BasicDemoReactiveContract --value 0.1ether --constructor-args $ORIGIN_CHAIN_ID $DESTINATION_CHAIN_ID $ORIGIN_ADDR 0x8cabf31d2b1b11ba52dbb302817a3c9c83e4b2a5194d35121ab1354d69f6a4cb $CALLBACK_ADDR
 ```
 
-### Step 4 — Test Reactive Callback
+### Step 4 — Test Callback
 
-Test the whole setup by sending some ether to `ORIGIN_ADDR`:
+Send at least **0.001 ETH** to the origin contract. This triggers the `Received` event, which the Reactive contract picks up and forwards as a callback to the destination chain.
 
 ```bash
 cast send $ORIGIN_ADDR --rpc-url $ORIGIN_RPC --private-key $ORIGIN_PRIVATE_KEY --value 0.001ether
 ```
 
-Ensure that the value sent is at least 0.001 ether, as this is the minimum required to trigger the process. Meeting this threshold will prompt the Reactive Network to initiate a callback transaction to `CALLBACK_ADDR` like shown [here](https://sepolia.etherscan.io/address/0x26fF307f0f0Ea0C4B5Df410Efe22754324DACE08#events).
+Once the transaction confirms, Reactive Network will initiate a callback transaction to `CALLBACK_ADDR`. You can verify it by checking the destination contract's events on Etherscan like shown [here](https://sepolia.etherscan.io/address/0x26fF307f0f0Ea0C4B5Df410Efe22754324DACE08#events).
