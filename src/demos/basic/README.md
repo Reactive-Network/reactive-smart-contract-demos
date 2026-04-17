@@ -1,30 +1,22 @@
-# Reactive Network Demo
+# Reactive Network Basic Demo
 
 ## Overview
 
-The **Reactive Network Demo** illustrates a basic use case of the Reactive Network with two key functionalities:
+The **Reactive Network Basic Demo** walks through the core Reactive pattern: a contract on an origin chain emits an event, Reactive detects it and automatically sends a callback to a contract on a destination chain. The destination contract doesn't contain any real business logic. It simply receives the callback, confirming that Reactive Network has performed its function successfully.
 
-* Low-latency monitoring of logs emitted by a contract on the origin chain.
-* Executing calls from the Reactive Network to a contract on the destination chain.
+The demo focuses on two key behaviors. First, **low-latency monitoring**: Reactive watches for log events emitted by a contract on the origin chain. Second, **conditional reacting**: when a threshold is met (in this case, a transfer of at least **0.001 ETH**), Reactive triggers a callback to the destination chain.
 
-This setup can be adapted for various scenarios, from simple stop orders to fully decentralized algorithmic trading.
+![Demo Flow](./img/flow.png)
+
+The setup is intentionally minimal. The same pattern applies to more complex scenarios like stop orders, cross-chain arbitrage, or decentralized algorithmic trading.
 
 ## Contracts
 
-**Origin Contract**: [BasicDemoL1Contract](https://github.com/Reactive-Network/reactive-smart-contract-demos/blob/main/src/demos/basic/BasicDemoL1Contract.sol) receives Ether and returns it to the sender, emitting a `Received` event with transaction details.
+**Origin Contract**: [BasicDemoL1Contract](https://github.com/Reactive-Network/reactive-smart-contract-demos/blob/main/src/demos/basic/BasicDemoL1Contract.sol) is the origin contract that accepts Ether, returns it to the sender, and emits a `Received` event containing the transaction origin, sender, and value. This event is what Reactive Network monitors.
 
-**Reactive Contract**: [BasicDemoReactiveContract](https://github.com/Reactive-Network/reactive-smart-contract-demos/blob/main/src/demos/basic/BasicDemoReactiveContract.sol) demonstrates a reactive subscription model. It subscribes to logs from a specified contract and processes event data in a decentralized manner. The contract subscribes to events from a specified contract on the origin chain. Upon receiving a log, the contract checks if `topic_3` is at least 0.01 Ether. If the condition is met, it emits a `Callback` event containing a payload to invoke an external callback function on the destination chain.
+**Reactive Contract**: [BasicDemoReactiveContract](https://github.com/Reactive-Network/reactive-smart-contract-demos/blob/main/src/demos/basic/BasicDemoReactiveContract.sol) is the Reactive contract, deployed on Reactive Network itself. On deployment, it subscribes to `Received` events from the origin contract. When an event arrives, the `react()` function checks whether the value (`topic_3`) meets a minimum threshold of **0.001 ETH**. If it does, the contract emits a `Callback` event with a payload targeting the destination contract.
 
-**Destination Contract**: [BasicDemoL1Callback](https://github.com/Reactive-Network/reactive-smart-contract-demos/blob/main/src/demos/basic/BasicDemoL1Callback.sol) serves as the destination contract for handling reactive callbacks. When triggered by a cross-chain event, it logs key transaction details while ensuring only authorized senders can invoke the callback. Upon execution, it emits a `CallbackReceived` event, capturing metadata such as the origin, sender, and reactive sender addresses.
-
-## Further Considerations
-
-The demo highlights just a fraction of Reactive Network’s capabilities. Future enhancements could include:
-
-- **Expanded Event Subscriptions**: Monitoring multiple event sources, including callback logs.
-- **Dynamic Subscriptions**: Adjusting subscriptions in real-time based on evolving conditions.
-- **State Persistence**: Maintaining contract state for more complex, context-aware reactions.
-- **Versatile Callbacks**: Enabling customizable transaction payloads to improve adaptability.
+**Destination Contract**: [BasicDemoL1Callback](https://github.com/Reactive-Network/reactive-smart-contract-demos/blob/main/src/demos/basic/BasicDemoL1Callback.sol) is the destination contract. It receives callbacks from Reactive Network, verifying that the caller is the authorized callback proxy, and emits a `CallbackReceived` event logging the transaction origin, sender, and Reactive sender addresses.
 
 ## Deployment & Testing
 
@@ -42,7 +34,7 @@ Before proceeding further, configure these environment variables:
 * `REACTIVE_PRIVATE_KEY` — Private key for signing transactions on the Reactive Network.
 * `DESTINATION_CALLBACK_PROXY_ADDR` — The service address on the destination chain (see [Reactive Docs](https://dev.reactive.network/origins-and-destinations#callback-proxy-address)).
 
-> ℹ️ **Reactive Faucet on Sepolia**
+> ℹ️ **Reactive Faucet on Ethereum Sepolia**
 >
 > To receive testnet REACT, send SepETH to the Reactive faucet contract on Ethereum Sepolia: `0x9b9BB25f1A81078C544C829c5EB7822d747Cf434`. The factor is 1/100, meaning you get 100 REACT for every 1 SepETH sent.
 >
