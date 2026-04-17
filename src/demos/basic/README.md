@@ -6,7 +6,7 @@ The **Reactive Network Basic Demo** walks through the core Reactive pattern: a c
 
 The demo focuses on two key behaviors. First, **low-latency monitoring**: Reactive watches for log events emitted by a contract on the origin chain. Second, **conditional reacting**: when a threshold is met (in this case, a transfer of at least **0.001 ETH**), Reactive triggers a callback to the destination chain.
 
-![Demo Flow](./img/flow.png)
+![Basic Demo Flow](./img/flow.png)
 
 The setup is intentionally minimal. The same pattern applies to more complex scenarios like stop orders, cross-chain arbitrage, or decentralized algorithmic trading.
 
