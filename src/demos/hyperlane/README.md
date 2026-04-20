@@ -21,8 +21,9 @@ Before deploying, set the following environment variables:
 
 * `HYPERLANE_PRIVATE_KEY` — Private key for signing transactions on all chains.
 
-> ⚠️ **Broadcast Error**  
-> If you see the following message: `error: unexpected argument '--broadcast' found`, it means your Foundry version (or local setup) does not support the `--broadcast` flag for `forge create`. Simply remove `--broadcast` from your command and re-run it.
+> ⚠️ **Broadcast Error**
+>
+> If you see `error: unexpected argument '--broadcast' found`, your Foundry version does not support the `--broadcast` flag for `forge create`. Remove it from the command and re-run.
 
 ## Step 1 — Deploy Origin Contract
 

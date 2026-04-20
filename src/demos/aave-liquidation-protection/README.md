@@ -32,15 +32,13 @@ Before deploying, set the following environment variables:
 * `AAVE_PROTOCOL_DATA_PROVIDER` — Aave V3 Protocol Data Provider (`0x3e9708d80f7B3e43118013075F7e95CE3AB31F31` on Ethereum Sepolia)
 * `AAVE_ADDRESSES_PROVIDER` — Aave V3 Pool Addresses Provider (`0x012bAC54348C0E635dCAc9D5FB99f06F24136C9A` on Ethereum Sepolia)
 
-> ℹ️ **Reactive Faucet on Sepolia**
+> ℹ️ **Reactive faucet on Ethereum Sepolia**
 >
-> To receive testnet REACT, send SepETH to the Reactive faucet contract on Ethereum Sepolia: `0x9b9BB25f1A81078C544C829c5EB7822d747Cf434`. The factor is 1/100, meaning you get 100 REACT for every 1 SepETH sent.
->
-> **Important**: Do not send more than 5 SepETH per request, as doing so will cause you to lose the excess amount without receiving any additional REACT. The maximum that should be sent in a single transaction is 5 SepETH, which will yield 500 REACT.
+> To receive testnet REACT, send SepETH to the Reactive faucet on Ethereum Sepolia: `0x9b9BB25f1A81078C544C829c5EB7822d747Cf434`. The exchange rate is 100 REACT per 1 SepETH. Do not send more than 5 SepETH in a single transaction as any excess is lost.
 
 > ⚠️ **Broadcast Error**
-> 
-> If you see the following message: `error: unexpected argument '--broadcast' found`, it means your Foundry version (or local setup) does not support the `--broadcast` flag for `forge create`. Simply remove `--broadcast` from your command and re-run it.
+>
+> If you see `error: unexpected argument '--broadcast' found`, your Foundry version does not support the `--broadcast` flag for `forge create`. Remove it from the command and re-run.
 
 ### Step 1 — Aave Test Tokens
 
