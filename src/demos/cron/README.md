@@ -1,43 +1,44 @@
-# Reactive Cron
+# CRON Demo
 
 ## Overview
 
-This contract acts as a simple template for setting up automated logic on the Reactive Network. It listens for periodic CRON events, making it ideal for scheduling on-chain tasks such as maintenance routines, rewards distribution, or data polling.
+The **Reactive CRON Demo** deploys a Reactive contract that responds to periodic CRON events on Reactive Network. On each CRON tick, the contract records the current block number and emits a `Callback` event that calls back into itself. The pattern serves as a starting template for any time-based automation: rewards distribution, maintenance routines, data polling, or periodic state updates.
 
-## Key Features
-
-The contract extends `AbstractPausableReactive`, which automatically wires up pause/resume support and handles safe unsubscription. Implementing `getPausableSubscriptions()` allows Reactive to manage this contract’s active state without redeployment.
-
-On each CRON event, the contract emits a `Callback`, instructing the Reactive system contract to call the `callback(address)` function. You can customize this to point at another contract or trigger internal automation. The `react()` function filters log records by topic to ensure it only responds to the configured CRON topic.
+The contract extends `AbstractPausableReactive`, which provides built-in pause and resume support. The `getPausableSubscriptions()` method declares the contract's subscriptions, allowing Reactive to manage its active state without redeployment.
 
 ## Deployment & Testing
 
 ### Environment Variables
 
-Before proceeding further, configure these environment variables:
+Before deploying, set the following environment variables:
 
+* `REACTIVE_RPC` — RPC URL for Reactive Network (see [Reactive Docs](https://dev.reactive.network/reactive-mainnet)).
+* `REACTIVE_PRIVATE_KEY` — Private key for signing transactions on Reactive Network.
 * `CRON_TOPIC` — An event enabling time-based automation at fixed block intervals (see [Reactive Docs](https://dev.reactive.network/reactive-library#cron-functionality)).
 
-> ⚠️ **Broadcast Error**  
-> If you see the following message: `error: unexpected argument '--broadcast' found`, it means your Foundry version (or local setup) does not support the `--broadcast` flag for `forge create`. Simply remove `--broadcast` from your command and re-run it.
+> ⚠️ **Broadcast Error**
+>
+> If you see `error: unexpected argument '--broadcast' found`, your Foundry version does not support the `--broadcast` flag for `forge create`. Remove it from the command and re-run.
 
 ### Step 1 — Reactive Contract
 
-Deploy the `BasicCronContract` contract, providing it with the system contract address and the preferred cron topic.
+Deploy `BasicCronContract` with the desired CRON topic. Save the `Deployed to` address as `REACTIVE_ADDR`.
 
 ```bash
 forge create --broadcast --rpc-url $REACTIVE_RPC --private-key $REACTIVE_PRIVATE_KEY src/demos/cron/CronDemo.sol:BasicCronContract --value 0.1ether --constructor-args $CRON_TOPIC
 ```
 
-### Step 2 — Cron Pause (Optional)
+Once deployed, the contract will begin responding to CRON events automatically. Each tick updates `lastCronBlock` and emits a `Callback` event.
 
-To pause the cron subscription, run this command:
+### Step 2 — Pause and Resume (Optional)
+
+The contract supports pausing and resuming its CRON subscription without redeployment. To pause:
 
 ```bash
 cast send $REACTIVE_ADDR "pause()" --rpc-url $REACTIVE_RPC --private-key $REACTIVE_PRIVATE_KEY
 ```
 
-To resume the cron subscription, run this command:
+To resume:
 
 ```bash
 cast send $REACTIVE_ADDR "resume()" --rpc-url $REACTIVE_RPC --private-key $REACTIVE_PRIVATE_KEY
