@@ -16,7 +16,7 @@ Swapping tokens across blockchains usually means trusting a bridge or custodian.
 
 ### Environment Variables
 
-Before proceeding further, configure these environment variables:
+Before deploying, set the following environment variables:
 
 * `SWAP_INITIATOR_RPC` — RPC URL for the swap initiator chain (see [Chainlist](https://chainlist.org)).
 * `SWAP_CLOSER_RPC` — RPC URL for the swap closer chain (see [Chainlist](https://chainlist.org)).

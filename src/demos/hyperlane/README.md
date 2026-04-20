@@ -15,19 +15,9 @@ Messages can flow in both directions. An event on Base can trigger processing on
 
 `HyperlaneReactive`, deployed on Reactive Mainnet, listens for on-chain events and responds through Reactive’s log automation. Inheriting from `AbstractReactive` and `AbstractCallback`, it emits a `Callback` when triggered, which sends a message to `HyperlaneOrigin` using Hyperlane’s `mailbox` and on-chain fee quoting. The contract also allows manual triggering and message dispatch by the owner, supporting both automated and direct messaging from Reactive to Base.
 
-## Further Considerations
-
-Possible extensions include:
-
-* **Batch Dispatching**: Support sending multiple messages per callback.
-* **Dynamic Routing**: Derive destination addresses from logs or callback payloads.
-* **Replay Protection**: Prevent duplicate or unauthorized message forwarding.
-* **Configurable Topics**: Subscribe to multiple event topics across contracts.
-* **Advanced Permissions**: Introduce roles for dispatch control, feed management, and emergency pause.
-
 ## Environment Variables
 
-Before proceeding further, configure these environment variables:
+Before deploying, set the following environment variables:
 
 * `HYPERLANE_PRIVATE_KEY` — Private key for signing transactions on all chains.
 
