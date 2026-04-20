@@ -2,7 +2,7 @@
 
 ## Overview
 
-The **Reactive CRON Demo** deploys a Reactive contract that responds to periodic CRON events on Reactive Network. On each CRON tick, the contract records the current block number and emits a `Callback` event that calls back into itself. The pattern serves as a starting template for any time-based automation: rewards distribution, maintenance routines, data polling, or periodic state updates.
+The **CRON Demo** deploys a Reactive contract that responds to periodic CRON events on Reactive Network. On each CRON tick, the contract records the current block number and emits a `Callback` event that calls back into itself. The pattern serves as a starting template for any time-based automation: rewards distribution, maintenance routines, data polling, or periodic state updates.
 
 The contract extends `AbstractPausableReactive`, which provides built-in pause and resume support. The `getPausableSubscriptions()` method declares the contract's subscriptions, allowing Reactive to manage its active state without redeployment.
 
