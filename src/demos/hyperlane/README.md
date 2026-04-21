@@ -8,6 +8,12 @@ The demo uses two contracts: `HyperlaneOrigin` on Base and `HyperlaneReactive` o
 
 The demo supports three messaging patterns: a direct send from Reactive to Base, a trigger-and-callback flow from Reactive to Base, and a trigger from Base to Reactive.
 
+![Direct Send](./img/directsend.png)
+
+![Trigger with Callback](./img/triggercallback.png)
+
+![Trigger from Base](./img/frombase.png)
+
 ## Contracts
 
 **Origin Contract**: [HyperlaneOrigin](https://github.com/Reactive-Network/reactive-smart-contract-demos/blob/main/src/demos/hyperlane/HyperlaneOrigin.sol) is deployed on Base Mainnet. It serves as the EVM-side endpoint for cross-chain messaging. The owner can call `trigger()` to emit a `Trigger` event, which the reactive contract on the other side detects. It also implements a `handle()` function that receives incoming Hyperlane messages (restricted to the designated Hyperlane mailbox) and logs the sender metadata and payload as a `Received` event.
