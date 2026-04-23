@@ -14,7 +14,7 @@ The Reactive contract is one-shot by design. Once the stop order fires, it liste
 
 **Reactive Contract**: [UniswapDemoStopOrderReactive](https://github.com/Reactive-Network/reactive-smart-contract-demos/blob/main/src/demos/uniswap-v2-stop-order/UniswapDemoStopOrderReactive.sol) runs on Reactive Network. On deployment, it subscribes to two events on Ethereum Sepolia: the pair's `Sync` events (to track reserve changes) and the stop order contract's `Stop` events (to confirm execution). When a `Sync` event arrives, the `react()` function computes the exchange rate from the reserves and compares it against the configured threshold. If the rate has dropped below that threshold, it emits a `Callback` event targeting the destination contract. Once it receives the corresponding `Stop` event, it marks the order as done.
 
-**Origin/Destination Chain Contract**: [UniswapDemoStopOrderCallback](https://github.com/Reactive-Network/reactive-smart-contract-demos/blob/main/src/demos/uniswap-v2-stop-order/UniswapDemoStopOrderCallback.sol) lives on the destination chain. When triggered, it re-verifies the exchange rate on-chain, transfers the client's approved tokens to itself, and executes the swap through the Uniswap V2 Router. The swapped tokens are sent back to the client, and a `Stop` event is emitted to signal completion to the Reactive contract. The contract is stateless, so a single deployment can serve multiple stop orders using the same router.
+**Destination Contract**: [UniswapDemoStopOrderCallback](https://github.com/Reactive-Network/reactive-smart-contract-demos/blob/main/src/demos/uniswap-v2-stop-order/UniswapDemoStopOrderCallback.sol) lives on the destination chain. When triggered, it re-verifies the exchange rate on-chain, transfers the client's approved tokens to itself, and executes the swap through the Uniswap V2 Router. The swapped tokens are sent back to the client, and a `Stop` event is emitted to signal completion to the Reactive contract. The contract is stateless, so a single deployment can serve multiple stop orders using the same router.
 
 ## Deployment & Testing
 
@@ -70,12 +70,13 @@ To create a new pair, call `createPair()` on the Uniswap V2 Factory at `0x7E0987
 cast send 0x7E0987E5b3a30e3f2828572Bb659A548460a3003 'createPair(address,address)' --rpc-url $DESTINATION_RPC --private-key $DESTINATION_PRIVATE_KEY $TOKEN0_ADDR $TOKEN1_ADDR
 ```
 
-> 📝 **Note**  
+> 📝 **Note**
+> 
 > Token ordering is determined by address: the token with the smaller hexadecimal address becomes `token0`, the other becomes `token1`.
 
 ### Step 3 — Destination Contract
 
-Deploy `UniswapDemoStopOrderCallback` with the [callback proxy address](https://dev.reactive.network/origins-and-destinations#callback-proxy-address) and the Uniswap V2 Router at `0xC532a74256D3Db42D0Bf7a0400fEFDbad7694008`. Save the `Deployed to` address as `CALLBACK_ADDR`.
+Deploy `UniswapDemoStopOrderCallback` with the relevant [callback proxy address](https://dev.reactive.network/origins-and-destinations#callback-proxy-address) and the Uniswap V2 Router at `0xC532a74256D3Db42D0Bf7a0400fEFDbad7694008`. Save the `Deployed to` address as `CALLBACK_ADDR`.
 
 ```bash
 forge create --broadcast --rpc-url $DESTINATION_RPC --private-key $DESTINATION_PRIVATE_KEY src/demos/uniswap-v2-stop-order/UniswapDemoStopOrderCallback.sol:UniswapDemoStopOrderCallback --value 0.02ether --constructor-args $DESTINATION_CALLBACK_PROXY_ADDR 0xC532a74256D3Db42D0Bf7a0400fEFDbad7694008
