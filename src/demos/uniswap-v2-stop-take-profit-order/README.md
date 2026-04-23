@@ -6,6 +6,10 @@ The **Uniswap V2 Stop-Loss & Take-Profit Orders** system implements a personal R
 
 The system manages subscriptions dynamically: it subscribes to a pair's `Sync` events when the first order is created and unsubscribes when all orders for that pair are completed or cancelled. Orders include built-in retry logic with cooldowns, and the callback contract extends `RescuableBase` for recovering ETH or tokens that may become stuck during execution.
 
+![Stop loss & take profit Flow](./img/flow.png)
+
+Stop loss and take profit have the same flow with only one difference: stop-loss sells when price drops to limit losses whereas take-profit sells when price rises to lock in gains.
+
 ## Contracts
 
 **Reactive Contract**: [UniswapDemoStopTakeProfitReactive](./UniswapDemoStopTakeProfitReactive.sol) runs on Reactive Network. On deployment, it subscribes to five lifecycle events from the callback contract: `StopOrderCreated`, `StopOrderCancelled`, `StopOrderExecuted`, `StopOrderPaused`, and `StopOrderResumed`. When a new order is created, the contract tracks it internally and dynamically subscribes to that pair's `Sync` events. On each `Sync`, the `react()` function computes the current price from the reserves and checks it against each active order's threshold (below for stop-loss, above for take-profit). If the condition is met, it emits a `Callback` targeting `executeStopOrder` on the destination chain. Once execution is confirmed via `StopOrderExecuted`, it untracks the order and unsubscribes from the pair if no active orders remain. The contract includes trigger cooldowns and a maximum attempt limit to prevent repeated failed executions.
