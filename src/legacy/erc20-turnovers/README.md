@@ -13,20 +13,11 @@ The **ERC-20 Turnovers Demo** tracks ERC-20 token turnovers across all contracts
 
 **Reactive Contract**: [TokenTurnoverReactive](https://github.com/Reactive-Network/reactive-smart-contract-demos/blob/main/src/demos/erc20-turnovers/TokenTurnoverReactive.sol) subscribes to ERC‑20 transfer events via `ERC20_TRANSFER_TOPIC_0` and request events from `TokenTurnoverL1` via `L1_RQ_TOPIC_0` on Ethereum Sepolia. When a transfer event is received, it updates the token’s turnover record and emits a `Turnover` event. If the contract detects a request from `TokenTurnoverL1`, it responds by emitting a `Callback` event containing the current turnover data for the requested token. This contract extends `AbstractPausableReactive`, allowing subscriptions to be paused or resumed as needed.
 
-## Further Considerations
-
-There are several opportunities for improvement:
-
-- **Multi-Origin Subscriptions**: Expand to monitor multiple contracts for event tracking.
-- **Dynamic Subscriptions**: Enable real-time adjustments to subscriptions, allowing flexible and responsive tracking.
-- **Persistent State Management**: Maintain historical data context to improve reliability.
-- **Dynamic Callbacks**: Use arbitrary transaction payloads for more complex interactions and automation.
-
 ## Deployment & Testing
 
 ### Environment Variables
 
-Before proceeding further, configure these environment variables:
+Before deploying, set the following environment variables:
 
 * `DESTINATION_RPC` — RPC URL for the destination chain, (see [Chainlist](https://chainlist.org)).
 * `DESTINATION_PRIVATE_KEY` — Private key for signing transactions on the destination chain.
@@ -34,15 +25,13 @@ Before proceeding further, configure these environment variables:
 * `REACTIVE_PRIVATE_KEY` — Private key for signing transactions on the Reactive Network.
 * `DESTINATION_CALLBACK_PROXY_ADDR` — The service address on the destination chain (see [Reactive Docs](https://dev.reactive.network/origins-and-destinations#callback-proxy-address)).
 
-> ℹ️ **Reactive Faucet on Sepolia**
+> ℹ️ **Reactive faucet on Ethereum Sepolia**
 >
-> To receive testnet REACT, send SepETH to the Reactive faucet contract on Ethereum Sepolia: `0x9b9BB25f1A81078C544C829c5EB7822d747Cf434`. The factor is 1/100, meaning you get 100 REACT for every 1 SepETH sent.
->
-> **Important**: Do not send more than 5 SepETH per request, as doing so will cause you to lose the excess amount without receiving any additional REACT. The maximum that should be sent in a single transaction is 5 SepETH, which will yield 500 REACT.
+> To receive testnet REACT, send SepETH to the Reactive faucet on Ethereum Sepolia: `0x9b9BB25f1A81078C544C829c5EB7822d747Cf434`. The exchange rate is 100 REACT per 1 SepETH. Do not send more than 5 SepETH in a single transaction as any excess is lost.
 
 > ⚠️ **Broadcast Error**
-> 
-> If you see the following message: `error: unexpected argument '--broadcast' found`, it means your Foundry version (or local setup) does not support the `--broadcast` flag for `forge create`. Simply remove `--broadcast` from your command and re-run it.
+>
+> If you see `error: unexpected argument '--broadcast' found`, your Foundry version does not support the `--broadcast` flag for `forge create`. Remove it from the command and re-run.
 
 ### Step 1 — Origin/Destination Contract
 

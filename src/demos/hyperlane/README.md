@@ -2,98 +2,93 @@
 
 ## Overview
 
-This demo connects Base Mainnet and Reactive Mainnet using the Hyperlane protocol for two-way messaging between the networks. The goal of this setup is to show how contracts on Base and Reactive can react to each other’s activity in real time, without relying on centralized off-chain relayers. It uses two contracts:
+The **Hyperlane Demo** sets up two-way messaging between Base Mainnet and Reactive Mainnet using the Hyperlane protocol. When an event fires on one chain, the other chain detects and responds to it without relying on centralized off-chain relayers.
 
-* `HyperlaneOrigin` on Base Mainnet
-* `HyperlaneReactive` on Reactive Mainnet
+The demo uses two contracts: `HyperlaneOrigin` on Base and `HyperlaneReactive` on Reactive. Messages can flow in both directions. A `Trigger` event on Base causes the Reactive contract to detect it and forward a message back through Hyperlane. The Reactive contract can also send messages to Base directly or in response to its own `Trigger` event via a callback through the Reactive Network's log-based system.
 
-Messages can flow in both directions. An event on Base can trigger processing on Reactive, and Reactive can also send messages directly back to Base — either manually or in response to an event. Reactive handles incoming events using its log-based system, and forwards messages across chains through Hyperlane.
+The demo supports three messaging patterns: a direct send from Reactive to Base, a trigger-and-callback flow from Reactive to Base, and a trigger from Base to Reactive.
+
+![Direct Send](./img/directsend.png)
+
+![Trigger with Callback](./img/triggercallback.png)
+
+![Trigger from Base](./img/frombase.png)
 
 ## Contracts
 
-`HyperlaneOrigin`, deployed on Base Mainnet, serves as the EVM-side endpoint for cross-chain messaging. It emits `Trigger` events to initiate communication and defines a `handle` function for processing incoming messages. Only the contract owner can trigger events, and only the designated Hyperlane `mailbox` can deliver messages. Received payloads are logged with sender metadata for traceability.
+**Origin Contract**: [HyperlaneOrigin](https://github.com/Reactive-Network/reactive-smart-contract-demos/blob/main/src/demos/hyperlane/HyperlaneOrigin.sol) is deployed on Base Mainnet. It serves as the EVM-side endpoint for cross-chain messaging. The owner can call `trigger()` to emit a `Trigger` event, which the reactive contract on the other side detects. It also implements a `handle()` function that receives incoming Hyperlane messages (restricted to the designated Hyperlane mailbox) and logs the sender metadata and payload as a `Received` event.
 
-`HyperlaneReactive`, deployed on Reactive Mainnet, listens for on-chain events and responds through Reactive’s log automation. Inheriting from `AbstractReactive` and `AbstractCallback`, it emits a `Callback` when triggered, which sends a message to `HyperlaneOrigin` using Hyperlane’s `mailbox` and on-chain fee quoting. The contract also allows manual triggering and message dispatch by the owner, supporting both automated and direct messaging from Reactive to Base.
+**Reactive Contract**:[HyperlaneReactive](https://github.com/Reactive-Network/reactive-smart-contract-demos/blob/main/src/demos/hyperlane/HyperlaneReactive.sol) is deployed on Reactive Mainnet. It subscribes to `Trigger` events from two sources: the origin contract on Base and itself. When either fires, the `react()` function emits a `Callback` that routes through Reactive Network back to this contract's `callback()` function, which dispatches the message to Base via Hyperlane's mailbox using on-chain fee quoting. The owner can also call `send()` to dispatch a message directly, bypassing the Reactive flow entirely.
 
-## Further Considerations
+## Deployment & Testing
 
-Possible extensions include:
+### Environment Variables
 
-* **Batch Dispatching**: Support sending multiple messages per callback.
-* **Dynamic Routing**: Derive destination addresses from logs or callback payloads.
-* **Replay Protection**: Prevent duplicate or unauthorized message forwarding.
-* **Configurable Topics**: Subscribe to multiple event topics across contracts.
-* **Advanced Permissions**: Introduce roles for dispatch control, feed management, and emergency pause.
+Before deploying, set the following environment variables:
 
-## Environment Variables
+* `HYPERLANE_PRIVATE_KEY` — Private key for signing transactions on both Base and Reactive.
 
-Before proceeding further, configure these environment variables:
+> ⚠️ **Broadcast Error**
+>
+> If you see `error: unexpected argument '--broadcast' found`, your Foundry version does not support the `--broadcast` flag for `forge create`. Remove it from the command and re-run.
 
-* `HYPERLANE_PRIVATE_KEY` — Private key for signing transactions on all chains.
+### Step 1 — Origin Contract
 
-> ⚠️ **Broadcast Error**  
-> If you see the following message: `error: unexpected argument '--broadcast' found`, it means your Foundry version (or local setup) does not support the `--broadcast` flag for `forge create`. Simply remove `--broadcast` from your command and re-run it.
-
-## Step 1 — Deploy Origin Contract
-
-Export the deployed origin contract address:
+Use the pre-deployed origin contract or deploy your own.
 
 ```bash
 export HYPERLANE_ORIGIN_ADDR=0xF37652D7aF808287DEB26dDcb400352d8BA012Ef
 ```
 
-Deploy the origin contract on Base with the following argument:
-
-- `0xeA87ae93Fa0019a82A727bfd3eBd1cFCa8f64f1D` — Hyperlane mailbox on Base Mainnet
+Deploy `HyperlaneOrigin` on Base Mainnet, passing the Hyperlane mailbox address on Base (`0xeA87ae93Fa0019a82A727bfd3eBd1cFCa8f64f1D`). Save the `Deployed to` address as `HYPERLANE_ORIGIN_ADDR`.
 
 ```bash
 forge create --broadcast --rpc-url https://mainnet.base.org --private-key $HYPERLANE_PRIVATE_KEY src/demos/hyperlane/HyperlaneOrigin.sol:HyperlaneOrigin --constructor-args 0xeA87ae93Fa0019a82A727bfd3eBd1cFCa8f64f1D
 ```
 
-## Step 2 — Deploy Reactive Contract
+### Step 2 — Reactive Contract
 
-Export the deployed reactive contract address:
+Use the pre-deployed Reactive contract or deploy your own.
 
 ```bash
 export HYPERLANE_REACTIVE_ADDR=0xF37652D7aF808287DEB26dDcb400352d8BA012Ef
 ```
 
-Deploy the reactive contract with the following arguments:
+Deploy `HyperlaneReactive` on Reactive Mainnet with the following arguments:
 
-- `0x3a464f746D23Ab22155710f44dB16dcA53e0775E` — Hyperlane Mailbox on Reactive Mainnet
+- `0x3a464f746D23Ab22155710f44dB16dcA53e0775E` — Hyperlane Mailbox
 - `8453` — Base chain ID
 - `HYPERLANE_ORIGIN_ADDR` — Origin contract address from Step 1
+
+Save the `Deployed to` address as `HYPERLANE_REACTIVE_ADDR`.
 
 ```bash
 forge create --broadcast --rpc-url https://mainnet-rpc.rnk.dev/ --private-key $HYPERLANE_PRIVATE_KEY src/demos/hyperlane/HyperlaneReactive.sol:HyperlaneReactive --value 0.2ether --constructor-args 0x3a464f746D23Ab22155710f44dB16dcA53e0775E 8453 $HYPERLANE_ORIGIN_ADDR
 ```
 
-## Step 3 — Send Messages
+### Step 3 — Test Messaging
 
-You can now test sending messages across chains using the deployed contracts. The payloads `0xabcdef`, `0xfedcba`, and `0xdefabc` are sample byte strings for demonstration. These will be emitted as events on the receiving chain.
+All three messaging patterns use sample byte payloads (`0xabcdef`, `0xfedcba`, `0xdefabc`) for demonstration. Each payload will be emitted as an event on the receiving chain.
 
-- `HYPERLANE_ORIGIN_ADDR` — Origin contract address from Step 1
-- `HYPERLANE_REACTIVE_ADDR` — Reactive contract address from Step 2
+#### Direct Send (Reactive ➝ Base)
 
-### Direct Send (Reactive ➝ Base)
-
-Ensure the reactive contract holds enough REACT tokens to cover message dispatch costs from Reactive to Base. Depending on current rates, each message may require 3–5 REACT. For details on topping up the contract balance, [see here](https://dev.reactive.network/economy#direct-transfers).
+Calls `send()` on the Reactive contract, which dispatches the message to Base via Hyperlane directly. Make sure the Reactive contract holds enough REACT to cover dispatch costs. See [direct transfers](https://dev.reactive.network/economy#direct-transfers) for details on funding the contract.
 
 ```bash
 cast send --rpc-url https://mainnet-rpc.rnk.dev/ --private-key $HYPERLANE_PRIVATE_KEY $HYPERLANE_REACTIVE_ADDR "send(bytes)" 0xabcdef
 ```
 
-### Trigger with Callback (Reactive ➝ Base)
+#### Trigger with Callback (Reactive ➝ Base)
 
-Calls the `trigger()` function on Reactive, which runs via the dedicated RVM and sends a message via Hyperlane:
+Calls `trigger()` on the Reactive contract, which emits a `Trigger` event. Reactive Network detects it, routes through the RVM callback, and dispatches via Hyperlane.
 
 ```bash
 cast send --rpc-url https://mainnet-rpc.rnk.dev/ --private-key $HYPERLANE_PRIVATE_KEY $HYPERLANE_REACTIVE_ADDR "trigger(bytes)" 0xfedcba
 ```
 
-### Trigger from Base (Base ➝ Reactive)
+#### Trigger from Base (Base ➝ Reactive)
 
-Same `trigger()` pattern, initiated from Base:
+Calls `trigger()` on the origin contract on Base. The Reactive contract detects the `Trigger` event and processes it through the same callback flow.
 
 ```bash
 cast send --rpc-url https://mainnet.base.org --private-key $HYPERLANE_PRIVATE_KEY $HYPERLANE_ORIGIN_ADDR "trigger(bytes)" 0xdefabc

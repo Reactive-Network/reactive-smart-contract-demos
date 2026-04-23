@@ -16,7 +16,7 @@ Swapping tokens across blockchains usually means trusting a bridge or custodian.
 
 ### Environment Variables
 
-Before proceeding further, configure these environment variables:
+Before deploying, set the following environment variables:
 
 * `SWAP_INITIATOR_RPC` — RPC URL for the swap initiator chain (see [Chainlist](https://chainlist.org)).
 * `SWAP_CLOSER_RPC` — RPC URL for the swap closer chain (see [Chainlist](https://chainlist.org)).
@@ -29,15 +29,13 @@ Before proceeding further, configure these environment variables:
 * `USER1_WALLET` — User 1 address (swap initiator).
 * `USER2_WALLET` — User 2 address (swap acknowledger).
 
-> ℹ️ **Reactive Faucet on Sepolia**
+> ℹ️ **Reactive faucet on Ethereum Sepolia**
 >
-> To receive testnet REACT, send SepETH to the Reactive faucet contract on Ethereum Sepolia: `0x9b9BB25f1A81078C544C829c5EB7822d747Cf434`. The factor is 1/100, meaning you get 100 REACT for every 1 SepETH sent.
->
-> **Important**: Do not send more than 5 SepETH per request, as doing so will cause you to lose the excess amount without receiving any additional REACT. The maximum that should be sent in a single transaction is 5 SepETH, which will yield 500 REACT.
+> To receive testnet REACT, send SepETH to the Reactive faucet on Ethereum Sepolia: `0x9b9BB25f1A81078C544C829c5EB7822d747Cf434`. The exchange rate is 100 REACT per 1 SepETH. Do not send more than 5 SepETH in a single transaction as any excess is lost.
 
 > ⚠️ **Broadcast Error**
 >
-> If you see the following message: `error: unexpected argument '--broadcast' found`, it means your Foundry version (or local setup) does not support the `--broadcast` flag for `forge create`. Simply remove `--broadcast` from your command and re-run it.
+> If you see `error: unexpected argument '--broadcast' found`, your Foundry version does not support the `--broadcast` flag for `forge create`. Remove it from the command and re-run.
 
 ### Step 1 — Test Tokens
 
