@@ -1,16 +1,17 @@
-# Reactive Contract Demos
+# Reactive Demos
 
 ## Overview
 
-This repository contains a collection of demo projects for Reactive Network — a blockchain designed for event-driven, cross-chain smart contract automation.
-
-Each demo in the [src/demos](https://github.com/Reactive-Network/reactive-smart-contract-demos/tree/main/src/demos) directory focuses on a specific automation pattern, with its own README, contracts, and deployment steps. The examples cover:
+This repository contains a collection of demo projects for Reactive Network, a blockchain designed for event-driven, cross-chain smart contract automation. Each demo in the [src/demos](https://github.com/Reactive-Network/reactive-smart-contract-demos/tree/main/src/demos) directory focuses on a specific automation pattern, with its own README, contracts, and deployment steps. The examples cover:
 
 * Core cross-chain event → callback flows
 * Time-based execution using CRON events
 * Cross-chain messaging integrations
 * DeFi automation such as stop-loss / take-profit orders on Uniswap V2
 * Automated liquidation protection on Aave
+* Leveraged looping on Aave
+* Automated prediction market payouts
+* Gasless cross-chain atomic swaps.
 
 All contracts are written in Solidity, and the repository uses the Foundry development framework for building, testing, and deployment. Together, these demos show how Reactive Contracts can replace manual monitoring and off-chain bots with deterministic, event-centric on-chain logic.
 
@@ -18,37 +19,49 @@ All contracts are written in Solidity, and the repository uses the Foundry devel
 
 ### Basic Demo
 
-[Basic Demo](https://github.com/Reactive-Network/reactive-smart-contract-demos/tree/main/src/demos/basic) is the starting point for understanding how Reactive Network works. This demo shows the core pattern behind Reactive Contracts: a contract on an origin chain emits an event, a Reactive contract on Reactive Network detects that event, and a callback is sent to a contract on a destination chain. It uses three contracts — `BasicDemoL1Contract.sol` (origin), `BasicDemoL1Callback.sol` (destination), and `BasicDemoReactiveContract.sol` (Reactive) — to walk through this full lifecycle. If you're new to Reactive Network, start here.
+[Basic Demo](https://github.com/Reactive-Network/reactive-smart-contract-demos/tree/main/src/demos/basic) is the starting point for understanding how Reactive Network works. A contract on an origin chain emits an event, a Reactive Contract detects it, and a callback is sent to a contract on a destination chain. It uses three contracts — `BasicDemoL1Contract.sol` (origin), `BasicDemoL1Callback.sol` (destination), and `BasicDemoReactiveContract.sol` (Reactive) — to walk through this full lifecycle. If you're new to Reactive Network, start here.
 
 ### Cron Demo
 
-[Cron Demo](https://github.com/Reactive-Network/reactive-smart-contract-demos/tree/main/src/demos/cron) explains how to implement time-based automation using Reactive Network's built-in cron mechanism. Unlike traditional blockchains, where smart contracts can only execute in response to user transactions, Reactive Network's system contract emits cron events at fixed block intervals, essentially giving smart contracts a clock to work with. The contract in this demo subscribes to these periodic cron events and performs actions on a schedule, without any external trigger. This pattern is useful for tasks like periodic data updates, scheduled reward distributions, or regular health checks on DeFi positions.
-
-### Hyperlane Demo
-
-[Hyperlane Demo](https://github.com/Reactive-Network/reactive-smart-contract-demos/tree/main/src/demos/hyperlane) connects Base Mainnet and Reactive Mainnet using the [Hyperlane](https://www.hyperlane.xyz/) protocol for two-way cross-chain messaging without relying on centralized off-chain relayers or Reactive's default callback proxy. It uses two contracts: `HyperlaneOrigin.sol`, deployed on Base, which emits trigger events and receives incoming messages via a trusted Hyperlane mailbox; and `HyperlaneReactive.sol`, deployed on Reactive, which listens for those events and can send messages back through Hyperlane. Messages flow in both directions, either automatically in response to events or triggered manually by the contract owner. This shows how Reactive Network can integrate with external messaging protocols for flexible cross-chain communication.
+[Cron Demo](https://github.com/Reactive-Network/reactive-smart-contract-demos/tree/main/src/demos/cron) shows how to implement time-based automation using Reactive Network's built-in cron mechanism. The system contract emits cron events at fixed block intervals, giving smart contracts a clock to work with. The contract in this demo subscribes to these periodic events and performs actions on a schedule, without any external trigger. This pattern is useful for periodic data updates, scheduled reward distributions, or regular health checks on DeFi positions.
 
 ### Uniswap V2 Stop Order Demo
 
-[Uniswap V2 Stop Order Demo](https://github.com/Reactive-Network/reactive-smart-contract-demos/tree/main/src/demos/uniswap-v2-stop-order) implements automated stop orders on Uniswap V2 liquidity pools. A Reactive contract monitors exchange rate changes on a Uniswap V2 pair by subscribing to its on-chain sync events. When the rate crosses a user-defined threshold, the Reactive contract triggers a callback to a destination chain contract (`UniswapDemoStopOrderCallback.sol`) that executes the swap. This is a practical DeFi use case: stop-loss and take-profit orders that work automatically, without requiring the user to watch the market or run a bot.
+[Uniswap V2 Stop Order Demo](https://github.com/Reactive-Network/reactive-smart-contract-demos/tree/main/src/demos/uniswap-v2-stop-order) implements a decentralized stop-loss order for a Uniswap V2 trading pair. A Reactive Contract monitors the pair's `Sync` events and tracks reserve changes. When the exchange rate drops below a user-defined threshold, it triggers a callback to a destination chain contract that executes the swap through the Uniswap V2 Router and returns the proceeds to the user.
 
 ### Uniswap V2 Stop-Loss & Take-Profit Orders Demo
 
-[Uniswap V2 Stop-Loss & Take-Profit Orders Demo](https://github.com/Reactive-Network/reactive-smart-contract-demos/tree/main/src/demos/uniswap-v2-stop-take-profit-order) shows how to automate both stop-loss and take-profit strategies using Reactive Contracts. A personal Reactive Contract subscribes to `Sync` events from a Uniswap V2 pair and monitors reserve changes. When a user-defined price threshold is crossed, the Reactive Contract emits a callback that triggers the swap on the destination chain. Each user deploys their own contracts, ensuring isolated order management and full control over execution. This demo demonstrates event-driven trade automation without relying on off-chain bots.
-
-### Aave Liquidation Protection Demo
-
-[Aave Liquidation Protection Demo](https://github.com/Reactive-Network/reactive-smart-contract-demos/tree/main/src/demos/aave-liquidation-protection) shows how to automate position protection on Aave using Reactive Contracts. A personal Reactive Contract subscribes to periodic CRON events and triggers health checks for a user’s lending position. When the user’s health factor drops below a defined threshold, the system executes protection measures on the destination chain — depositing additional collateral, repaying debt, or both. The callback contract calculates the required amount and performs the interaction with Aave. This demo demonstrates time-based, event-driven liquidation protection without manual monitoring or external bots, with each user deploying their own isolated protection setup.
+[Uniswap V2 Stop-Loss & Take-Profit Orders Demo](https://github.com/Reactive-Network/reactive-smart-contract-demos/tree/main/src/demos/uniswap-v2-stop-take-profit-order) extends the stop order pattern with support for both stop-loss and take-profit strategies, full order lifecycle management, and per-user contract isolation. A personal Reactive Contract subscribes to `Sync` events, dynamically manages pair subscriptions as orders are created and completed, and monitors reserve changes against each order's threshold — below for stop-loss, above for take-profit. Orders can be paused, resumed, or cancelled at any time.
 
 ### Approval Magic Demo
 
-[Approval Magic Demo](https://github.com/Reactive-Network/reactive-smart-contract-demos/tree/main/src/demos/approval-magic) shows how Reactive Contracts can automate token approvals and trigger cross-chain exchanges without manual intervention. It uses a subscription-based model where users register with an `ApprovalService.sol` contract, and an `ApprovalListener.sol` Reactive contract watches for ERC-20 approval events on-chain. When an approval is detected, the system can automatically initiate a token swap or exchange on behalf of the user. This demonstrates how event-driven automation can simplify multi-step DeFi workflows that would normally require users to submit several transactions by hand.
+[Approval Magic Demo](https://github.com/Reactive-Network/reactive-smart-contract-demos/tree/main/src/demos/approval-magic) shows how a single `approve()` transaction can automatically trigger a cross-chain exchange or swap. An `ApprovalListener` Reactive Contract monitors ERC-20 approval events and subscription changes from an `ApprovalService` registry. When an approval targets a subscribed contract, the listener triggers a callback that transfers the approved tokens and completes the trade — either a direct token-for-ETH exchange or a token-for-token swap via Uniswap V2.
+
+### Hyperlane Demo
+
+[Hyperlane Demo](https://github.com/Reactive-Network/reactive-smart-contract-demos/tree/main/src/demos/hyperlane) connects Base Mainnet and Reactive Mainnet using the [Hyperlane](https://www.hyperlane.xyz/) protocol for two-way cross-chain messaging without relying on centralized off-chain relayers. `HyperlaneOrigin.sol` on Base emits trigger events and receives incoming messages via a Hyperlane mailbox; `HyperlaneReactive.sol` on Reactive listens for those events and can send messages back through Hyperlane. The demo supports three messaging patterns: direct send, trigger with callback, and trigger from Base.
+
+### Aave Liquidation Protection Demo
+
+[Aave Liquidation Protection Demo](https://github.com/Reactive-Network/reactive-smart-contract-demos/tree/main/src/demos/aave-liquidation-protection) automates position protection on Aave using Reactive Contracts. A personal Reactive Contract subscribes to periodic CRON events and triggers health checks for a user's lending position. When the health factor drops below a defined threshold, the system executes protection measures on the destination chain — depositing additional collateral, repaying debt, or both. Each user deploys their own isolated protection setup.
+
+### Leverage Loop Demo
+
+[Leverage Loop Demo](https://github.com/Reactive-Network/reactive-smart-contract-demos/tree/main/src/demos/leverage-loop) automates leveraged looping on Aave V3 using Reactive Contracts. The user deposits collateral into a personal smart account, and a Reactive Contract detects the deposit and runs the loop automatically — borrow, swap via Uniswap V3, supply, repeat — until the target health factor is reached or the maximum iteration count is hit. The Reactive Contract calculates safe borrow amounts at each step using real-time USD values and enforces minimum thresholds to avoid dust-sized borrows.
+
+### Automated Prediction Market Demo
+
+[Automated Prediction Market Demo](https://github.com/Reactive-Network/reactive-smart-contract-demos/tree/main/src/demos/automated-prediction-market) implements a prediction market with automated payouts. Users create a question, participants buy shares in different outcomes, and a multisig resolves the result. Once the `PredictionResolved` event is emitted, a Reactive Contract detects it and triggers batch distribution of winnings to all participants — no manual intervention or off-chain services required.
+
+### Gasless Cross-Chain Atomic Swap Demo
+
+[Gasless Cross-Chain Atomic Swap Demo](https://github.com/Reactive-Network/reactive-smart-contract-demos/tree/main/src/demos/gasless-cross-chain-atomic-swap) enables trustless token exchanges between two blockchains without bridges or custodians. Two users initiate and acknowledge a swap on their respective chains, deposit tokens, and a Reactive Contract orchestrates the entire process — syncing state, confirming deposits, and triggering completion on both chains automatically. The swap is atomic: it either completes for both parties or doesn't happen at all. Users only pay gas on their own chain.
 
 ## Deployment Instructions
 
 ### Environment Setup
 
-To set up `foundry` environment, run:
+To set up the Foundry environment, run:
 
 ```bash
 curl -L https://foundry.paradigm.xyz | bash
@@ -82,34 +95,22 @@ To inspect the call tree:
 forge test -vvvv
 ```
 
-### Additional Documentation & Demos
+### Additional Documentation
 
-Each demo in `src/demos` has its own `README.md` with detailed deployment steps.
+Each demo in `src/demos` has its own `README.md` with detailed contract descriptions and deployment steps.
 
-### Environment Variable Configuration
+### Environment Variable Reference
 
-The following environment variables are used in the instructions for running the demos, and should be configured beforehand.
+The following environment variables are used across the demos and should be configured before deployment.
 
-#### `ORIGIN/DESTINATION_RPC`
+`ORIGIN_RPC` / `DESTINATION_RPC` — RPC URL for the origin or destination chain (see [Chainlist](https://chainlist.org)).
 
-RPC URL for the origin/destination chain (see [Chainlist](https://chainlist.org)).
+`ORIGIN_PRIVATE_KEY` / `DESTINATION_PRIVATE_KEY` — Private key for signing transactions on the origin or destination chain.
 
-#### `ORIGIN/DESTINATION_PRIVATE_KEY`
+`REACTIVE_RPC` — RPC URL for Reactive Network (see [Reactive Docs](https://dev.reactive.network/reactive-mainnet)).
 
-Private key for signing transactions on the origin/destination chain.
+`REACTIVE_PRIVATE_KEY` — Private key for signing transactions on Reactive Network.
 
-#### `REACTIVE_RPC`
+`SYSTEM_CONTRACT_ADDR` — The service address for Reactive Network (see [Reactive Docs](https://dev.reactive.network/reactive-mainnet#overview)).
 
-RPC URL for Reactive Network (see [Reactive Docs](https://dev.reactive.network/reactive-mainnet)).
-
-#### `REACTIVE_PRIVATE_KEY`
-
-Private key for signing transactions on Reactive Network.
-
-#### `SYSTEM_CONTRACT_ADDR`
-
-The service address for Reactive Network (see [Reactive Docs](https://dev.reactive.network/reactive-mainnet#overview)).
-
-#### `CALLBACK_PROXY_ADDR`
-
-The address that verifies callback authenticity (see [Reactive Docs](https://dev.reactive.network/origins-and-destinations#callback-proxy-address)).
+`CALLBACK_PROXY_ADDR` — The address that verifies callback authenticity (see [Reactive Docs](https://dev.reactive.network/origins-and-destinations#callback-proxy-address)).
