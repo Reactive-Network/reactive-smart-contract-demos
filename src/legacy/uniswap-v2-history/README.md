@@ -13,20 +13,11 @@ The **Uniswap V2 Exchange Rate History Demo** tracks historical exchange rates f
 
 **Reactive Contract**: [UniswapHistoryDemoReactive](https://github.com/Reactive-Network/reactive-smart-contract-demos/blob/main/src/demos/uniswap-v2-history/UniswapHistoryDemoReactive.sol) subscribes to Uniswap V2 `Sync` events via `UNISWAP_V2_SYNC_TOPIC_0` and resynchronization requests via `REQUEST_RESYNC_TOPIC_0` on Ethereum Sepolia. It maintains a history of pair reserves in a local data structure. When a new `Sync` event arrives, the contract appends a record of the updated reserves and emits its own `Sync` event. On detecting a resync request, it retrieves the last known reserves up to the requested block number and emits a `Callback` event containing those reserves. As an extension of `AbstractPausableReactive`, this contract also supports pausing and resuming subscriptions.
 
-## Further Considerations
-
-There are several opportunities for improvement:
-
-- **Enhanced Subscription Management:** Supporting multiple origin contracts for broader coverage.
-- **Real-time Configuration:** Dynamic subscription adjustments for flexible monitoring.
-- **Persistent State Management:** Keeping historical data for improved reliability.
-- **Dynamic Payloads:** Using flexible transaction payloads for more complex interactions.
-
 ## Deployment & Testing
 
 ### Environment Variables
 
-Before proceeding further, configure these environment variables:
+Before deploying, set the following environment variables:
 
 * `DESTINATION_RPC` — RPC URL for the destination chain, (see [Chainlist](https://chainlist.org)).
 * `DESTINATION_PRIVATE_KEY` — Private key for signing transactions on the destination chain.
@@ -34,15 +25,13 @@ Before proceeding further, configure these environment variables:
 * `REACTIVE_PRIVATE_KEY` — Private key for signing transactions on the Reactive Network.
 * `DESTINATION_CALLBACK_PROXY_ADDR` — The service address on the destination chain (see [Reactive Docs](https://dev.reactive.network/origins-and-destinations#callback-proxy-address)).
 
-> ℹ️ **Reactive Faucet on Sepolia**
+> ℹ️ **Reactive faucet on Ethereum Sepolia**
 >
-> To receive testnet REACT, send SepETH to the Reactive faucet contract on Ethereum Sepolia: `0x9b9BB25f1A81078C544C829c5EB7822d747Cf434`. The factor is 1/100, meaning you get 100 REACT for every 1 SepETH sent.
->
-> **Important**: Do not send more than 5 SepETH per request, as doing so will cause you to lose the excess amount without receiving any additional REACT. The maximum that should be sent in a single transaction is 5 SepETH, which will yield 500 REACT.
+> To receive testnet REACT, send SepETH to the Reactive faucet on Ethereum Sepolia: `0x9b9BB25f1A81078C544C829c5EB7822d747Cf434`. The exchange rate is 100 REACT per 1 SepETH. Do not send more than 5 SepETH in a single transaction as any excess is lost.
 
 > ⚠️ **Broadcast Error**
-> 
-> If you see the following message: `error: unexpected argument '--broadcast' found`, it means your Foundry version (or local setup) does not support the `--broadcast` flag for `forge create`. Simply remove `--broadcast` from your command and re-run it.
+>
+> If you see `error: unexpected argument '--broadcast' found`, your Foundry version does not support the `--broadcast` flag for `forge create`. Remove it from the command and re-run.
 
 ### Step 1 — Origin/Destination Contract
 
