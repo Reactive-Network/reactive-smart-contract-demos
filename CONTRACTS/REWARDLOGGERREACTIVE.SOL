@@ -1,0 +1,771 @@
+pragma
+ 
+solidity
+ 
+^
+0.8.21
+;
+
+import
+ 
+"../lib/reactive-lib/src/abstract-base/AbstractPausableReactive.sol"
+;
+
+import
+ 
+"../lib/reactive-lib/src/interfaces/IReactive.sol"
+;
+
+import
+ 
+"@openzeppelin/contracts/utils/Address.sol"
+;
+
+import
+ 
+"@openzeppelin/contracts/utils/ReentrancyGuard.sol"
+;
+
+import
+ 
+"@openzeppelin/contracts/token/ERC20/IERC20.sol"
+;
+
+import
+ 
+"@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol"
+;
+
+/**
+ * @title RewardLoggerReactive
+ * @notice  Listens to RewardSent events on Base Mainnet (origin),
+ *          keeps local statistics, and emits a Reactive Callback
+ *          that triggers confirmReward on Base Mainnet (destination).
+ *
+ * Origin chain ID:  8453  (Base Mainnet)
+ * Destination ID:   8453 (Base Mainnet)
+ */
+
+contract
+ 
+RewardLoggerReactive
+ 
+is
+
+    IReactive
+,
+
+    AbstractPausableReactive
+,
+
+    ReentrancyGuard
+{
+
+    
+using
+ 
+SafeERC20
+ 
+for
+ IERC20
+;
+
+    
+uint256
+ 
+private
+ 
+constant
+ ORIGIN_CHAIN_ID 
+=
+ 
+8453
+;
+ 
+// Base Mainnet
+
+    
+uint256
+ 
+private
+ 
+constant
+ DEST_CHAIN_ID 
+=
+ 
+8453
+;
+ 
+// Base Mainnet
+
+    
+uint256
+ 
+private
+ 
+constant
+ TOPIC0_REWARD_SENT 
+=
+
+        
+uint256
+(
+keccak256
+(
+"RewardSent(address,uint256)"
+)
+)
+;
+
+    
+uint64
+ 
+public
+ CALLBACK_GAS_LIMIT 
+=
+ 
+300
+_000
+;
+
+    
+struct
+ 
+Log
+ 
+{
+
+        
+address
+ user
+;
+
+        
+uint256
+ amount
+;
+
+        
+uint256
+ l1Block
+;
+
+    
+}
+
+    Log
+[
+]
+ 
+public
+ logs
+;
+ 
+// raw list of every payout
+
+    
+mapping
+(
+address
+ 
+=>
+ 
+uint256
+)
+ 
+public
+ total
+;
+ 
+// total per user
+
+    
+uint256
+ 
+public
+ totalPaid
+;
+ 
+// grand total
+
+    
+uint256
+ 
+public
+ lastRewardBlock
+;
+ 
+// last processed L1 block
+
+    
+address
+ 
+public
+ immutable dispatcher
+;
+ 
+// RewardDispatcher on Amoy
+
+    
+address
+ 
+public
+ callbackReceiver
+;
+ 
+// CallbackReceiver on Sepolia
+
+    
+event
+ 
+LogRecorded
+(
+address
+ 
+indexed
+ user
+,
+ 
+uint256
+ amount
+,
+ 
+uint256
+ l1Block
+)
+;
+
+    
+constructor
+(
+address
+ _dispatcher
+,
+ 
+address
+ _callbackReceiver
+)
+ 
+payable
+ 
+{
+
+        owner 
+=
+ msg
+.
+sender
+;
+
+        paused 
+=
+ 
+false
+;
+
+        dispatcher 
+=
+ _dispatcher
+;
+
+        callbackReceiver 
+=
+ _callbackReceiver
+;
+
+        
+if
+ 
+(
+!
+vm
+)
+ 
+{
+
+            service
+.
+subscribe
+(
+
+                ORIGIN_CHAIN_ID
+,
+
+                _dispatcher
+,
+
+                TOPIC0_REWARD_SENT
+,
+
+                REACTIVE_IGNORE
+,
+
+                REACTIVE_IGNORE
+,
+
+                REACTIVE_IGNORE
+            
+)
+;
+
+        
+}
+
+    
+}
+
+    
+function
+ 
+getPausableSubscriptions
+(
+)
+
+        
+internal
+
+        
+view
+
+        override
+        
+returns
+ 
+(
+Subscription
+[
+]
+ 
+memory
+ subs
+)
+
+    
+{
+
+        subs 
+=
+ 
+new
+ 
+Subscription
+[
+]
+(
+1
+)
+;
+
+        subs
+[
+0
+]
+ 
+=
+ 
+Subscription
+(
+
+            ORIGIN_CHAIN_ID
+,
+
+            dispatcher
+,
+
+            TOPIC0_REWARD_SENT
+,
+
+            REACTIVE_IGNORE
+,
+
+            REACTIVE_IGNORE
+,
+
+            REACTIVE_IGNORE
+        
+)
+;
+
+    
+}
+
+    
+function
+ 
+react
+(
+LogRecord 
+calldata
+ log
+)
+ 
+external
+ vmOnly 
+{
+
+        
+address
+ who 
+=
+ 
+address
+(
+uint160
+(
+uint256
+(
+log
+.
+topic_1
+)
+)
+)
+;
+
+        
+uint256
+ amt 
+=
+ abi
+.
+decode
+(
+log
+.
+data
+,
+ 
+(
+uint256
+)
+)
+;
+
+        logs
+.
+push
+(
+Log
+(
+who
+,
+ amt
+,
+ log
+.
+block_number
+)
+)
+;
+
+        total
+[
+who
+]
+ 
++=
+ amt
+;
+
+        totalPaid 
++=
+ amt
+;
+
+        lastRewardBlock 
+=
+ log
+.
+block_number
+;
+
+        
+emit
+ 
+LogRecorded
+(
+who
+,
+ amt
+,
+ log
+.
+block_number
+)
+;
+
+        
+bytes
+ 
+memory
+ payload 
+=
+ abi
+.
+encodeWithSignature
+(
+
+            
+"confirmReward(address,address,uint256)"
+,
+
+            
+address
+(
+0
+)
+,
+
+            who
+,
+
+            amt
+        
+)
+;
+
+        
+emit
+ 
+Callback
+(
+
+            DEST_CHAIN_ID
+,
+
+            callbackReceiver
+,
+
+            CALLBACK_GAS_LIMIT
+,
+
+            payload
+        
+)
+;
+
+    
+}
+
+    
+function
+ 
+getLog
+(
+uint256
+ idx
+)
+ 
+external
+ 
+view
+ 
+returns
+ 
+(
+Log 
+memory
+)
+ 
+{
+
+        
+return
+ logs
+[
+idx
+]
+;
+
+    
+}
+
+    
+function
+ 
+logsLength
+(
+)
+ 
+external
+ 
+view
+ 
+returns
+ 
+(
+uint256
+)
+ 
+{
+
+        
+return
+ logs
+.
+length
+;
+
+    
+}
+
+    
+function
+ 
+emergencyWithdraw
+(
+
+        
+address
+ token
+,
+
+        
+address
+ to
+,
+
+        
+uint256
+ amount
+    
+)
+ 
+external
+ onlyOwner nonReentrant 
+{
+
+        
+require
+(
+to 
+!=
+ 
+address
+(
+0
+)
+,
+ 
+"zero recipient"
+)
+;
+
+        
+require
+(
+amount 
+>
+ 
+0
+,
+ 
+"zero amount"
+)
+;
+
+        
+if
+ 
+(
+token 
+==
+ 
+address
+(
+0
+)
+)
+ 
+{
+
+            Address
+.
+sendValue
+(
+payable
+(
+to
+)
+,
+ amount
+)
+;
+
+        
+}
+ 
+else
+ 
+{
+
+            
+IERC20
+(
+token
+)
+.
+safeTransfer
+(
+to
+,
+ amount
+)
+;
+
+        
+}
+
+    
+}
+
+    
+function
+ 
+changeCallbackReceiver
+(
+
+        
+address
+ _callbackReceiver
+    
+)
+ 
+external
+ onlyOwner 
+{
+
+        callbackReceiver 
+=
+ _callbackReceiver
+;
+
+    
+}
+
+    
+function
+ 
+changeCallbackGasLimit
+(
+
+        
+uint64
+ _callbackGasLimit
+    
+)
+ 
+external
+ onlyOwner 
+{
+
+        CALLBACK_GAS_LIMIT 
+=
+ _callbackGasLimit
+;
+
+    
+}
+
+}
+
