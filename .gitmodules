@@ -13,3 +13,6 @@
 [submodule "lib/reactive-lib"]
 	path = lib/reactive-lib
 	url = https://github.com/Reactive-Network/reactive-lib
+[submodule "lib/reactive-lib-omni"]
+	path = lib/reactive-lib-omni
+	url = https://github.com/Reactive-Network/reactive-lib-omni
