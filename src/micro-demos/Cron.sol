@@ -6,11 +6,11 @@ import { IReactive } from "@reactive/src/interfaces/IReactive.sol";
 import { ISystemContract } from "@reactive/src/interfaces/ISystemContract.sol";
 import { AbstractReactive } from "@reactive/src/base/AbstractReactive.sol";
 
-contract CronContract is AbstractReactive {
+contract CronDemo is AbstractReactive {
 
     error UnsupportedInterval(uint256 interval);
 
-    address internal constant LEGACY_SYSTEM_ADDR = 0x0000000000000000000000000000000000FfFFff;
+    address internal constant LEGACY_SYSTEM_ADDR = 0x0000000000000000000000000000000000fffFfF;
 
     uint256 internal constant CRON1_TOPIC_0 = 0xf02d6ea5c22a71cffe930a4523fcb4f129be6c804db50e4202fb4e0b07ccb514;
     uint256 internal constant CRON10_TOPIC_0 = 0x04463f7c1651e6b9774d7f85c85bb94654e3c46ca79b0c16fb16d4183307b687;
