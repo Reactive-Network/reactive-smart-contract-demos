@@ -9,6 +9,9 @@ import { AbstractReactive } from "@reactive/src/base/AbstractReactive.sol";
 contract CronDemo is AbstractReactive {
 
     error UnsupportedInterval(uint256 interval);
+    error NotOwner();
+    error AlreadyPaused();
+    error NotPaused();
 
     address internal constant LEGACY_SYSTEM_ADDR = 0x0000000000000000000000000000000000fffFfF;
 
@@ -20,10 +23,19 @@ contract CronDemo is AbstractReactive {
 
     uint64 private constant CALLBACK_GAS_LIMIT = 1000000;
 
+    address public immutable _owner;
     uint256 public immutable _cronInterval;
     uint256 public immutable _cronTopic0;
 
+    bool public _paused;
+
+    modifier onlyOwner() {
+        if (msg.sender != _owner) revert NotOwner();
+        _;
+    }
+
     constructor(uint256 interval_) payable {
+        _owner = msg.sender;
         _cronInterval = interval_;
         _cronTopic0 = _topicFor(interval_);
 
@@ -46,6 +58,34 @@ contract CronDemo is AbstractReactive {
                 payload: abi.encodeWithSignature("callback(address)", address(0))
             }));
         }
+    }
+
+    function pause() external onlyOwner {
+        if (_paused) revert AlreadyPaused();
+        _paused = true;
+
+        SYSTEM.unsubscribe(
+            block.chainid,
+            LEGACY_SYSTEM_ADDR,
+            _cronTopic0,
+            REACTIVE_IGNORE,
+            REACTIVE_IGNORE,
+            REACTIVE_IGNORE
+        );
+    }
+
+    function resume() external onlyOwner {
+        if (!_paused) revert NotPaused();
+        _paused = false;
+
+        SYSTEM.subscribe(
+            block.chainid,
+            LEGACY_SYSTEM_ADDR,
+            _cronTopic0,
+            REACTIVE_IGNORE,
+            REACTIVE_IGNORE,
+            REACTIVE_IGNORE
+        );
     }
 
     function _topicFor(uint256 interval_) internal pure returns (uint256 topic0_) {
