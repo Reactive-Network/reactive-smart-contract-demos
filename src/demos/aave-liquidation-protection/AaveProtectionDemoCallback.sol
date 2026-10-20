@@ -5,6 +5,7 @@ import "../../../lib/reactive-lib/src/abstract-base/AbstractCallback.sol";
 import "../../../lib/openzeppelin-contracts/contracts/token/ERC20/IERC20.sol";
 import "../../../lib/openzeppelin-contracts/contracts/token/ERC20/utils/SafeERC20.sol";
 import "./RescuableBase.sol";
+import "./AISentinelRiskEngine.sol";
 
 interface IERC20Detailed is IERC20 {
     function decimals() external view returns (uint8);
@@ -70,29 +71,21 @@ interface ILendingPoolAddressesProvider {
     function getPriceOracle() external view returns (address);
 }
 
-/**
- * @title PersonalAaveProtectionCallback
- * @notice Personal Aave liquidation protection system for individual users
- * @dev Each user deploys their own instance for complete control and privacy
- */
 contract AaveProtectionDemoCallback is AbstractCallback, RescuableBase {
     using SafeERC20 for IERC20;
 
-    // Protection type enum
     enum ProtectionType {
         COLLATERAL_DEPOSIT,
         DEBT_REPAYMENT,
         BOTH
     }
 
-    // Protection status enum
     enum ProtectionStatus {
         Active,
         Paused,
         Cancelled
     }
 
-    // Protection configuration struct
     struct ProtectionConfig {
         uint256 id;
         ProtectionType protectionType;
@@ -108,7 +101,6 @@ contract AaveProtectionDemoCallback is AbstractCallback, RescuableBase {
         uint256 lastExecutionAttempt;
     }
 
-    // Events
     event ProtectionConfigured(
         uint256 indexed configId,
         ProtectionType protectionType,
@@ -127,12 +119,18 @@ contract AaveProtectionDemoCallback is AbstractCallback, RescuableBase {
         uint256 newHealthFactor
     );
 
-    event ProtectionCheckFailed(uint256 indexed configId, string reason);
+    event AISentinelRiskEvaluated(
+        uint256 indexed configId,
+        uint256 riskScore,
+        AISentinelRiskEngine.RiskRegime regime,
+        AISentinelRiskEngine.RecommendedAction action,
+        string reason
+    );
 
+    event ProtectionCheckFailed(uint256 indexed configId, string reason);
     event ProtectionPaused(uint256 indexed configId);
     event ProtectionResumed(uint256 indexed configId);
     event ProtectionCancelled(uint256 indexed configId);
-
     event ProtectionCycleCompleted(uint256 timestamp, uint256 totalConfigsChecked, uint256 protectionsExecuted);
 
     error ProtectionNotActive(uint256 configId);
@@ -141,22 +139,21 @@ contract AaveProtectionDemoCallback is AbstractCallback, RescuableBase {
     error InsufficientBalanceOrAllowance(uint256 configId);
     error ProtectionExecutionFailed(uint256 configId);
 
-    // State variables
     address public immutable owner;
     address public immutable lendingPool;
     address public immutable protocolDataProvider;
     address public immutable addressesProvider;
 
+    AISentinelRiskEngine public riskEngine;
+
     ProtectionConfig[] public protectionConfigs;
     uint256 public nextConfigId;
 
-    // Configuration
     uint256 private constant RATE_MODE_VARIABLE = 2;
-    uint256 private constant MIN_HEALTH_FACTOR = 1e18; // 1.0
+    uint256 private constant MIN_HEALTH_FACTOR = 1e18;
     uint8 private constant MAX_RETRIES = 3;
-    uint256 private constant RETRY_COOLDOWN = 30; // 30 seconds
+    uint256 private constant RETRY_COOLDOWN = 30;
 
-    // Modifiers
     modifier onlyOwner() {
         require(msg.sender == owner, "Only owner can call this");
         _;
@@ -178,17 +175,10 @@ contract AaveProtectionDemoCallback is AbstractCallback, RescuableBase {
         lendingPool = _lendingPool;
         protocolDataProvider = _protocolDataProvider;
         addressesProvider = _addressesProvider;
+
+        riskEngine = new AISentinelRiskEngine();
     }
 
-    /**
-     * @notice Creates a new protection configuration
-     * @param _protectionType Type of protection (collateral deposit, debt repayment, or both)
-     * @param _healthFactorThreshold Health factor below which protection triggers
-     * @param _targetHealthFactor Target health factor to achieve after protection
-     * @param _collateralAsset Asset to use for collateral deposits
-     * @param _debtAsset Asset to use for debt repayment
-     * @param _preferDebtRepayment If BOTH type, which method to prefer
-     */
     function createProtectionConfig(
         ProtectionType _protectionType,
         uint256 _healthFactorThreshold,
@@ -202,11 +192,11 @@ contract AaveProtectionDemoCallback is AbstractCallback, RescuableBase {
         require(_collateralAsset != address(0), "Invalid collateral asset");
         require(_debtAsset != address(0), "Invalid debt asset");
 
-        // Validate assets are supported by Aave
         require(_validateAssetSupported(_collateralAsset), "Collateral asset not supported");
         require(_validateAssetSupported(_debtAsset), "Debt asset not supported");
 
         uint256 configId = nextConfigId;
+
         protectionConfigs.push(
             ProtectionConfig({
                 id: configId,
@@ -227,22 +217,18 @@ contract AaveProtectionDemoCallback is AbstractCallback, RescuableBase {
         nextConfigId++;
 
         emit ProtectionConfigured(
-            configId, _protectionType, _healthFactorThreshold, _targetHealthFactor, _collateralAsset, _debtAsset
+            configId,
+            _protectionType,
+            _healthFactorThreshold,
+            _targetHealthFactor,
+            _collateralAsset,
+            _debtAsset
         );
 
         return configId;
     }
 
-    /**
-     * @notice Checks and protects all active configs (called by RSC via CRON)
-     * @dev This is the main entry point from the reactive contract
-     */
-    function checkAndProtectPositions(
-        address /*sender*/
-    )
-        external
-        authorizedSenderOnly
-    {
+    function checkAndProtectPositions(address /*sender*/) external authorizedSenderOnly {
         uint256 totalConfigsChecked = 0;
         uint256 protectionsExecuted = 0;
 
@@ -267,45 +253,83 @@ contract AaveProtectionDemoCallback is AbstractCallback, RescuableBase {
         emit ProtectionCycleCompleted(block.timestamp, totalConfigsChecked, protectionsExecuted);
     }
 
-    /**
-     * @notice Internal function to check and protect a single config
-     */
     function _checkAndProtectConfig(uint256 configId) external returns (bool) {
         require(msg.sender == address(this), "Internal function");
 
         ProtectionConfig storage config = protectionConfigs[configId];
 
-        // Get current health factor
-        (,,,,, uint256 currentHealthFactor) = ILendingPool(lendingPool).getUserAccountData(owner);
+        (
+            uint256 totalCollateralUSD,
+            uint256 totalDebtUSD,,,,
+            uint256 currentHealthFactor
+        ) = ILendingPool(lendingPool).getUserAccountData(owner);
 
-        // Check if protection needs to trigger
-        if (currentHealthFactor >= config.healthFactorThreshold) {
+        AISentinelRiskEngine.RiskInput memory input =
+            AISentinelRiskEngine.RiskInput({
+                healthFactor: currentHealthFactor,
+                healthFactorThreshold: config.healthFactorThreshold,
+                targetHealthFactor: config.targetHealthFactor,
+                totalCollateralUSD: totalCollateralUSD,
+                totalDebtUSD: totalDebtUSD,
+                volatilityScore: 0,
+                liquidityScore: 0,
+                marketRiskScore: 0,
+                oracleDeviationScore: 0,
+                whaleFlowScore: 0,
+                chainCongestionScore: 0,
+                protocolRiskScore: 0,
+                failedExecutionCount: config.executionCount,
+                timeSinceLastExecution: config.lastExecutedAt == 0
+                    ? type(uint256).max
+                    : block.timestamp - config.lastExecutedAt,
+                priceOracleHealthy: true,
+                automationPaused: config.status == ProtectionStatus.Paused
+            });
+
+        AISentinelRiskEngine.RiskResult memory riskResult = riskEngine.calculateRisk(input);
+
+        emit AISentinelRiskEvaluated(
+            configId,
+            riskResult.riskScore,
+            riskResult.regime,
+            riskResult.action,
+            riskResult.reason
+        );
+
+        if (
+            riskResult.action == AISentinelRiskEngine.RecommendedAction.NO_ACTION ||
+            riskResult.action == AISentinelRiskEngine.RecommendedAction.ALERT_ONLY ||
+            riskResult.action == AISentinelRiskEngine.RecommendedAction.PAUSE_AUTOMATION
+        ) {
             return false;
         }
 
-        // Check retry cooldown
+        if (currentHealthFactor >= config.healthFactorThreshold && riskResult.riskScore < 76) {
+            return false;
+        }
+
         if (config.lastExecutionAttempt > 0 && block.timestamp < config.lastExecutionAttempt + RETRY_COOLDOWN) {
             return false;
         }
 
-        // Check max retries
         if (config.executionCount >= MAX_RETRIES) {
             config.status = ProtectionStatus.Cancelled;
             emit ProtectionCheckFailed(configId, "Max retries exceeded");
             return false;
         }
 
-        // Update execution attempt
         config.lastExecutionAttempt = block.timestamp;
 
-        // Execute protection based on type
         bool protectionExecuted = false;
 
-        if (config.protectionType == ProtectionType.COLLATERAL_DEPOSIT) {
+        if (riskResult.action == AISentinelRiskEngine.RecommendedAction.ADD_COLLATERAL) {
             protectionExecuted = _executeCollateralProtection(configId, currentHealthFactor);
-        } else if (config.protectionType == ProtectionType.DEBT_REPAYMENT) {
+        } else if (riskResult.action == AISentinelRiskEngine.RecommendedAction.REPAY_DEBT) {
             protectionExecuted = _executeDebtRepayment(configId, currentHealthFactor);
-        } else if (config.protectionType == ProtectionType.BOTH) {
+        } else if (
+            riskResult.action == AISentinelRiskEngine.RecommendedAction.BOTH ||
+            riskResult.action == AISentinelRiskEngine.RecommendedAction.EMERGENCY
+        ) {
             if (config.preferDebtRepayment) {
                 protectionExecuted = _executeDebtRepayment(configId, currentHealthFactor);
                 if (!protectionExecuted) {
@@ -315,6 +339,24 @@ contract AaveProtectionDemoCallback is AbstractCallback, RescuableBase {
                 protectionExecuted = _executeCollateralProtection(configId, currentHealthFactor);
                 if (!protectionExecuted) {
                     protectionExecuted = _executeDebtRepayment(configId, currentHealthFactor);
+                }
+            }
+        } else {
+            if (config.protectionType == ProtectionType.COLLATERAL_DEPOSIT) {
+                protectionExecuted = _executeCollateralProtection(configId, currentHealthFactor);
+            } else if (config.protectionType == ProtectionType.DEBT_REPAYMENT) {
+                protectionExecuted = _executeDebtRepayment(configId, currentHealthFactor);
+            } else if (config.protectionType == ProtectionType.BOTH) {
+                if (config.preferDebtRepayment) {
+                    protectionExecuted = _executeDebtRepayment(configId, currentHealthFactor);
+                    if (!protectionExecuted) {
+                        protectionExecuted = _executeCollateralProtection(configId, currentHealthFactor);
+                    }
+                } else {
+                    protectionExecuted = _executeCollateralProtection(configId, currentHealthFactor);
+                    if (!protectionExecuted) {
+                        protectionExecuted = _executeDebtRepayment(configId, currentHealthFactor);
+                    }
                 }
             }
         }
@@ -327,71 +369,55 @@ contract AaveProtectionDemoCallback is AbstractCallback, RescuableBase {
         return protectionExecuted;
     }
 
-    /**
-     * @notice Cancels a protection configuration
-     * @param configId The ID of the config to cancel
-     */
     function cancelProtectionConfig(uint256 configId) external onlyOwner validConfig(configId) {
         ProtectionConfig storage config = protectionConfigs[configId];
+
         require(
-            config.status == ProtectionStatus.Active || config.status == ProtectionStatus.Paused, "Cannot cancel config"
+            config.status == ProtectionStatus.Active || config.status == ProtectionStatus.Paused,
+            "Cannot cancel config"
         );
 
         config.status = ProtectionStatus.Cancelled;
         emit ProtectionCancelled(configId);
     }
 
-    /**
-     * @notice Pauses a protection configuration
-     * @param configId The ID of the config to pause
-     */
     function pauseProtectionConfig(uint256 configId) external onlyOwner validConfig(configId) {
         ProtectionConfig storage config = protectionConfigs[configId];
+
         require(config.status == ProtectionStatus.Active, "Config is not active");
 
         config.status = ProtectionStatus.Paused;
         emit ProtectionPaused(configId);
     }
 
-    /**
-     * @notice Resumes a paused protection configuration
-     * @param configId The ID of the config to resume
-     */
     function resumeProtectionConfig(uint256 configId) external onlyOwner validConfig(configId) {
         ProtectionConfig storage config = protectionConfigs[configId];
+
         require(config.status == ProtectionStatus.Paused, "Config is not paused");
 
         config.status = ProtectionStatus.Active;
         emit ProtectionResumed(configId);
     }
 
-    /**
-     * @notice Gets all config IDs
-     * @return Array of all config IDs
-     */
     function getAllConfigs() external view returns (uint256[] memory) {
         uint256[] memory allConfigIds = new uint256[](protectionConfigs.length);
+
         for (uint256 i = 0; i < protectionConfigs.length; i++) {
             allConfigIds[i] = i;
         }
+
         return allConfigIds;
     }
 
-    /**
-     * @notice Gets active config IDs
-     * @return Array of active config IDs
-     */
     function getActiveConfigs() external view returns (uint256[] memory) {
         uint256 activeCount = 0;
 
-        // Count active configs
         for (uint256 i = 0; i < protectionConfigs.length; i++) {
             if (protectionConfigs[i].status == ProtectionStatus.Active) {
                 activeCount++;
             }
         }
 
-        // Build active configs array
         uint256[] memory activeConfigs = new uint256[](activeCount);
         uint256 index = 0;
 
@@ -405,9 +431,65 @@ contract AaveProtectionDemoCallback is AbstractCallback, RescuableBase {
         return activeConfigs;
     }
 
-    /**
-     * @notice Execute collateral protection
-     */
+    function previewAISentinelRisk(
+        uint256 configId,
+        uint256 volatilityScore,
+        uint256 liquidityScore,
+        uint256 marketRiskScore,
+        uint256 oracleDeviationScore,
+        uint256 whaleFlowScore,
+        uint256 chainCongestionScore,
+        uint256 protocolRiskScore,
+        bool priceOracleHealthy
+    )
+        external
+        returns (AISentinelRiskEngine.RiskResult memory)
+    {
+        require(configId < protectionConfigs.length, "Config does not exist");
+
+        ProtectionConfig storage config = protectionConfigs[configId];
+
+        (
+            uint256 totalCollateralUSD,
+            uint256 totalDebtUSD,,,,
+            uint256 currentHealthFactor
+        ) = ILendingPool(lendingPool).getUserAccountData(owner);
+
+        AISentinelRiskEngine.RiskInput memory input =
+            AISentinelRiskEngine.RiskInput({
+                healthFactor: currentHealthFactor,
+                healthFactorThreshold: config.healthFactorThreshold,
+                targetHealthFactor: config.targetHealthFactor,
+                totalCollateralUSD: totalCollateralUSD,
+                totalDebtUSD: totalDebtUSD,
+                volatilityScore: volatilityScore,
+                liquidityScore: liquidityScore,
+                marketRiskScore: marketRiskScore,
+                oracleDeviationScore: oracleDeviationScore,
+                whaleFlowScore: whaleFlowScore,
+                chainCongestionScore: chainCongestionScore,
+                protocolRiskScore: protocolRiskScore,
+                failedExecutionCount: config.executionCount,
+                timeSinceLastExecution: config.lastExecutedAt == 0
+                    ? type(uint256).max
+                    : block.timestamp - config.lastExecutedAt,
+                priceOracleHealthy: priceOracleHealthy,
+                automationPaused: config.status == ProtectionStatus.Paused
+            });
+
+        AISentinelRiskEngine.RiskResult memory result = riskEngine.calculateRisk(input);
+
+        emit AISentinelRiskEvaluated(
+            configId,
+            result.riskScore,
+            result.regime,
+            result.action,
+            result.reason
+        );
+
+        return result;
+    }
+
     function _executeCollateralProtection(uint256 configId, uint256 currentHealthFactor) internal returns (bool) {
         try this._performCollateralProtection(configId) returns (uint256 collateralAdded) {
             if (collateralAdded > 0) {
@@ -422,8 +504,10 @@ contract AaveProtectionDemoCallback is AbstractCallback, RescuableBase {
                     currentHealthFactor,
                     finalHealthFactor
                 );
+
                 return true;
             }
+
             return false;
         } catch Error(string memory reason) {
             emit ProtectionCheckFailed(configId, string(abi.encodePacked("Collateral protection failed: ", reason)));
@@ -434,9 +518,6 @@ contract AaveProtectionDemoCallback is AbstractCallback, RescuableBase {
         }
     }
 
-    /**
-     * @notice Execute debt repayment protection
-     */
     function _executeDebtRepayment(uint256 configId, uint256 currentHealthFactor) internal returns (bool) {
         try this._performDebtRepayment(configId) returns (uint256 repaymentAmount) {
             if (repaymentAmount > 0) {
@@ -451,8 +532,10 @@ contract AaveProtectionDemoCallback is AbstractCallback, RescuableBase {
                     currentHealthFactor,
                     finalHealthFactor
                 );
+
                 return true;
             }
+
             return false;
         } catch Error(string memory reason) {
             emit ProtectionCheckFailed(configId, string(abi.encodePacked("Debt repayment failed: ", reason)));
@@ -463,15 +546,13 @@ contract AaveProtectionDemoCallback is AbstractCallback, RescuableBase {
         }
     }
 
-    /**
-     * @notice Perform collateral protection (external for try-catch)
-     */
     function _performCollateralProtection(uint256 configId) external returns (uint256) {
         require(msg.sender == address(this), "Internal function");
 
         ProtectionConfig storage config = protectionConfigs[configId];
 
         (, uint256 totalDebtUSD,,,,) = ILendingPool(lendingPool).getUserAccountData(owner);
+
         if (totalDebtUSD == 0) {
             return 0;
         }
@@ -494,9 +575,6 @@ contract AaveProtectionDemoCallback is AbstractCallback, RescuableBase {
         return collateralNeeded;
     }
 
-    /**
-     * @notice Perform debt repayment (external for try-catch)
-     */
     function _performDebtRepayment(uint256 configId) external returns (uint256) {
         require(msg.sender == address(this), "Internal function");
 
@@ -527,9 +605,6 @@ contract AaveProtectionDemoCallback is AbstractCallback, RescuableBase {
         return repaymentAmount;
     }
 
-    /**
-     * @notice Calculate collateral needed to reach target health factor
-     */
     function _calculateCollateralNeeded(uint256 configId) internal view returns (uint256) {
         ProtectionConfig storage config = protectionConfigs[configId];
 
@@ -564,9 +639,6 @@ contract AaveProtectionDemoCallback is AbstractCallback, RescuableBase {
         return collateralNeeded;
     }
 
-    /**
-     * @notice Calculate repayment amount needed to reach target health factor
-     */
     function _calculateRepaymentAmount(uint256 configId) internal view returns (uint256) {
         ProtectionConfig storage config = protectionConfigs[configId];
 
@@ -604,6 +676,7 @@ contract AaveProtectionDemoCallback is AbstractCallback, RescuableBase {
         uint256 assetDebtUSD = (debtAssetPriceUSD * currentVariableDebt) / (10 ** decimals);
 
         uint256 tokensToRepay;
+
         if (assetDebtUSD <= debtToRepayUSD) {
             tokensToRepay = currentVariableDebt;
         } else {
@@ -617,26 +690,18 @@ contract AaveProtectionDemoCallback is AbstractCallback, RescuableBase {
         return tokensToRepay;
     }
 
-    /**
-     * @notice Get asset liquidation threshold
-     */
     function _getAssetLiquidationThreshold(address asset) internal view returns (uint256) {
         (,, uint256 liquidationThreshold,,,,,,,) =
             IProtocolDataProvider(protocolDataProvider).getReserveConfigurationData(asset);
+
         return liquidationThreshold;
     }
 
-    /**
-     * @notice Get asset price from Aave's oracle
-     */
     function _getAssetPrice(address asset) internal view returns (uint256) {
         address priceOracleAddress = ILendingPoolAddressesProvider(addressesProvider).getPriceOracle();
         return IPriceOracleGetter(priceOracleAddress).getAssetPrice(asset);
     }
 
-    /**
-     * @notice Validate that an asset is supported by Aave
-     */
     function _validateAssetSupported(address asset) internal view returns (bool) {
         try this.getAssetPrice(asset) returns (uint256 price) {
             return price > 0;
@@ -645,34 +710,20 @@ contract AaveProtectionDemoCallback is AbstractCallback, RescuableBase {
         }
     }
 
-    // View functions
-
-    /**
-     * @notice Get current health factor
-     */
     function getCurrentHealthFactor() external view returns (uint256) {
         (,,,,, uint256 healthFactor) = ILendingPool(lendingPool).getUserAccountData(owner);
         return healthFactor;
     }
 
-    /**
-     * @notice Get asset price (public for testing/debugging)
-     */
     function getAssetPrice(address asset) external view returns (uint256) {
         return _getAssetPrice(asset);
     }
 
-    /**
-     * @notice Get multiple asset prices at once
-     */
     function getAssetsPrices(address[] calldata assets) external view returns (uint256[] memory) {
         address priceOracleAddress = ILendingPoolAddressesProvider(addressesProvider).getPriceOracle();
         return IPriceOracleGetter(priceOracleAddress).getAssetsPrices(assets);
     }
 
-    /**
-     * @notice Returns the owner address as the rescue recipient
-     */
     function _rescueRecipient() internal view override returns (address) {
         return owner;
     }
