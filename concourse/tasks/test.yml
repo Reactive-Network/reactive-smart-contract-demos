@@ -1,0 +1,11 @@
+---
+platform: linux
+
+inputs:
+  - name: app-git
+
+run:
+  path: bash
+  args:
+    - concourse/scripts/test.sh
+  dir: app-git

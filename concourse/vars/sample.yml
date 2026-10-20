@@ -1,0 +1,14 @@
+# Sample Concourse vars for reactive-smart-contract-demos pipeline validation.
+
+github-access-token:
+  username: git
+  password: CHANGE_ME
+
+ghcr-credentials:
+  username: CHANGE_ME
+  password: CHANGE_ME
+
+webhook-token-reactive-smart-contract-demos: CHANGE_ME
+
+slack-notify:
+  secret: CHANGE_ME
