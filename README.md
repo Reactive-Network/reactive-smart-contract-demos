@@ -11,7 +11,8 @@ This repository contains a collection of demo projects for Reactive Network, a b
 * Automated liquidation protection on Aave
 * Leveraged looping on Aave
 * Automated prediction market payouts
-* Gasless cross-chain atomic swaps.
+* Gasless cross-chain atomic swaps
+* Cross-chain security circuit breakers.
 
 All contracts are written in Solidity, and the repository uses the Foundry development framework for building, testing, and deployment. Together, these demos show how Reactive Contracts can replace manual monitoring and off-chain bots with deterministic, event-centric on-chain logic.
 
@@ -56,6 +57,10 @@ All contracts are written in Solidity, and the repository uses the Foundry devel
 ### Gasless Cross-Chain Atomic Swap Demo
 
 [Gasless Cross-Chain Atomic Swap Demo](https://github.com/Reactive-Network/reactive-smart-contract-demos/tree/main/src/demos/gasless-cross-chain-atomic-swap) enables trustless token exchanges between two blockchains without bridges or custodians. Two users initiate and acknowledge a swap on their respective chains, deposit tokens, and a Reactive contract handles the entire process: syncing state, confirming deposits, and triggering completion on both chains automatically. The swap is atomic: it either completes for both parties or doesn't happen at all. Users only pay gas on their own chain.
+
+### Vault Exploit Guard Demo
+
+[Vault Exploit Guard Demo](https://github.com/Reactive-Network/reactive-smart-contract-demos/tree/main/src/demos/vault-exploit-guard) is a cross-chain security circuit breaker. A Reactive contract subscribes to a deliberately vulnerable vault's `Withdrawal` events on a destination chain and classifies each log against on-chain exploit-shape detectors: drain-sized withdrawals (`RULE_DRAIN`) and reentrancy storms proven by frozen credit accounting across same-transaction logs (`RULE_REENTRY`). On the first trigger it requests a callback that trips the vault's pause switch through a pauser contract, so an attacker's follow-up drain reverts with `EnforcedPause`. Detection and response run entirely on chain — no bots, no servers. The demo also shows how to size a reactive contract's float for log storms, the failure mode where an underfunded contract silently stops receiving callback delivery mid-attack.
 
 ## Deployment Instructions
 
